@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import BaseLayout from "./layout/BaseLayout";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import BaseLayout from "../layout/BaseLayout";
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import Link from "next/link";
+import { NovelsProvider, SearchProvider } from "@/novels/providers";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,12 +23,38 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <BaseLayout>
-          {children}
-        </BaseLayout>
-      </body>
-    </html>
+    <BaseLayout>
+      <NovelsProvider>
+        <SearchProvider>
+          <AppBar position="sticky">
+            <Toolbar>
+              <Typography
+                variant="h6"
+                component={Link}
+                sx={{ flexGrow: 1, cursor: "pointer" }}
+                href="/"
+              >
+                FurViNo
+              </Typography>
+              <Button LinkComponent={Link} href="/" color="inherit">
+                Browse
+              </Button>
+              <Button LinkComponent={Link} href="/favourites" color="inherit">
+                Favorites
+              </Button>
+            </Toolbar>
+          </AppBar>
+          <Container>{children}</Container>
+          <Box
+            component="footer"
+            sx={{ bgcolor: "background.paper", p: 2, mt: "auto" }}
+          >
+            <Typography variant="body2" color="text.secondary" align="center">
+              &copy; {new Date().getFullYear()} FurViNo
+            </Typography>
+          </Box>
+        </SearchProvider>
+      </NovelsProvider>
+    </BaseLayout>
   );
 }
