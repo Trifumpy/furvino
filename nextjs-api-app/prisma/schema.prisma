@@ -1,0 +1,20 @@
+model Novel {
+  id        Int      @id @default(autoincrement())
+  title     String
+  author    String?
+  externalUrl String?
+  magnetUrl String?
+  description String?
+  snippet   String?
+  tags      String[]
+  comments   Comment[]
+  thumbnailUrl String?
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  authorId  String
+  text      String
+  novelId   Int
+  novel     Novel    @relation(fields: [novelId], references: [id])
+}
