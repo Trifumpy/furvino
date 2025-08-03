@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Container,
+  Stack,
   Toolbar,
   Typography,
 } from "@mui/material";
@@ -26,35 +27,50 @@ export default function RootLayout({
     <BaseLayout>
       <NovelsProvider>
         <SearchProvider>
-          <AppBar position="sticky">
-            <Toolbar>
-              <Typography
-                variant="h6"
-                component={Link}
-                sx={{ flexGrow: 1, cursor: "pointer" }}
-                href="/"
-              >
-                FurViNo
-              </Typography>
-              <Button LinkComponent={Link} href="/" color="inherit">
-                Browse
-              </Button>
-              <Button LinkComponent={Link} href="/favourites" color="inherit">
-                Favorites
-              </Button>
-            </Toolbar>
-          </AppBar>
-          <Container>{children}</Container>
-          <Box
-            component="footer"
-            sx={{ bgcolor: "background.paper", p: 2, mt: "auto" }}
-          >
-            <Typography variant="body2" color="text.secondary" align="center">
-              &copy; {new Date().getFullYear()} FurViNo
-            </Typography>
-          </Box>
+          <Stack minHeight="100dvh">
+            <Header />
+            <Container sx={{ pb: 2 }}>{children}</Container>
+            <Box flexGrow={1} />
+            <Footer />
+          </Stack>
         </SearchProvider>
       </NovelsProvider>
     </BaseLayout>
+  );
+}
+
+function Header() {
+  return (
+    <AppBar position="sticky">
+      <Toolbar>
+        <Typography
+          variant="h6"
+          component={Link}
+          sx={{ flexGrow: 1, cursor: "pointer" }}
+          href="/"
+        >
+          FurViNo
+        </Typography>
+        <Button LinkComponent={Link} href="/" color="inherit">
+          Browse
+        </Button>
+        <Button LinkComponent={Link} href="/favourites" color="inherit">
+          Favorites
+        </Button>
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+function Footer() {
+  return (
+    <Box
+      component="footer"
+      sx={{ bgcolor: "background.paper", p: 2, mt: "auto" }}
+    >
+      <Typography variant="body2" color="text.secondary" align="center">
+        &copy; {new Date().getFullYear()} FurViNo
+      </Typography>
+    </Box>
   );
 }

@@ -1,14 +1,38 @@
+import { Author } from "@/users/types";
+
 export type Novel = {
   id: string;
   title: string;
-  author?: string;
-  externalUrl?: string;
-  magnetUrl?: string;
+  author: Author;
+  externalUrls?: Record<ExternalSite, string>;
+  magnetUrls?: Record<Platform, string>;
   description?: string;
   snippet?: string;
-  tags: string[];
-  comments: Comment[];
   thumbnailUrl?: string;
+  tags: string[];
+  comments: CommentsSummary;
+  stats: Stats;
+  ratingsSummary: RatingsSummary;
+}
+
+export type ExternalSite = "discord" | "patreon" | "x" | "itch";
+export type Platform = "windows" | "mac" | "linux" | "android" | "other";
+
+export type CommentsSummary = {
+  total: number;
+  recent: Comment[];
+}
+
+export type RatingsSummary = {
+  total: number;
+  average: number;
+  recent: UserRating[];
+}
+
+export type Stats = {
+  downloads: number;
+  favorites: number;
+  views: number;
 }
 
 export type Comment = {
@@ -19,10 +43,6 @@ export type Comment = {
 export type UserRating = {
   userId: string;
   value: number;
-}
-
-export type Stats = {
-  downloads: number;
 }
 
 export type User = {

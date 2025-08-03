@@ -1,0 +1,24 @@
+import { LucideProps } from "lucide-react";
+import { forwardRef } from "react";
+
+export const PatreonIcon = forwardRef<SVGSVGElement, LucideProps>(
+  ({ size = 24, ...props }, ref) => (
+    <svg
+      ref={ref}
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="0"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M20.23 1.604c-0.008-0-0.017-0-0.027-0-5.961 0-10.793 4.832-10.793 10.793s4.832 10.793 10.793 10.793c5.955 0 10.783-4.822 10.793-10.775v-0.001c-0.004-5.953-4.816-10.781-10.763-10.809h-0.003zM1.004 1.604v28.792h5.274v-28.792z" />
+    </svg>
+  )
+);
+
+PatreonIcon.displayName = "PatreonIcon";
