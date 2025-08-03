@@ -27,8 +27,13 @@ export function SearchProvider({ children }: PropsWithChildren) {
 
   const filteredNovels = useMemo(() => {
     if (!searchQuery) return novels;
-    return novels.filter((novel) =>
-      novel.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return novels.filter(
+      (novel) =>
+        novel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        novel.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        novel.tags.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        )
     );
   }, [searchQuery, novels]);
 

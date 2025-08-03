@@ -2,20 +2,20 @@
 
 import { Novel } from "@/novels/types";
 import {
-  Box,
   Card,
   CardActions,
   CardContent,
   CardMedia,
-  Chip,
   IconButton,
+  Stack,
   Typography,
   useTheme,
 } from "@mui/material";
-import { DEFAULT_NOVEL_COVER_URL, TAG_COLORS } from "./constants";
+import { DEFAULT_NOVEL_COVER_URL } from "./constants";
 import { HeartIcon } from "lucide-react";
 import { trimString } from "@/utils";
 import Link from "next/link";
+import { NovelTags } from "./NovelTags";
 
 // NovelCard Component
 interface Props {
@@ -58,9 +58,14 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
           }}
         />
         <CardContent sx={{ flexGrow: 1 }}>
-          <Typography gutterBottom variant="h5" component="div">
-            {novel.title}
-          </Typography>
+          <Stack pb={2}>
+            <Typography variant="h5" component="div">
+              {novel.title}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" mt={1}>
+              {novel.author.name}
+            </Typography>
+          </Stack>
           {snippet ? (
             <Typography variant="body2" color="text.secondary">
               {snippet}
@@ -74,9 +79,6 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
               No description available.
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary" mt={1}>
-            {novel.author.name}
-          </Typography>
         </CardContent>
       </Link>
       <CardActions
@@ -87,16 +89,7 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
           p: 2,
         }}
       >
-        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-          {novel.tags.map((tag) => (
-            <Chip
-              key={tag}
-              label={tag}
-              size="small"
-              color={TAG_COLORS[tag] || "default"}
-            />
-          ))}
-        </Box>
+        <NovelTags tags={novel.tags} />
         {SHOW_FAVORITE_BUTTON && (
           <IconButton
             onClick={() => onToggleFavorite(novel.id)}

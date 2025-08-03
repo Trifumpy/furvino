@@ -12,6 +12,10 @@ export function FavoritesPage() {
       <Typography variant="h4" component="h1" sx={{ my: 4 }}>
         Your Favorites
       </Typography>
+      <Alert severity="warning">
+        This feature is still under development. Some functionality may not work
+        as expected.
+      </Alert>
       {favoriteNovels.length > 0 ? (
         <Grid container spacing={4}>
           {favoriteNovels.map((novel) => (

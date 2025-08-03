@@ -5,6 +5,8 @@ import { useNovel } from "../providers";
 import Image from "next/image";
 import { DEFAULT_NOVEL_COVER_URL } from "../components/constants";
 import { Links } from "../components/Links";
+import { NovelDownloads } from "../components";
+import { NovelTags } from "../components/NovelTags";
 
 export function NovelDetailsPage() {
   const { novel } = useNovel();
@@ -23,6 +25,7 @@ export function NovelDetailsPage() {
           alt={`Cover for ${novel.title}`}
           height={300}
           width={600}
+          priority
           style={{
             width: "100%",
             height: 300,
@@ -30,16 +33,19 @@ export function NovelDetailsPage() {
           }}
         />
       </Box>
-      <Stack
-        direction="row"
-        gap={1}
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography variant="h4" component="h1" sx={{ my: 4 }}>
-          {novel.title}
-        </Typography>
-        <Links novel={novel} />
+      <Stack sx={{ py: 4 }} gap={2}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          gap={4}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Typography variant="h4" component="h1">
+            {novel.title}
+          </Typography>
+          <Links novel={novel} />
+        </Stack>
+        <NovelTags tags={novel.tags} chipSize="medium" />
       </Stack>
       {description ? (
         description.split("\n").map((paragraph) => (
@@ -57,6 +63,9 @@ export function NovelDetailsPage() {
           No description available.
         </Typography>
       )}
+      <Stack direction="row" justifyContent="center" my={4}>
+        <NovelDownloads novel={novel} />
+      </Stack>
     </>
   );
 }

@@ -54,7 +54,7 @@ function Header() {
         <Button LinkComponent={Link} href="/" color="inherit">
           Browse
         </Button>
-        <Button LinkComponent={Link} href="/favourites" color="inherit">
+        <Button LinkComponent={Link} href="/favorites" color="inherit">
           Favorites
         </Button>
       </Toolbar>
