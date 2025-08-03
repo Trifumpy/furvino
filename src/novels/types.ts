@@ -15,7 +15,7 @@ export type Novel = {
   ratingsSummary: RatingsSummary;
 }
 
-export type ExternalSite = "discord" | "patreon" | "x" | "itch";
+export type ExternalSite = "discord" | "patreon" | "x" | "itch" | "bluesky";
 export type Platform = "windows" | "mac" | "linux" | "android" | "other";
 
 export type CommentsSummary = {

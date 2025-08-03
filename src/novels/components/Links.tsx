@@ -3,6 +3,7 @@ import { ExternalSite, Novel } from "../types";
 import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import {
+  BlueskyIcon,
   DiscordIcon,
   ItchIcon,
   PatreonIcon,
@@ -20,6 +21,7 @@ export function Links({ novel, ...props }: Props) {
 
   return (
     <Stack direction="row" gap={2} {...props}>
+      <LinkButton href={links.bluesky} service="bluesky" />
       <LinkButton href={links.discord} service="discord" />
       <LinkButton href={links.itch} service="itch" />
       <LinkButton href={links.patreon} service="patreon" />
@@ -37,12 +39,14 @@ const SERVICE_NAMES: Record<ExternalSite, string> = {
   discord: "Discord",
   itch: "Itch.io",
   patreon: "Patreon",
+  bluesky: "Bluesky",
   x: "X",
 };
 const SERVICE_ICONS: Record<ExternalSite, LucideIcon> = {
   discord: DiscordIcon,
   itch: ItchIcon,
   patreon: PatreonIcon,
+  bluesky: BlueskyIcon,
   x: TwitterXIcon,
 };
 
