@@ -1,0 +1,22 @@
+  {
+    "id": "",
+    "title": "",
+    "description": "",
+    "snippet": "",
+    "authorId": "",
+    "externalUrls": {
+      "itch": "",
+      "patreon": "",
+      "discord": "",
+      "x": ""
+    },
+    "magnetUrls": {
+      "windows": "",
+      "mac": "",
+      "linux": "",
+      "android": "",
+      "other": ""
+    },
+    "thumbnailUrl": "/thumbnails/",
+    "tags": ["", "", "", "", ""]
+  }

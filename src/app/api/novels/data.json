@@ -6,19 +6,42 @@
     "snippet": "Echo is a horror visual novel about silly critters",
     "authorId": "1",
     "externalUrls": {
+      "itch": "https://itch.io/profile/echoproject",
+      "patreon": "https://www.patreon.com/EchoGame/overview",
+      "discord": "https://discordapp.com/invite/WaGxhH2",
+      "x": "https://x.com/EchoTheVN",
+      "bluesky": ""
+    },
+    "magnetUrls": {
+      "windows": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
+      "mac": "magnet:?xt=urn:btih:b709867a878c743a94f6cf0892fb8b3231324741&dn=Echo-1.01-mac.zip&xl=667601938&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
+      "linux": "magnet:?xt=urn:btih:022e50c29e53c34ed82bf4ab2386c45264425a51&dn=Echo-1.01-linux.tar.bz2&xl=671588654&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
+      "android": "magnet:?xt=urn:btih:4b2019196588654bc8631ddba1fadc6abd68b713&dn=Echo%201.01%20Full%20Visual%20Novel.apk&xl=724671870&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
+      "other": ""
+    },
+    "thumbnailUrl": "/thumbnails/echo.png",
+    "tags": ["Horror", "Mystery"]
+  },
+  {
+"id": "2",
+    "title": "Adastra",
+    "description": "Game about gay men in space",
+    "snippet": "Space critters in love",
+    "authorId": "1",
+    "externalUrls": {
       "itch": "https://echoproject.itch.io/echo",
       "patreon": "https://www.patreon.com/echoproject",
       "discord": "https://discord.gg/echoproject",
       "x": "https://x.com/echoproject"
     },
     "magnetUrls": {
-      "windows": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "mac": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "linux": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "android": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "other": ""
+      "windows": "magnet:?xt=urn:btih:3325f86da8d6482d0cb3e42b9d92e48aa17d33ab&dn=Adastra-17-win.zip&xl=274093212&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
+      "mac": "magnet:?xt=urn:btih:ae57f22faf52d3fcbedae0e1708d918c766f5172&dn=Adastra-17-mac.zip&xl=272527963&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
+      "linux": "magnet:?xt=urn:btih:3151408cccb366579a98040a0f5d14f4bdbd1ead&dn=Adastra-17-linux.tar.bz2&xl=270364077&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
+      "android": "magnet:?xt=urn:btih:9385128278d587816d37ae4fa7cdfaf158827b86&dn=Adastra%2017-release.apk&xl=293396172&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
+      "other": "magnet:?xt=urn:btih:df7f1bf8d9c01ed0e34baee48cb0e8c0bb1da1fe&dn=Adastra%2017%20Android%20newer%20version%20fix.apk&xl=309749673&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce"
     },
-    "thumbnailUrl": "/thumbnails/echo.png",
+    "thumbnailUrl": "/thumbnails/adastra.png",
     "tags": ["Horror", "Mystery"]
   }
 ]
