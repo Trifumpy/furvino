@@ -1,4 +1,5 @@
 export * from './AndroidIcon';
+export * from './BlueskyLogo';
 export * from './DiscordIcon';
 export * from './LinuxIcon';
 export * from './MacIcon';
