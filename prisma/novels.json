@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+      "id": "1",
     "title": "Echo",
     "description": "Echo is a horror visual novel about a small, isolated, desert town located somewhere in the southwestern states.\nDuring spring break, Chase, a young otter who grew up in Echo, is back for a school project aimed at documenting an event in the 1870's that may have led to the town's current state. He's joined by five friends, who grew up with him in Echo, taking the chance to have a little reunion. Unfortunately, Chase begins to realize that their memories of Echo may have been a bit rose-tinted. Being back in the town digs up old and painful memories; secrets that lead to rifts in the group that have been boiling under the surface for years. On top of that, Chase begins to realize that Echo itself may have its own secrets. Odd and unexplained memories that he always blamed on an overactive childhood imagination may not have been imagined at all.\n Finally, an event is triggered that turns these fears into something much more tangible and dangerous. Chase is now forced into a situation in which he must help his friends either face, or escape their demons. Either way, Echo is not keen on letting them go...",
     "snippet": "Echo is a horror visual novel about silly critters",
@@ -13,35 +13,102 @@
       "bluesky": ""
     },
     "magnetUrls": {
-      "windows": "magnet:?xt=urn:btih:2ffe5d245bbae09bf84b159c8bf0e14802b01c3d&dn=Echo-1.01-pc.zip&xl=685599509&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "mac": "magnet:?xt=urn:btih:b709867a878c743a94f6cf0892fb8b3231324741&dn=Echo-1.01-mac.zip&xl=667601938&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "linux": "magnet:?xt=urn:btih:022e50c29e53c34ed82bf4ab2386c45264425a51&dn=Echo-1.01-linux.tar.bz2&xl=671588654&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "android": "magnet:?xt=urn:btih:4b2019196588654bc8631ddba1fadc6abd68b713&dn=Echo%201.01%20Full%20Visual%20Novel.apk&xl=724671870&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
+      "windows": "https://tomikolasek.stack.storage/s/K25GqcjuXoinDV61",
+      "mac": "https://tomikolasek.stack.storage/s/AKBSR9h3lQINRo40",
+      "linux": "https://tomikolasek.stack.storage/s/ptKfAL7zyjj9Cy5B",
+      "android": "https://tomikolasek.stack.storage/s/cDiWA3BwtaFYcwHy",
       "other": ""
     },
     "thumbnailUrl": "/thumbnails/echo.png",
-    "tags": ["Horror", "Mystery"]
+    "tags": ["Bara", "Coming of Age", "Echo", "Horror", "Psychological Horror" , "Gay" , "Queer" , "Romance" , "Yaoi"]
   },
   {
-"id": "2",
+  "id": "2",
     "title": "Adastra",
-    "description": "Game about gay men in space",
-    "snippet": "Space critters in love",
+    "description": "(Adastra contains themes of an adult nature - you must be 18 or older to play) Adastra is a romance visual novel with a whole bunch of sci-fi and political intrigue mixed in. You'll experience the perils of navigating an empire in turmoil while deciding who you should and who you definitely shouldn't trust. It all starts while you're having the time of your life in Rome on a study abroad program. Just as you're settling in, you're suddenly abducted by an alien. What does he want from you? Well, he doesn't seem to want to tell you, and before you know it, you're millions of miles away from Earth on your way to an empire you know nothing about. It's a climate of turncoats and backstabbers, and you start to wonder if the alien that abducted you is the one person you can trust the most. Our wonderful sprite art is by the artist HAPS, who you can find on his twitter. The background art is by the also wonderful Blacksun who you can find on her furaffinity. If you'd like to keep up with all things Adastra, you can do so on our Patreon. Other version- Constains an APK for Android. Should run on newer Android devices unlike the official APK.",
+    "snippet": "Adastra is an 18+ sci-fi romance visual novel where, after being abducted by an alien, you must navigate political intrigue and trust within a tumultuous intergalactic empire.",
     "authorId": "1",
     "externalUrls": {
-      "itch": "https://echoproject.itch.io/echo",
-      "patreon": "https://www.patreon.com/echoproject",
-      "discord": "https://discord.gg/echoproject",
-      "x": "https://x.com/echoproject"
+      "itch": "https://itch.io/profile/echoproject",
+      "patreon": "https://www.patreon.com/EchoGame/overview",
+      "discord": "https://discordapp.com/invite/WaGxhH2",
+      "x": "https://x.com/EchoTheVN",
+      "bluesky": ""
     },
     "magnetUrls": {
-      "windows": "magnet:?xt=urn:btih:3325f86da8d6482d0cb3e42b9d92e48aa17d33ab&dn=Adastra-17-win.zip&xl=274093212&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "mac": "magnet:?xt=urn:btih:ae57f22faf52d3fcbedae0e1708d918c766f5172&dn=Adastra-17-mac.zip&xl=272527963&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
-      "linux": "magnet:?xt=urn:btih:3151408cccb366579a98040a0f5d14f4bdbd1ead&dn=Adastra-17-linux.tar.bz2&xl=270364077&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce",
-      "android": "magnet:?xt=urn:btih:9385128278d587816d37ae4fa7cdfaf158827b86&dn=Adastra%2017-release.apk&xl=293396172&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce",
-      "other": "magnet:?xt=urn:btih:df7f1bf8d9c01ed0e34baee48cb0e8c0bb1da1fe&dn=Adastra%2017%20Android%20newer%20version%20fix.apk&xl=309749673&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce"
+      "windows": "https://tomikolasek.stack.storage/s/Sog98NHOkNvQZflx",
+      "mac": "https://tomikolasek.stack.storage/s/58ulcXlUoyRWCNzr",
+      "linux": "https://tomikolasek.stack.storage/s/tQOKvEnwUKnkUSHn",
+      "android": "https://tomikolasek.stack.storage/s/9tRa4nwjSX4W0ZsV",
+      "other": "https://tomikolasek.stack.storage/s/j8HGjurhuWN1LJKo"
     },
     "thumbnailUrl": "/thumbnails/adastra.png",
-    "tags": ["Horror", "Mystery"]
+    "tags": ["Adastra", "Bara", "Sci-Fi", "Romance" , "Dating Sim" , "Gay"]
+  },
+  {
+    "id": "3",
+    "title": "Remember The Flowers",
+    "description": "This story follows the tale of an amnesiac man. With memories fleeting,  he wakes up in what seems to be a new world. The only thing he's certain of is his desire to return home. The only question is: what has become of it?",
+    "snippet": "Story about an amnesiac man who wakes up in a new world and seeks to return home.",
+    "authorId": "2",
+    "externalUrls": {
+      "itch": "https://jerichowo.itch.io/remember-the-flowers",
+      "patreon": "https://www.patreon.com/RememberTheFlowers",
+      "discord": "https://discord.gg/dWukK6Vvrv",
+      "x": "https://x.com/RtFVN"
+    },  
+    "magnetUrls": {
+      "windows": "https://tomikolasek.stack.storage/s/nO8rjfvjZMjmMZlN",
+      "mac": "https://tomikolasek.stack.storage/s/nO8rjfvjZMjmMZlN",
+      "linux": "https://tomikolasek.stack.storage/s/6mSBHroLa3mAT2Aj",
+      "android": "https://tomikolasek.stack.storage/s/7GBaR8h3rG1dn004",
+      "other": ""
+    },
+    "thumbnailUrl": "/thumbnails/rememberTheFlowers.png",
+    "tags": ["LGBTQIA", "Romance", "Scifi"]
+  },
+  {
+    "id": "4",
+    "title": "Arches",
+    "description": "CW: Arches is a horror story that can be an emotionally intense experience for some readers. Themes of drug addiction, mental illness, and physical and mental abuse are explored, along with descriptions and imagery of brief, but intense violence. Please consider your mental well-being before downloading. In March 2020, boyfriends Cameron and Devon arrive in the ghost town of Echo to conduct a paranormal investigation. It has been five years since the mass hysteria supposedly left the town completely abandoned. While it does seem empty at first, they realize that something evil still lurks in Echo, evil enough that it has kept the horrors alive. Arches is a standalone story that takes place after the events of Echo. Sprite art and illustrations by Paintfox Background art by Kardamon Soundtrack composed by Moe Coding assistance by Orion Splash screen and main menu animation by Gumdrop_Studios If you enjoy our work and would like to follow some of our other projects, you can do so on our Patreon",
+    "snippet": "Cameron and Devon arrive in the ghost town of Echo to conduct a paranormal investigation.",
+    "authorId": "1",
+    "externalUrls": {
+      "itch": "https://itch.io/profile/echoproject",
+      "patreon": "https://www.patreon.com/EchoGame/overview",
+      "discord": "https://discordapp.com/invite/WaGxhH2",
+      "x": "https://x.com/EchoTheVN"
+    },
+    "magnetUrls": {
+      "windows": "https://tomikolasek.stack.storage/s/IDc1oaDZwI6MaGS0",
+      "mac": "https://tomikolasek.stack.storage/s/GYEyDCZY2OYgKXOa",
+      "linux": "https://tomikolasek.stack.storage/s/C9vgWYApQE0Excp3",
+      "android": "https://tomikolasek.stack.storage/s/RJ3lHLqwVUAg4wPW",
+      "other": ""
+    },
+    "thumbnailUrl": "/thumbnails/arches.png",
+    "tags": ["Gay", "Psychological Horror"]
+  },
+  {
+    "id": "5",
+    "title": "Since November",
+    "description": "[Since November contains adult themes and is intended for audiences 18 or older] What are you doing with your time on Earth? Are you happy? Stay inside. We have pizza. Since November is a short furry visual novel with about 12k words and four endings. It is written to be conclusive, so there will be no additional chapters.Since November is a game that was developed for the NovemBear 2024 Furry Visual Novel Jam, and later finished in May 2025. If you were waiting for the full experience, now is the time! Additional coding assistance from Kah",
+    "snippet": "What are you doing with your time on Earth? Are you happy? Stay inside. We have pizza. Created for NovemBear.",
+    "authorId": "3",
+    "externalUrls": {
+      "itch": "https://keithballard.itch.io/since-november",
+      "patreon": "patreon.com/SebastianSB",
+      "discord": "discord.gg/269QfMEbkb",
+      "x": ""
+    },
+    "magnetUrls": {
+      "windows": "https://tomikolasek.stack.storage/s/Mswn0VqBXg2CJNVT",
+      "mac": "https://tomikolasek.stack.storage/s/h9nhpAaPsQZ08OqE",
+      "linux": "",
+      "android": "https://tomikolasek.stack.storage/s/N0AcisnYEPT5JqUi",
+      "other": ""
+    },
+    "thumbnailUrl": "/thumbnails/sinceNovember.jpg",
+    "tags": ["Gay", "LGBT"]
   }
 ]
