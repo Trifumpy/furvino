@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Database Management
+
+We're using Prisma to run our database. To connect to a database, you may either use the one provided by Prisma (you can create one by passing the `--db` flag with the `npx prisma init` command) or use the Docker postgres instance.
+
+If you are going to use any external database (including Prisma's), configure the `DATABASE_URL` field in the `.env.local` file (create it if you don't have it).
+
+When you first set up a database after clearing it; run `npx prisma db seed` to seed the database with initial values extracted from our json files. You may need to run `npx prisma generate`
+
+To visualize and alter the data, run `npx prisma studio`. The web interface will allow you to see entries in each table, as well as delete, update, and create entries. You may need to migrate the database once it is created or whenever we update our data schemas.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

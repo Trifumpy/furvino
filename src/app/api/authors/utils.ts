@@ -1,13 +1,10 @@
 import { Author } from "@/users/types";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import prisma from "@/utils/db";
 
 type RawAuthor = Author;
 
-export async function getAuthors(): Promise<RawAuthor[]> { 
-  const filePath = join(process.cwd(), 'src', 'app', 'api', 'authors', 'data.json');
-  const data = await readFile(filePath, 'utf-8');
-  const authors: RawAuthor[] = JSON.parse(data);
+export async function getAuthors(): Promise<RawAuthor[]> {
+  const authors = await prisma.author.findMany()
 
   return authors;
 }

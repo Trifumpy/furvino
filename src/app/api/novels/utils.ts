@@ -1,39 +1,51 @@
-import { Novel } from "@/novels/types";
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { getAuthors } from "../authors/utils";
-import { Author } from "@/users/types";
+import { Prisma } from "@/generated/prisma";
+import { ExternalSite, Novel, Platform } from "@/novels/types";
+import prisma from "@/utils/db";
 
-type RawNovel = Omit<Novel, 'comments' | 'stats' | 'ratingsSummary' | 'author'> & {
-  authorId: string;
+type PrismaNovelWithAuthor = Prisma.PromiseReturnType<typeof prisma.novel.findUnique> & {
+  author?: { id: string; name: string } | null;
 };
 
-export async function getNovels(): Promise<RawNovel[]> { 
-  const filePath = join(process.cwd(), 'src', 'app', 'api', 'novels', 'data.json');
-  const data = await readFile(filePath, 'utf-8');
-  const novels: RawNovel[] = JSON.parse(data);
-
-  return novels;
-}
-
-export async function postProcessNovel(novel: RawNovel): Promise<Novel> {
-  return await postProcessNovels([novel]).then(novels => novels[0]);
-}
-
-export async function postProcessNovels(novels: RawNovel[]): Promise<Novel[]> {
-  const authors = await getAuthors();
-  const authorMap = new Map(authors.map(author => [author.id, author]));
-
-  return novels.map(novel => postProcessNovel_(novel, authorMap));
-}
-
-function postProcessNovel_(novel: RawNovel, authorMap: Map<string, Author>): Novel {
-  const processedNovel = {
-    ...novel,
-    author: authorMap.get(novel.authorId) || {
-      id: novel.authorId,
-      name: "Unknown Author",
+export async function getNovels(): Promise<Novel[]> { 
+  const novelsWithAuthors = await prisma.novel.findMany({
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
+  });
+
+  // Map the Prisma result to match the Novel type if needed
+  return novelsWithAuthors.map(postProcessNovelData);
+}
+
+export async function getNovel(novelId: string): Promise<Novel | null> {
+  const novel = await prisma.novel.findUnique({
+    where: { id: novelId },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      }
+    },
+  });
+  if (!novel) {
+    return null;
+  }
+  return postProcessNovelData(novel);
+}
+
+function postProcessNovelData(data: PrismaNovelWithAuthor): Novel {
+  return {
+    ...data,
+    author: data.author || { id: data.authorId, name: "Unknown Author" },
+    externalUrls: postProcessUrls<ExternalSite>(data.externalUrls),
+    magnetUrls: postProcessUrls<Platform>(data.magnetUrls),
     comments: {
       total: 0,
       recent: [],
@@ -49,6 +61,15 @@ function postProcessNovel_(novel: RawNovel, authorMap: Map<string, Author>): Nov
       recent: [],
     },
   };
+}
 
-  return processedNovel;
+function postProcessUrls<TKey extends string = string>(raw: Prisma.JsonValue): Partial<Record<TKey, string>> {
+  if (typeof raw !== 'object' || raw === null) {
+    return {};
+  }
+  const result: Partial<Record<TKey, string>> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    result[key as TKey] = String(value);
+  }
+  return result;
 }

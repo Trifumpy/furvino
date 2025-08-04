@@ -4,11 +4,11 @@ export type Novel = {
   id: string;
   title: string;
   author: Author;
-  externalUrls?: Record<ExternalSite, string>;
-  magnetUrls?: Record<Platform, string>;
-  description?: string;
-  snippet?: string;
-  thumbnailUrl?: string;
+  externalUrls?: Partial<Record<ExternalSite, string>>;
+  magnetUrls?: Partial<Record<Platform, string>>;
+  description?: string | null;
+  snippet?: string | null;
+  thumbnailUrl?: string | null;
   tags: string[];
   comments: CommentsSummary;
   stats: Stats;

@@ -46,7 +46,7 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
     <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Link
         href={detailsUrl}
-        style={{ textDecoration: "none", color: "inherit" }}
+        style={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}
       >
         <CardMedia
           component="img"
@@ -57,7 +57,7 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
             e.currentTarget.src = `https://placehold.co/600x400/1e1e1e/ffffff?text=Image+Error`;
           }}
         />
-        <CardContent sx={{ flexGrow: 1 }}>
+        <CardContent>
           <Stack pb={2}>
             <Typography variant="h5" component="div">
               {novel.title}
