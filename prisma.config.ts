@@ -1,6 +1,9 @@
 import path from "node:path";
 import { defineConfig } from "prisma/config";
 
+// Load environment variables from .env file
+import '@dotenvx/dotenvx/config'
+
 export default defineConfig({
   schema: path.join("prisma", "schema.prisma"),
   migrations: {

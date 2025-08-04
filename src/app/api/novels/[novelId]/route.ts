@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getNovel } from "../utils";
+import { NextParams } from "../../../types";
 
-export async function GET(request: Request, { params }: { params: { novelId: string } }) {
-  const novelId = params.novelId;
+type Context = NextParams<{
+  novelId: string;
+}>;
+
+export async function GET(request: NextRequest, { params }: Context) {
+  const { novelId } = await params;
 
   const novel = await getNovel(novelId);
   if (!novel) {

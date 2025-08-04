@@ -14,6 +14,8 @@ type Props = StackProps & {
   novel: Novel;
 };
 
+const SERVICES = ["bluesky", "discord", "itch", "patreon", "x"] as const;
+
 export function Links({ novel, ...props }: Props) {
   const links = novel.externalUrls;
 
@@ -21,11 +23,12 @@ export function Links({ novel, ...props }: Props) {
 
   return (
     <Stack direction="row" gap={2} {...props}>
-      <LinkButton href={links.bluesky} service="bluesky" />
-      <LinkButton href={links.discord} service="discord" />
-      <LinkButton href={links.itch} service="itch" />
-      <LinkButton href={links.patreon} service="patreon" />
-      <LinkButton href={links.x} service="x" />
+      {SERVICES.map(
+        (service) =>
+          links[service] && (
+            <LinkButton key={service} href={links[service]} service={service} />
+          )
+      )}
     </Stack>
   );
 }

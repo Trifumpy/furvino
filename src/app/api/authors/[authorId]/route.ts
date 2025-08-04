@@ -1,16 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthors, postProcessAuthor } from "../utils";
+import { NextParams } from "../../../types";
 
-export async function GET(request: Request, { params }: { params: { authorId: string } }) {
-  const novelId = params.authorId;
+type Context = NextParams<{
+  authorId: string;
+}>;
 
-  const novels = await getAuthors();
-  const novel = novels.find(n => n.id === novelId);
+export async function GET(request: NextRequest, { params }: Context) {
+  const { authorId } = await params;
 
-  if (!novel) {
-    return NextResponse.json({ error: "Novel not found" }, { status: 404 });
+  const authors = await getAuthors();
+  const author = authors.find((n) => n.id === authorId);
+
+  if (!author) {
+    return NextResponse.json({ error: "Author not found" }, { status: 404 });
   }
 
-  const result = postProcessAuthor(novel);
+  const result = postProcessAuthor(author);
   return NextResponse.json(result);
 }

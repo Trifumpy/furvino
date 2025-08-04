@@ -24,9 +24,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 We're using Prisma to run our database. To connect to a database, you may either use the one provided by Prisma (you can create one by passing the `--db` flag with the `npx prisma init` command) or use the Docker postgres instance.
 
-If you are going to use any external database (including Prisma's), configure the `DATABASE_URL` field in the `.env.local` file (create it if you don't have it).
+If you are going to use any external database (including Prisma's), configure the `DATABASE_URL` field in the `.env.local` file (create it if you don't have it). If you want to use the docker postgres database for local development, run the specific image manually or run the whole compose with `docker-compose up`.
 
-When you first set up a database after clearing it; run `npx prisma db seed` to seed the database with initial values extracted from our json files. You may need to run `npx prisma generate`
+When you first set up a database, run `npx prisma migrate deploy` to get the latest migrations. You may need to run `npx prisma generate` once to generate the source files necessary to run prisma in your local system. After clearing it; run `npm run seed` to seed the database with initial values extracted from our json files.
 
 To visualize and alter the data, run `npx prisma studio`. The web interface will allow you to see entries in each table, as well as delete, update, and create entries. You may need to migrate the database once it is created or whenever we update our data schemas.
 
