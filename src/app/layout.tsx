@@ -1,17 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import BaseLayout from "../layout/BaseLayout";
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  Stack,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import Link from "next/link";
+import { Box, Container, Stack, Typography } from "@mui/material";
 import { NovelsProvider, SearchProvider } from "@/novels/providers";
+import { Header } from "@/layout";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -36,29 +28,6 @@ export default function RootLayout({
         </SearchProvider>
       </NovelsProvider>
     </BaseLayout>
-  );
-}
-
-function Header() {
-  return (
-    <AppBar position="sticky">
-      <Toolbar>
-        <Typography
-          variant="h6"
-          component={Link}
-          sx={{ flexGrow: 1, cursor: "pointer" }}
-          href="/"
-        >
-          FurViNo
-        </Typography>
-        <Button LinkComponent={Link} href="/" color="inherit">
-          Browse
-        </Button>
-        <Button LinkComponent={Link} href="/favorites" color="inherit">
-          Favorites
-        </Button>
-      </Toolbar>
-    </AppBar>
   );
 }
 

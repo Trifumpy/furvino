@@ -11,6 +11,7 @@
     "dump": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/dump.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.28.1",
     "@dotenvx/dotenvx": "^1.48.4",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",

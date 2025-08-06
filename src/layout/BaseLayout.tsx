@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "./ThemeProvider";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { ClerkProvider } from "@clerk/nextjs";
 
 // Font variables should be defined in theme.ts
 // However, Next.js font optimization requires literals
@@ -20,12 +21,14 @@ export default function BaseLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <AppRouterCacheProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </AppRouterCacheProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <AppRouterCacheProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </AppRouterCacheProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
