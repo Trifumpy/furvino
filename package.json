@@ -20,7 +20,6 @@
     "@mui/material-nextjs": "^7.2.0",
     "@prisma/client": "^6.13.0",
     "@prisma/extension-accelerate": "^2.0.2",
-    "firebase": "^12.0.0",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",
     "react": "19.1.0",
