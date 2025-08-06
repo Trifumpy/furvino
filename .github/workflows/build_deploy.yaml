@@ -1,0 +1,39 @@
+name: Deployment Workflow
+
+# Trigger this workflow on pushes to the specified branch
+on:
+  push:
+    branches:
+      - main
+
+env:
+  NODE_LTS_VERSION: "20" # Specify the Node.js LTS version to use
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_LTS_VERSION }}
+          check-latest: true
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Build Docker Image
+        run: docker build -t furvino:latest .
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_SECRET }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Push
+        run: docker push furvino:latest
