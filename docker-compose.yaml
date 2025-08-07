@@ -11,6 +11,8 @@ services:
       - NODE_ENV=production
     depends_on:
       - db
+    networks:
+      - services
   db:
     image: postgres:15-alpine
     environment:
@@ -21,7 +23,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - services
 
 volumes:
   postgres_data: {}
+networks:
+  services:
+    driver: bridge
   
