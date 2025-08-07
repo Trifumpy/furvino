@@ -20,6 +20,7 @@ model Author {
   name String
 
   novels Novel[]
+  user   User?
 }
 
 model Novel {
@@ -38,20 +39,61 @@ model Novel {
   views        Int          @default(0)
   comments     Comment[]
   ratings      UserRating[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([authorId])
 }
 
 model Comment {
-  id       String @id @default(uuid())
-  novel    Novel  @relation(fields: [novelId], references: [id])
-  novelId  String
-  authorId String
-  text     String
+  id      String @id @default(uuid())
+  novel   Novel  @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  novelId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  text    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([novelId])
+  @@index([userId])
 }
 
 model UserRating {
   id      String @id @default(uuid())
-  novel   Novel  @relation(fields: [novelId], references: [id])
+  novel   Novel  @relation(fields: [novelId], references: [id], onDelete: Cascade)
   novelId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String
   value   Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([novelId, userId])
+  @@index([novelId])
+  @@index([userId])
+}
+
+model User {
+  id        String    @id @default(uuid())
+  clerkId   String    @unique
+  email     String    @unique
+  username  String    @unique
+  roles     String[]  @default(["user"])
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  comments Comment[]
+  ratings  UserRating[]
+  author   Author?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId String?      @unique
+
+  @@index([clerkId])
+  @@index([email])
+  @@index([username])
 }
