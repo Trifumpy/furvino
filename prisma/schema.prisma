@@ -40,7 +40,7 @@ model Novel {
   comments     Comment[]
   ratings      UserRating[]
   createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  updatedAt    DateTime     @default(now()) @updatedAt
 
   @@index([authorId])
 }
@@ -54,7 +54,7 @@ model Comment {
   text    String
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([novelId])
   @@index([userId])
@@ -69,7 +69,7 @@ model UserRating {
   value   Int
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([novelId, userId])
   @@index([novelId])
@@ -85,7 +85,7 @@ model User {
   avatarUrl String?
   bio       String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @default(now()) @updatedAt
   deletedAt DateTime?
 
   comments Comment[]
