@@ -26,8 +26,8 @@ export async function POST(req: Request) {
     return new Response("Invalid signature", { status: 400 });
   }
 
-  const { type, data } = evt;
-  console.log("Webhook received:", type, data);
+  const { type } = evt;
+  console.log("Webhook received:", type);
 
   await processEvent(evt);
 

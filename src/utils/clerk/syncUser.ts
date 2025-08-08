@@ -16,6 +16,7 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
     }
   }
 
+  console.log(`Syncing user with Clerk ID: ${clerkId}`, userData);
   const user = await prisma.user.upsert({
     where: { clerkId },
     update: userData!,
