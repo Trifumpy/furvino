@@ -1,4 +1,4 @@
-import { Platform } from "@/novels/types";
+import { Platform } from "@/contracts/novels";
 
 export function detectPlatform(): Platform {
   if (typeof window === "undefined") return "windows";

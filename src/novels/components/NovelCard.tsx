@@ -1,6 +1,5 @@
 "use client";
 
-import { Novel } from "@/novels/types";
 import {
   Card,
   CardActions,
@@ -16,10 +15,11 @@ import { HeartIcon } from "lucide-react";
 import { trimString } from "@/utils";
 import Link from "next/link";
 import { NovelTags } from "./NovelTags";
+import { ListedNovel } from "@/contracts/novels";
 
 // NovelCard Component
 interface Props {
-  novel: Novel;
+  novel: ListedNovel;
   isFavorited: boolean;
   onToggleFavorite: (id: string) => void;
 }

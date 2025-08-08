@@ -1,7 +1,9 @@
-import type { AuthorForCreate, NovelForCreate } from "./types"; 
+import { novelSchema } from "@/contracts/novels";
 import { PrismaClient } from "../src/generated/prisma";
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { authorSchema } from "@/contracts/users";
+import z from "zod";
 
 const prisma = new PrismaClient()
 
@@ -12,9 +14,21 @@ async function loadJson<T>(fileName: string) {
   return result;
 }
 
+async function loadAndValidateJson<T>(fileName: string, schema: z.ZodType<T>) {
+  const data = await loadJson<T>(fileName);
+  const parsedData = data.map(item => {
+    const result = schema.safeParse(item);
+    if (!result.success) {
+      throw new Error(`Validation error in ${fileName}: ${result.error.message}`);
+    }
+    return result.data;
+  });
+  return parsedData;
+}
+
 async function main() {
-  const authors = await loadJson<AuthorForCreate>('authors');
-  const novels = await loadJson<NovelForCreate>('novels');
+  const authors = await loadAndValidateJson('authors', authorSchema);
+  const novels = await loadAndValidateJson('novels', novelSchema);
 
   console.log(`Seeding ${authors.length} authors and ${novels.length} novels...`);
 

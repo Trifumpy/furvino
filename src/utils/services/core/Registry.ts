@@ -1,5 +1,6 @@
 import { AuthorsService } from "../authors";
 import { NovelsService } from "../novels";
+import { UsersService } from "../users";
 
 // Optionally read from env or config
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
@@ -11,10 +12,12 @@ export class Registry {
   // Service instances
   public readonly authors: AuthorsService;
   public readonly novels: NovelsService;
+  public readonly users: UsersService;
 
   private constructor() {
     this.authors = new AuthorsService(API_BASE_URL);
     this.novels = new NovelsService(API_BASE_URL);
+    this.users = new UsersService(API_BASE_URL);
   }
 
   // Static getter to retrieve singleton instance

@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import BaseLayout from "../layout/BaseLayout";
 import { Box, Container, Stack, Typography } from "@mui/material";
-import { NovelsProvider, SearchProvider } from "@/novels/providers";
-import { Header } from "@/layout";
+import { Header, BaseLayout } from "@/layout";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,16 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <BaseLayout>
-      <NovelsProvider>
-        <SearchProvider>
-          <Stack minHeight="100dvh">
-            <Header />
-            <Container sx={{ pb: 2 }}>{children}</Container>
-            <Box flexGrow={1} />
-            <Footer />
-          </Stack>
-        </SearchProvider>
-      </NovelsProvider>
+      <Stack minHeight="100dvh">
+        <Header />
+        <Container sx={{ pb: 2 }}>{children}</Container>
+        <Box flexGrow={1} />
+        <Footer />
+      </Stack>
     </BaseLayout>
   );
 }

@@ -1,17 +1,17 @@
 "use client";
 
 import { createContext, PropsWithChildren, useContext } from "react";
-import { Novel } from "../types";
+import { ListedNovel } from "@/contracts/novels";
 
 type TContext = {
-  novel: Novel | null;
+  novel: ListedNovel | null;
 };
 const NovelContext = createContext<TContext>({
   novel: null,
 });
 
 type Props = PropsWithChildren<{
-  novel: Novel;
+  novel: ListedNovel;
 }>;
 
 export function ClientNovelProvider({ novel, children }: Props) {

@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 import Link from "next/link";
-import { Auth } from "./Auth";
+import { Auth } from "../Auth";
 
 export function Header() {
   return (

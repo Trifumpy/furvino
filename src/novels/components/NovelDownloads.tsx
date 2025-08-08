@@ -6,14 +6,14 @@ import {
   ChevronUpIcon,
   LucideIcon,
 } from "lucide-react";
-import { Novel, Platform } from "../types";
+import { ListedNovel, Platform } from "@/contracts/novels";
 import { AndroidIcon, LinuxIcon, MacIcon, WindowsIcon } from "@/generic/icons";
 import { useEffect, useMemo, useState } from "react";
 import { detectPlatform } from "@/utils";
 import { Button, Menu, MenuItem, Stack, Typography } from "@mui/material";
 
 type Props = {
-  novel: Novel;
+  novel: ListedNovel;
 };
 
 export const PLATFORM_ICONS: Record<Platform, LucideIcon> = {

@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "./ThemeProvider";
+import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
+import { CoreProvider } from "./CoreProvider";
+import { PropsWithChildren } from "react";
 
 // Font variables should be defined in theme.ts
 // However, Next.js font optimization requires literals
@@ -16,13 +16,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function BaseLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function BaseLayout({ children }: PropsWithChildren) {
   return (
-    <ClerkProvider appearance={{ theme: dark }}>
+    <CoreProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
           <AppRouterCacheProvider>
@@ -30,6 +26,6 @@ export default function BaseLayout({
           </AppRouterCacheProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </CoreProvider>
   );
 }

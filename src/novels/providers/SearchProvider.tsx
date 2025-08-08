@@ -7,13 +7,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Novel } from "../types";
+import { ListedNovel } from "@/contracts/novels";
 import { useNovels } from "./ClientNovelsProvider";
 
 type TContext = {
   searchQuery: string | undefined;
   setSearchQuery: (query: string | undefined) => void;
-  filteredNovels: Novel[];
+  filteredNovels: ListedNovel[];
 };
 const SearchContext = createContext<TContext>({
   searchQuery: undefined,

@@ -8,12 +8,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Novel } from "../types";
+import { ListedNovel } from "@/contracts/novels";
 
 type TContext = {
-  novels: Novel[];
+  novels: ListedNovel[];
   favoriteIds: Set<string>;
-  favoriteNovels: Novel[];
+  favoriteNovels: ListedNovel[];
   addFavorite: (id: string) => void;
   removeFavorite: (id: string) => void;
   toggleFavorite: (id: string) => void;
@@ -28,7 +28,7 @@ const NovelsContext = createContext<TContext>({
 });
 
 type Props = PropsWithChildren<{
-  novels: Novel[];
+  novels: ListedNovel[];
 }>;
 
 export function ClientNovelsProvider({ novels, children }: Props) {

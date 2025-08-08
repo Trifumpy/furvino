@@ -1,6 +1,5 @@
 import { IconButton, Stack, StackProps, Tooltip } from "@mui/material";
-import { ExternalSite, Novel } from "../types";
-import { LucideIcon } from "lucide-react";
+import { FileQuestionMarkIcon, LucideIcon } from "lucide-react";
 import Link from "next/link";
 import {
   BlueskyIcon,
@@ -9,9 +8,10 @@ import {
   PatreonIcon,
   TwitterXIcon,
 } from "@/generic/icons";
+import { ExternalSite, ListedNovel } from "@/contracts/novels";
 
 type Props = StackProps & {
-  novel: Novel;
+  novel: ListedNovel;
 };
 
 const SERVICES = ["bluesky", "discord", "itch", "patreon", "x"] as const;
@@ -44,6 +44,11 @@ const SERVICE_NAMES: Record<ExternalSite, string> = {
   patreon: "Patreon",
   bluesky: "Bluesky",
   x: "X",
+  linktree: "Linktree",
+  carrd: "Carrd",
+  furaffinity: "Fur Affinity",
+  youtube: "YouTube",
+  telegram: "Telegram",
 };
 const SERVICE_ICONS: Record<ExternalSite, LucideIcon> = {
   discord: DiscordIcon,
@@ -51,6 +56,11 @@ const SERVICE_ICONS: Record<ExternalSite, LucideIcon> = {
   patreon: PatreonIcon,
   bluesky: BlueskyIcon,
   x: TwitterXIcon,
+  carrd: FileQuestionMarkIcon,
+  linktree: FileQuestionMarkIcon,
+  furaffinity: FileQuestionMarkIcon,
+  youtube: FileQuestionMarkIcon,
+  telegram: FileQuestionMarkIcon,
 };
 
 function LinkButton({ href, service }: LinkProps) {
@@ -61,7 +71,12 @@ function LinkButton({ href, service }: LinkProps) {
 
   return (
     <Tooltip title={serviceName}>
-      <IconButton LinkComponent={Link} href={href}>
+      <IconButton
+        LinkComponent={Link}
+        rel="noopener noreferrer"
+        target="_blank"
+        href={href}
+      >
         <Icon size={32} />
       </IconButton>
     </Tooltip>

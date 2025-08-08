@@ -1,8 +1,7 @@
+import { GetUserOptions } from "@/contracts/users";
+import { User } from "@/generated/prisma";
+import { syncUser } from "@/utils/clerk";
 import prisma from "@/utils/db";
-
-type GetUserOptions = {
-  includeDeleted?: boolean;
-}
 
 export function getUser(userId: string, options?: GetUserOptions) {
   return prisma.user.findUnique({
@@ -22,9 +21,40 @@ export function getUserByExternalId(externalId: string, options?: GetUserOptions
   });
 }
 
+export async function getOrCreateUserByExternalId(externalId: string) {
+  const user = await getUserByExternalId(externalId);
+  if (user) {
+    return user;
+  }
+
+  return await syncUser(externalId);
+}
+
 export function markUserAsDeleted(userId: string) {
   return prisma.user.update({
     where: { id: userId },
     data: { deletedAt: new Date() },
   });
+}
+
+export function getAllUsers(options?: GetUserOptions) {
+  return prisma.user.findMany({
+    where: { 
+      deletedAt: options?.includeDeleted ? undefined : null, 
+      username: { contains: options?.search || "" } 
+    },
+  });
+}
+
+// ENRICHMENT 
+
+export async function enrichUser(user: User) {
+  const author = user.authorId 
+    ? await prisma.author.findUnique({ where: { id: user.authorId } }) 
+    : null;
+
+  return {
+    ...user,
+    author,
+  };
 }
