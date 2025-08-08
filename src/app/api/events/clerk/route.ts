@@ -1,6 +1,7 @@
 import { Webhook } from 'svix'; // Clerk uses svix-style signing
 import { headers } from 'next/headers';
 import { ClerkEvent } from './types';
+import { processEvent } from './utils';
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
 
@@ -27,6 +28,8 @@ export async function POST(req: Request) {
 
   const { type, data } = evt;
   console.log("Webhook received:", type, data);
+
+  await processEvent(evt);
 
   // Handle user.created, user.updated, etc.
   return new Response("OK", { status: 200 });
