@@ -1,5 +1,5 @@
 import { IconButton, Stack, StackProps, Tooltip } from "@mui/material";
-import { FileQuestionMarkIcon, LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import {
   BlueskyIcon,
@@ -13,13 +13,17 @@ import {
   TwitterXIcon,
   YoutubeIcon,
 } from "@/generic/icons";
-import { ExternalSite, ListedNovel } from "@/contracts/novels";
+import {
+  ExternalSite,
+  externalSiteEnum,
+  ListedNovel,
+} from "@/contracts/novels";
 
 type Props = StackProps & {
   novel: ListedNovel;
 };
 
-const SERVICES = ["bluesky", "discord", "itch", "patreon", "x"] as const;
+const SERVICES = Object.values(externalSiteEnum.enum);
 
 export function Links({ novel, ...props }: Props) {
   const links = novel.externalUrls;
