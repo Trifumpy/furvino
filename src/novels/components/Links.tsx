@@ -3,10 +3,15 @@ import { FileQuestionMarkIcon, LucideIcon } from "lucide-react";
 import Link from "next/link";
 import {
   BlueskyIcon,
+  CarrdIcon,
   DiscordIcon,
+  FuraffinityIcon,
   ItchIcon,
+  LinktreeIcon,
   PatreonIcon,
+  TelegramIcon,
   TwitterXIcon,
+  YoutubeIcon,
 } from "@/generic/icons";
 import { ExternalSite, ListedNovel } from "@/contracts/novels";
 
@@ -56,11 +61,11 @@ const SERVICE_ICONS: Record<ExternalSite, LucideIcon> = {
   patreon: PatreonIcon,
   bluesky: BlueskyIcon,
   x: TwitterXIcon,
-  carrd: FileQuestionMarkIcon,
-  linktree: FileQuestionMarkIcon,
-  furaffinity: FileQuestionMarkIcon,
-  youtube: FileQuestionMarkIcon,
-  telegram: FileQuestionMarkIcon,
+  carrd: CarrdIcon,
+  linktree: LinktreeIcon,
+  furaffinity: FuraffinityIcon,
+  youtube: YoutubeIcon,
+  telegram: TelegramIcon,
 };
 
 function LinkButton({ href, service }: LinkProps) {
