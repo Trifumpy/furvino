@@ -24,14 +24,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Migrate the database if needed
-RUN \
-  if [ -f yarn.lock ]; then yarn run prisma migrate deploy; \
-  elif [ -f package-lock.json ]; then npx prisma migrate deploy; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run prisma:migrate:deploy; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
