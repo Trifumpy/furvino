@@ -8,3 +8,8 @@ export * from './TorrentIcon';
 export * from './WindowsIcon';
 export * from './TwitterXIcon';
 export * from './ItchIcon';
+export * from './FuraffinityIcon';
+export * from './TelegramIcon';
+export * from './YoutubeIcon';
+export * from './CarrdIcon';
+export * from './LinktreeIcon';
