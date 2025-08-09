@@ -17,7 +17,7 @@ export default function RootLayout({
     <BaseLayout>
       <Stack minHeight="100dvh">
         <Header />
-        <Container sx={{ pb: 2 }}>{children}</Container>
+        <Container sx={{ py: 4 }}>{children}</Container>
         <Box flexGrow={1} />
         <Footer />
       </Stack>

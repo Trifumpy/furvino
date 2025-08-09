@@ -11,7 +11,7 @@ export function BrowsePage() {
 
   return (
     <>
-      <Box sx={{ my: 4 }}>
+      <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Discover Your Next Story
         </Typography>

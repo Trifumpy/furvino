@@ -1,35 +1,14 @@
 "use client";
 
-import {
-  BoxesIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  LucideIcon,
-} from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { ListedNovel, Platform } from "@/contracts/novels";
-import { AndroidIcon, LinuxIcon, MacIcon, WindowsIcon } from "@/generic/icons";
 import { useEffect, useMemo, useState } from "react";
 import { detectPlatform } from "@/utils";
 import { Button, Menu, MenuItem, Stack, Typography } from "@mui/material";
+import { PLATFORM_ICONS, PLATFORM_NAMES } from "@/generic/data";
 
 type Props = {
   novel: ListedNovel;
-};
-
-export const PLATFORM_ICONS: Record<Platform, LucideIcon> = {
-  android: AndroidIcon,
-  linux: LinuxIcon,
-  mac: MacIcon,
-  windows: WindowsIcon,
-  other: BoxesIcon,
-};
-
-export const PLATFORM_NAMES: Record<Platform, string> = {
-  android: "Android",
-  linux: "Linux",
-  mac: "Mac",
-  windows: "Windows",
-  other: "Other",
 };
 
 const BUTTON_HEIGHT = 48;

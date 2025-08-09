@@ -1,29 +1,11 @@
 import { IconButton, Stack, StackProps, Tooltip } from "@mui/material";
-import { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import {
-  BlueskyIcon,
-  CarrdIcon,
-  DiscordIcon,
-  FuraffinityIcon,
-  ItchIcon,
-  LinktreeIcon,
-  PatreonIcon,
-  TelegramIcon,
-  TwitterXIcon,
-  YoutubeIcon,
-} from "@/generic/icons";
-import {
-  ExternalSite,
-  externalSiteEnum,
-  ListedNovel,
-} from "@/contracts/novels";
+import { ExternalSite, EXTERNAL_SITES, ListedNovel } from "@/contracts/novels";
+import { SERVICE_ICONS, SERVICE_NAMES } from "@/generic/data";
 
 type Props = StackProps & {
   novel: ListedNovel;
 };
-
-const SERVICES = Object.values(externalSiteEnum.enum);
 
 export function Links({ novel, ...props }: Props) {
   const links = novel.externalUrls;
@@ -32,10 +14,10 @@ export function Links({ novel, ...props }: Props) {
 
   return (
     <Stack direction="row" gap={2} {...props}>
-      {SERVICES.map(
-        (service) =>
-          links[service] && (
-            <LinkButton key={service} href={links[service]} service={service} />
+      {EXTERNAL_SITES.map(
+        (site) =>
+          links[site] && (
+            <LinkButton key={site} href={links[site]} site={site} />
           )
       )}
     </Stack>
@@ -44,39 +26,14 @@ export function Links({ novel, ...props }: Props) {
 
 type LinkProps = {
   href: string;
-  service: ExternalSite;
+  site: ExternalSite;
 };
 
-const SERVICE_NAMES: Record<ExternalSite, string> = {
-  discord: "Discord",
-  itch: "Itch.io",
-  patreon: "Patreon",
-  bluesky: "Bluesky",
-  x: "X",
-  linktree: "Linktree",
-  carrd: "Carrd",
-  furaffinity: "Fur Affinity",
-  youtube: "YouTube",
-  telegram: "Telegram",
-};
-const SERVICE_ICONS: Record<ExternalSite, LucideIcon> = {
-  discord: DiscordIcon,
-  itch: ItchIcon,
-  patreon: PatreonIcon,
-  bluesky: BlueskyIcon,
-  x: TwitterXIcon,
-  carrd: CarrdIcon,
-  linktree: LinktreeIcon,
-  furaffinity: FuraffinityIcon,
-  youtube: YoutubeIcon,
-  telegram: TelegramIcon,
-};
-
-function LinkButton({ href, service }: LinkProps) {
+function LinkButton({ href, site }: LinkProps) {
   if (!href) return null;
 
-  const serviceName = SERVICE_NAMES[service];
-  const Icon = SERVICE_ICONS[service];
+  const serviceName = SERVICE_NAMES[site];
+  const Icon = SERVICE_ICONS[site];
 
   return (
     <Tooltip title={serviceName}>

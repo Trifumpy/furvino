@@ -1,5 +1,5 @@
-import { Box, Chip } from "@mui/material";
-import { TAG_COLORS } from "./constants";
+import { Tag, TAG_COLORS, TAGS } from "@/generic/data";
+import { Box, Chip, ChipProps } from "@mui/material";
 
 type Props = {
   tags: string[];
@@ -12,9 +12,9 @@ export function NovelTags({ tags, chipSize = "small" }: Props) {
       {tags.map((tag) => (
         <Chip
           key={tag}
-          label={tag}
+          label={TAGS[tag as Tag] || tag}
           size={chipSize}
-          color={TAG_COLORS[tag] || "default"}
+          color={(TAG_COLORS[tag as Tag] || "default") as ChipProps["color"]}
         />
       ))}
     </Box>

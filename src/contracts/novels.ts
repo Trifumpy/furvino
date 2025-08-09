@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const externalSiteEnum = z.enum([
+export const EXTERNAL_SITES = [
   "discord",
   "patreon",
   "x",
@@ -11,15 +11,16 @@ export const externalSiteEnum = z.enum([
   "furaffinity",
   "youtube",
   "telegram"
-]);
-export const platformEnum = z.enum([
+]
+export const PLATFORMS = [
   "windows",
   "mac",
   "linux",
   "android",
-  "other",
-]);
-
+  "other"
+];
+export const externalSiteEnum = z.enum(EXTERNAL_SITES);
+export const platformEnum = z.enum(PLATFORMS);
 export type ExternalSite = z.infer<typeof externalSiteEnum>;
 export type Platform = z.infer<typeof platformEnum>;
 

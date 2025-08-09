@@ -9,7 +9,8 @@ import {
 } from "@/contracts/novels";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { ExternalSitesEditor } from "./ExternalSitesEditor";
 
 type Props = {
   existingId?: string;
@@ -64,6 +65,16 @@ export function NovelForm({ existingId, defaultData, onSubmit }: Props) {
           label="Cover Image URL"
           error={!!errors.coverImage}
           helperText={errors.coverImage?.message}
+        />
+        <Controller
+          name="externalUrls"
+          control={control}
+          render={({ field }) => (
+            <ExternalSitesEditor
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
       </Stack>
     </form>
