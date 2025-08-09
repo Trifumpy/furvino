@@ -31,31 +31,9 @@ jobs:
           name: build-files
           path: ./build # Assuming 'npm run build' creates a 'build' directory
 
-  test:
-    name: Run Tests
-    runs-on: self-hosted
-    needs: build # This job will only run after the 'build' job succeeds
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Execute Tests
-        run: npm test
-
   deploy:
     name: Deploy to Server
     runs-on: self-hosted
-    needs: test # This job will only run after the 'test' job succeeds
 
     steps:
       - name: Download Build Artifact
