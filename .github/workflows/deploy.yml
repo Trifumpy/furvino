@@ -1,0 +1,31 @@
+name: Deploy to VPS
+
+# This workflow runs on every push to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Connect to VPS and run deployment commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Navigate to your project directory on the VPS
+            # IMPORTANT: Change this path to your actual project path!
+            cd /home/github/furvino
+            
+            # Pull the latest changes from the main branch
+            git pull origin main
+            
+            # Build and restart your services with Docker Compose
+            docker compose build
+            docker compose up -d
