@@ -20,6 +20,9 @@ export function Header() {
         <Button LinkComponent={Link} href="/favorites" color="inherit">
           Favorites
         </Button>
+        <Button LinkComponent={Link} href="/about" color="inherit">
+          About
+        </Button>
         <Box flexGrow={1} />
         <Auth />
       </Toolbar>
