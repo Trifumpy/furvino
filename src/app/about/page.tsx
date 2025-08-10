@@ -45,23 +45,23 @@ export default function AboutPage() {
       <Typography variant="h4" sx={{ mt: 4 }}>Legal</Typography>
       <Typography variant="h6" sx={{ mt: 4 }}>Definitions</Typography>
       <Typography>
-        Owner of Furvino.com will be reffered to as "owner". <br />
-        Furvino.com will be reffered to as "website". <br />
-        You, the person using this website will be reffered to as "user" or "you".<br />
-        Authors with the power to upload visual novels will be reffered to as "authors". <br />
-        TransIP BV, team.blue brand at <Link href= "https://www.transip.nl/" target="_blank" rel="noopener">transip.nl</Link> with VAT:NL812334966B01, will be reffered to as "Transip" <br /> 
-        Clerk, Inc. at <Link href= "https://clerk.com/" target="_blank" rel="noopener">clerk.com</Link> will be reffered to as "Clerk"
-        Visual Novels will be refferd to as "VN" or "VNs" for plural.
+        Owner of Furvino.com will be reffered to as &quot;owner&quot;. <br />
+        Furvino.com will be reffered to as &quot;website&quot;. <br />
+        You, the person using this website will be reffered to as &quot;user&quot; or &quot;you&quot;.<br />
+        Authors with the power to upload visual novels will be reffered to as &quot;authors&quot;. <br />
+        TransIP BV, team.blue brand at <Link href= "https://www.transip.nl/" target="_blank" rel="noopener">transip.nl</Link> with VAT:NL812334966B01, will be reffered to as &quot;Transip&quot; <br /> 
+        Clerk, Inc. at <Link href= "https://clerk.com/" target="_blank" rel="noopener">clerk.com</Link> will be reffered to as &quot;Clerk&quot;
+        Visual Novels will be refferd to as &quot;VN&quot; or &quot;VNs&quot; for plural.
       </Typography>
       <Box mt={4} />      
       <Box mt={4} />
       <Typography variant="h6" sx={{ mt: 4 }}>Terms and Conditions</Typography>
       <Typography>
         1) This Website does not generate any revenue. It is stricly a non-profit website. <br />
-        2) The Owner doesn't own any VNs published here. Credit to the authors of the VNs is on the VN pages.
+        2) The Owner doesn&apos;t own any VNs published here. Credit to the authors of the VNs is on the VN pages.
         </Typography>
         <Typography>
-        3) If You wish to takedown your VN uploaded by the Owner because of a request for it to be uploaded, the Owner have to verify User's true ownership of the VN in question. Any takedown requests will be treated seriously and within reasonable time. The Owner will do their best to accomodate your request. If the Owner can't verify you as the owner of the VN, the Owner is not obliged to take down the VN. <br />
+        3) If You wish to takedown your VN uploaded by the Owner because of a request for it to be uploaded, the Owner have to verify User's true ownership of the VN in question. Any takedown requests will be treated seriously and within reasonable time. The Owner will do their best to accomodate your request. If the Owner cannot verify you as the owner of the VN, the Owner is not obliged to take down the VN. <br />
         </Typography>
         <Typography>
         4) The Owner is not responsible for any content uploaded by the Authors. If the Author uploads any illegal conent they will be held responsible and the Owner will remove the content uploaded. Any content uploaded by the Owner is verified to have the correct license for free public redistribution. <br />
@@ -69,11 +69,11 @@ export default function AboutPage() {
         Dutch Penal Code (Wetboek van Strafrecht) <br />
         Dutch Civil Code (Burgerlijk Wetboek) <br />
         Dutch Copyright Act (Auterswet) <br />
-        EU's Digital Services Act (DSA) <br />
-        EU's E-Commerce Directive (Article 14)
+        EU&apos;s Digital Services Act (DSA) <br />
+        EU&apos;s E-Commerce Directive (Article 14)
         </Typography>
         <Typography>
-        5) This Website and STACK storage is hosted in the Netherlands by TransIP. They are also subject to the addition "4a)". Any questions about their products can be found on their website.
+        5) This Website and STACK storage is hosted in the Netherlands by TransIP. They are also subject to the addition &quot;4a)&quot;. Any questions about their products can be found on their website.
       </Typography>
       <Typography>
         6) User login information including passwords is handled by Clerk. We do not store any of your login credentials.
