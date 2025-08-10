@@ -18,6 +18,8 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }} if you created the secret
+
           script: |
             # Navigate to your project directory on the VPS
             # IMPORTANT: Change this path to your actual project path!
