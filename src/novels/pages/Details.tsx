@@ -2,11 +2,11 @@
 
 import { Box, Stack, Typography } from "@mui/material";
 import { useNovel } from "../providers";
-import Image from "next/image";
 import { DEFAULT_NOVEL_COVER_URL } from "../components/constants";
 import { Links } from "../components/Links";
 import { NovelDownloads } from "../components";
 import { NovelTags } from "../components/NovelTags";
+import { SafeImage } from "@/generic/display";
 
 export function NovelDetailsPage() {
   const { novel } = useNovel();
@@ -16,12 +16,13 @@ export function NovelDetailsPage() {
   }
 
   const description = novel.description ?? novel.snippet;
+  const thumbnailUrl = novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL;
 
   return (
     <>
       <Box pt={2}>
-        <Image
-          src={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
+        <SafeImage
+          src={thumbnailUrl}
           alt={`Cover for ${novel.title}`}
           height={300}
           width={600}

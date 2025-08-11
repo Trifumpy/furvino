@@ -1,21 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthors, postProcessAuthor } from "../utils";
-import { NextParams } from "../../../types";
+import { NextResponse } from "next/server";
+import { getAuthor, enrichAuthorWithUser } from "../utils";
+import { wrapRoute } from "../../utils";
 
-type Context = NextParams<{
-  authorId: string;
-}>;
+export const GET = wrapRoute<{ authorId: string }>(
+  async (req, { params }) => {
+    const { authorId } = await params;
 
-export async function GET(request: NextRequest, { params }: Context) {
-  const { authorId } = await params;
+    const author = await getAuthor(authorId);
 
-  const authors = await getAuthors();
-  const author = authors.find((n) => n.id === authorId);
-
-  if (!author) {
-    return NextResponse.json({ error: "Author not found" }, { status: 404 });
+    const result = enrichAuthorWithUser(author, author.user ?? null);
+    return NextResponse.json(result);
   }
-
-  const result = postProcessAuthor(author);
-  return NextResponse.json(result);
-}
+);

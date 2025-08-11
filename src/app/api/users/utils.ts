@@ -1,22 +1,25 @@
-import { GetUserOptions } from "@/contracts/users";
+import { GetUserOptions, PublicUser } from "@/contracts/users";
 import { User } from "@/generated/prisma";
 import { syncUser } from "@/utils/clerk";
 import prisma from "@/utils/db";
 
 export function getUser(userId: string, options?: GetUserOptions) {
   return prisma.user.findUnique({
-    where: { 
-      id: userId, 
-      deletedAt: options?.includeDeleted ? undefined : null 
+    where: {
+      id: userId,
+      deletedAt: options?.includeDeleted ? undefined : null,
     },
-  })
+  });
 }
 
-export function getUserByExternalId(externalId: string, options?: GetUserOptions) {
+export function getUserByExternalId(
+  externalId: string,
+  options?: GetUserOptions
+) {
   return prisma.user.findUnique({
-    where: { 
-      clerkId: externalId, 
-      deletedAt: options?.includeDeleted ? undefined : null 
+    where: {
+      clerkId: externalId,
+      deletedAt: options?.includeDeleted ? undefined : null,
     },
   });
 }
@@ -39,22 +42,31 @@ export function markUserAsDeleted(userId: string) {
 
 export function getAllUsers(options?: GetUserOptions) {
   return prisma.user.findMany({
-    where: { 
-      deletedAt: options?.includeDeleted ? undefined : null, 
-      username: { contains: options?.search || "" } 
+    where: {
+      deletedAt: options?.includeDeleted ? undefined : null,
+      username: { 
+        contains: options?.search || "", 
+        mode: "insensitive" 
+      },
     },
   });
 }
 
-// ENRICHMENT 
+// ENRICHMENT
 
 export async function enrichUser(user: User) {
-  const author = user.authorId 
-    ? await prisma.author.findUnique({ where: { id: user.authorId } }) 
+  const author = user.authorId
+    ? await prisma.author.findUnique({ where: { id: user.authorId } })
     : null;
 
   return {
     ...user,
     author,
   };
+}
+
+export function sanitizeUser(user: User): PublicUser {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { email, clerkId, ...sanitizedUser } = user;
+  return sanitizedUser;
 }

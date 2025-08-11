@@ -5,6 +5,7 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  disabled?: boolean;
 };
 
 export function FileOrUrlInput({
@@ -12,12 +13,14 @@ export function FileOrUrlInput({
   value,
   onChange,
   error,
+  disabled = false,
 }: Props) {
   return (
     <TextField
       fullWidth
+      disabled={disabled}
       label={label}
-      value={value}
+      value={value ?? ""}
       onChange={(e) => onChange(e.target.value)}
       error={!!error}
       helperText={error}

@@ -34,7 +34,7 @@ export const novelSchema = z.object({
   authorId: z.string().min(1, "Author ID is required"),
   description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
-  coverImage: z.url().optional(),
+  thumbnailUrl: z.url().optional(),
   externalUrls: z.partialRecord(externalSiteEnum, z.url()).optional(),
   magnetUrls: z.partialRecord(platformEnum, z.url()).optional(),
   tags: z.array(z.string()).max(MAX_TAGS).optional(),

@@ -1,18 +1,14 @@
 import { WithId } from "@/app/types";
 import {
-  Checkbox,
-  FormControl,
-  FormControlProps,
-  InputLabel,
-  MenuItem,
-  Select,
+  Autocomplete,
+  AutocompleteProps,
   Stack,
+  TextField,
+  TextFieldProps,
   Typography,
 } from "@mui/material";
-import { LucideIcon } from "lucide-react";
-import { FC, ReactNode, useMemo } from "react";
-import { usePopover } from "../hooks";
-import { generateId } from "@/utils/random";
+import { LucideProps } from "lucide-react";
+import { FC, PropsWithChildren, ReactNode, useCallback, useMemo } from "react";
 
 export type SelectorOption<T extends WithId> = {
   label: string;
@@ -20,36 +16,47 @@ export type SelectorOption<T extends WithId> = {
   keepOpen?: boolean;
   disabled?: boolean;
   hidden?: boolean;
-  Icon?: LucideIcon;
-};
-export type ValueRenderer<T extends WithId> = FC<ValueRendererProps<T>>;
-export type ValueRendererProps<T extends WithId> = {
-  item: SelectorOption<T>;
+  Icon?: FC<LucideProps>;
 };
 
-export type SingleSelectorProps<T extends WithId> = {
-  value: T | null;
+type SingleSelectorControls<T extends WithId> = {
   multiple?: false;
+  value: T | null;
   onChange: (value: T | null) => void | Promise<void>;
-} & BaseSelectorProps<T>;
-export type MultipleSelectorProps<T extends WithId> = {
-  value: T[];
+};
+type MultiSelectorControls<T extends WithId> = {
   multiple: true;
+  value: T[];
   onChange: (value: T[]) => void | Promise<void>;
-} & BaseSelectorProps<T>;
+};
+type OverriddenKey =
+  | "onChange"
+  | "value"
+  | "multiple"
+  | "renderInput"
+  | "renderOption"
+  | "renderTags"
+  | "filterSelectedOptions";
+
+export type SingleSelectorProps<T extends WithId> = BaseSelectorProps<T> &
+  SingleSelectorControls<T> &
+  Omit<
+    AutocompleteProps<SelectorOption<T>, false, false, false>,
+    OverriddenKey
+  >;
+export type MultiSelectorProps<T extends WithId> = BaseSelectorProps<T> &
+  MultiSelectorControls<T> &
+  Omit<AutocompleteProps<SelectorOption<T>, true, false, false>, OverriddenKey>;
 export type BaseSelectorProps<T extends WithId> = {
   options: SelectorOption<T>[];
   label?: string;
   disabled?: boolean;
   hideSelected?: boolean;
   OptionRenderer?: OptionRenderer<T>;
-  ValueRenderer?: ValueRenderer<T>;
-  placeholder: ReactNode;
-  slots?: {
-    selectorHeader?: ReactNode;
-    selectorFooter?: ReactNode;
-  };
-  sx?: FormControlProps["sx"];
+  placeholder?: string;
+  variant?: TextFieldProps["variant"];
+  error?: ReactNode;
+  loading?: boolean;
 };
 
 // We can't immediately destructure `props` because we rely on the discriminated union
@@ -59,123 +66,114 @@ export function Selector<T extends WithId>({
   disabled = false,
   hideSelected = false,
   OptionRenderer = DefaultOptionRenderer,
-  ValueRenderer = DefaultValueRenderer,
-  slots = {},
-  sx,
+  placeholder,
+  loading,
+  error,
+  value,
+  variant,
+  multiple,
+  onChange,
   ...props
-}: SingleSelectorProps<T> | MultipleSelectorProps<T>) {
+}: SingleSelectorProps<T> | MultiSelectorProps<T>) {
+  const control = useMemo(
+    () =>
+      ({
+        multiple,
+        value,
+        onChange,
+      }) as SingleSelectorControls<T> | MultiSelectorControls<T>,
+    [multiple, value, onChange]
+  );
+
   const selectedSet = useMemo(
     () =>
       new Set(
-        props.multiple
-          ? props.value.map((v) => v.id)
-          : props.value
-            ? [props.value.id]
+        control.multiple
+          ? control.value.map((v) => v.id)
+          : control.value
+            ? [control.value.id]
             : []
       ),
-    [props.multiple, props.value]
+    [control.multiple, control.value]
   );
-  const optionIndex = useMemo(() => {
-    const index: Record<string | number, SelectorOption<T>> = {};
-    options.forEach((option) => {
-      index[option.value.id] = option;
-    });
-    return index;
-  }, [options]);
 
-  const handleSelect = async (id: string | number) => {
-    const option = optionIndex[id];
-    if (disabled || option.disabled) return;
-
-    if (selectedSet.has(option.value.id)) {
-      // Deselect the option
-      if (props.multiple) {
-        await props.onChange(
-          props.value.filter((v) => v.id !== option.value.id)
+  const handleSelect = useCallback(
+    (option: SelectorOption<T> | SelectorOption<T>[] | null) => {
+      if (control.multiple) {
+        const newValues = Array.isArray(option) ? option : [option];
+        control.onChange(
+          newValues.filter((v) => v !== null).map((v) => v.value)
         );
       } else {
-        await props.onChange(null);
+        const singleOption = Array.isArray(option)
+          ? option.length > 0
+            ? option[0]
+            : null
+          : option;
+        control.onChange(singleOption?.value ?? null);
       }
-    } else {
-      // Select the option
-      if (props.multiple) {
-        await props.onChange([...props.value, option.value]);
-      } else {
-        await props.onChange(option.value);
-      }
-    }
-  };
+    },
+    [control]
+  );
 
   const selectedOptions = useMemo(
     () => options.filter((option) => selectedSet.has(option.value.id)),
     [options, selectedSet]
   );
-  const visibleOptions = useMemo(
-    () =>
-      options.filter(
-        (option) =>
-          !option.hidden && (!hideSelected || !selectedSet.has(option.value.id))
-      ),
-    [options, hideSelected, selectedSet]
-  );
+  const visibleOptions = useMemo(() => {
+    return options.filter((option) => !option.hidden);
+  }, [options]);
 
-  const popover = usePopover<HTMLButtonElement>();
-  const id = useMemo(() => generateId("selector-label"), []);
+  const commonProps = {
+    disabled,
+    options: visibleOptions,
+    filterSelectedOptions: hideSelected,
+    getOptionLabel: (option) => option.label,
+    isOptionEqualToValue: (option, { value }) => option.value.id === value.id,
+    renderInput: (inputProps) => (
+      <TextField
+        label={label}
+        placeholder={placeholder}
+        error={!!error}
+        helperText={error}
+        variant={variant}
+        {...inputProps}
+      />
+    ),
+    onChange: (_, value) => handleSelect(value),
+    renderOption: ({ key, ...optionProps }, option_) => {
+      const option = option_ as SelectorOption<T>;
+      return (
+        <li key={key} {...optionProps}>
+          <OptionRenderer
+            item={option}
+            selected={selectedSet.has(option.value.id)}
+            multiple={!!control.multiple}
+            disabled={disabled || option.disabled}
+          />
+        </li>
+      );
+    },
+  } satisfies AutocompleteProps<SelectorOption<T>, boolean, false, false>;
+
+  if (control.multiple) {
+    return (
+      <Autocomplete
+        {...commonProps}
+        {...(props as AutocompleteProps<SelectorOption<T>, true, false, false>)}
+        value={selectedOptions}
+        multiple={true}
+      />
+    );
+  }
 
   return (
-    <FormControl sx={sx}>
-      <InputLabel id={id} disabled={disabled}>
-        {label}
-      </InputLabel>
-      <Select
-        ref={popover.ref}
-        onClick={popover.open}
-        disabled={disabled}
-        value={(props.value ?? "") as T}
-        multiple={props.multiple}
-        renderValue={() => (
-          <Stack direction="row" gap={1} flexWrap={"wrap"}>
-            {selectedOptions.length === 0 ? (
-              <Typography variant="body2" color="textSecondary">
-                {props.placeholder}
-              </Typography>
-            ) : (
-              selectedOptions.map((option) => (
-                <ValueRenderer key={option.value.id} item={option} />
-              ))
-            )}
-          </Stack>
-        )}
-        onChange={(e) => console.log("selected value", e.target.value)}
-      >
-        <Stack direction="column" spacing={1}>
-          {slots.selectorHeader}
-          {visibleOptions.map((option) => (
-            <MenuItem
-              key={option.value.id}
-              value={option.value.id}
-              disabled={disabled || option.disabled}
-              onClick={(event) => {
-                handleSelect(option.value.id);
-                if (option.keepOpen) {
-                  event.preventDefault();
-                }
-              }}
-            >
-              <OptionRenderer
-                key={option.value.id}
-                item={option}
-                selected={selectedSet.has(option.value.id)}
-                select={() => handleSelect(option.value.id)}
-                multiple={!!props.multiple}
-                disabled={disabled || option.disabled}
-              />
-            </MenuItem>
-          ))}
-          {slots.selectorFooter}
-        </Stack>
-      </Select>
-    </FormControl>
+    <Autocomplete
+      {...commonProps}
+      {...(props as AutocompleteProps<SelectorOption<T>, false, false, false>)}
+      value={selectedOptions.length > 0 ? selectedOptions[0] : null}
+      multiple={false}
+    />
   );
 }
 
@@ -183,37 +181,48 @@ export type OptionRenderer<T extends WithId> = FC<OptionRendererProps<T>>;
 export type OptionRendererProps<T extends WithId> = {
   item: SelectorOption<T>;
   selected: boolean;
-  select: () => void;
   multiple: boolean;
   disabled?: boolean;
 };
 
 function DefaultOptionRenderer<T extends WithId>({
   item,
-  selected,
-  select,
   disabled,
-  multiple,
 }: OptionRendererProps<T>) {
   return (
     <Stack
       direction="row"
       alignItems="center"
       gap={1}
-      onClick={select}
       style={{ cursor: disabled ? "not-allowed" : "pointer" }}
     >
-      {multiple && (
-        <Checkbox onChange={select} checked={selected} disabled={disabled} />
-      )}
       {item.Icon && <item.Icon size={16} />}
       <Typography variant="body2">{item.label}</Typography>
     </Stack>
   );
 }
 
-function DefaultValueRenderer<T extends WithId>({
+export type OptionRendererWithIconProps<T extends WithId> = PropsWithChildren<{
+  item: SelectorOption<T>;
+  iconSize?: number;
+  gap?: number;
+}>;
+
+export function OptionRendererWithIcon<T extends WithId>({
   item,
-}: ValueRendererProps<T>) {
-  return <Typography variant="body2">{item.label}</Typography>;
+  iconSize = 16,
+  gap = 1,
+  children,
+}: OptionRendererWithIconProps<T>) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      gap={gap}
+      style={{ cursor: item.disabled ? "not-allowed" : "pointer" }}
+    >
+      {item.Icon && <item.Icon size={iconSize} />}
+      {children}
+    </Stack>
+  );
 }

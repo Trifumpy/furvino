@@ -1,3 +1,5 @@
+import { sanitizeQueryParams } from "./utils";
+
 // common error type
 export class HttpServiceError extends Error {
   public status?: number;
@@ -62,6 +64,10 @@ export abstract class HttpService {
         ...(options.headers || {}),
       },
     };
+
+    if (options.queryParams) {
+      options.queryParams = sanitizeQueryParams(options.queryParams);
+    }
 
     if (options.body !== undefined) {
       fetchOptions.body = JSON.stringify(options.body);

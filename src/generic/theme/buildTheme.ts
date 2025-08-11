@@ -13,6 +13,13 @@ export function buildTheme() {
       secondary: { main: "#f48fb1" },
       background: { default: "#121212", paper: "#1e1e1e" },
     },
+    components: {
+      MuiPopover: {
+        defaultProps: {
+          disableScrollLock: true,
+        },
+      },
+    },
     typography: { fontFamily: `var(${BODY_FONT_VAR})` },
   });
 

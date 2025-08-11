@@ -1,5 +1,5 @@
 import { HttpService } from "./core";
-import { ListedUser, PublicUser } from "@/contracts/users";
+import { GetUsersQParams, ListedUser, PublicUser } from "@/contracts/users";
 
 export class UsersService extends HttpService {
   constructor(baseUrl: string) {
@@ -19,9 +19,13 @@ export class UsersService extends HttpService {
     });
   }
 
-  getUsers() {
+  getUsers(options: GetUsersQParams = {}) {
     return this.get<PublicUser[]>('/', {
       cache: 'no-cache',
+      queryParams: {
+        ...options,
+        search: options.search ? options.search : undefined,
+      },
     });
   }
 }

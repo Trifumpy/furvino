@@ -1,7 +1,8 @@
 import { IconButton, Stack, TextField, Typography } from "@mui/material";
-import { FC, ReactNode, useMemo } from "react";
+import { FC, ReactNode, useMemo, useState } from "react";
 import { Selector, SelectorOption, SingleSelectorProps } from "./Selector";
 import { DeleteIcon, LucideIcon } from "lucide-react";
+import { ResponsiveValue } from "@/app/types";
 
 export type KeyMapKey<T extends string> = {
   label: string;
@@ -22,7 +23,11 @@ type Props<TKey extends string, TValue> = {
   };
 };
 
-const DEFAULT_MIN_KEY_WIDTH = 180;
+const DEFAULT_MIN_KEY_WIDTH: FieldStyleProps["minKeyWidth"] = {
+  xs: 120,
+  sm: 150,
+  md: 180,
+};
 export function KeyMapField<TKey extends string, TValue>({
   keys,
   value,
@@ -32,6 +37,7 @@ export function KeyMapField<TKey extends string, TValue>({
   ValueField,
   slotProps = {},
 }: Props<TKey, TValue>) {
+  const [query, setQuery] = useState("");
   const removeKey = (key: TKey) => {
     const newValue = value.filter(([k]) => k !== key);
     onChange(newValue);
@@ -104,9 +110,12 @@ export function KeyMapField<TKey extends string, TValue>({
               options={missingKeyOptions}
               value={null}
               multiple={false}
+              inputValue={query}
+              onInputChange={(_, value) => setQuery(value)}
               onChange={(selected) => {
                 if (selected) {
                   addKey(selected.id);
+                  setQuery("");
                 }
               }}
               sx={{
@@ -127,7 +136,7 @@ export function KeyMapField<TKey extends string, TValue>({
 }
 
 type FieldStyleProps = {
-  minKeyWidth?: number | string;
+  minKeyWidth?: ResponsiveValue<string | number>;
 };
 type FieldProps<TKey extends string, TValue> = FieldStyleProps & {
   itemKey: KeyMapKey<TKey>;
@@ -160,6 +169,7 @@ export function KeyValueField<TKey extends string, TValue>({
           direction="row"
           alignItems="center"
           gap={1}
+          px={1}
           minWidth={minKeyWidth}
         >
           {itemKey.Icon && <itemKey.Icon size={20} />}
@@ -221,26 +231,10 @@ export type ValueFieldProps<TKey extends string, TValue> = {
   onChange: (newValue: TValue) => void | Promise<void>;
 };
 
-export function StringKeyMapField<TKey extends string>({
-  keys,
-  value,
-  onChange,
-  getDefaultValue,
-  slotProps = {},
-}: Omit<Props<TKey, string>, "ValueField">) {
-  return (
-    <>
-      {JSON.stringify(value) /* Debugging output, can be removed later */}
-      <KeyMapField<TKey, string>
-        keys={keys}
-        value={value}
-        onChange={onChange}
-        getDefaultValue={getDefaultValue}
-        ValueField={StringValueField}
-        slotProps={slotProps}
-      />
-    </>
-  );
+export function StringKeyMapField<TKey extends string>(
+  props: Omit<Props<TKey, string>, "ValueField">
+) {
+  return <KeyMapField<TKey, string> ValueField={StringValueField} {...props} />;
 }
 
 function StringValueField<TKey extends string>({
