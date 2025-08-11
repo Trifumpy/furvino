@@ -61,7 +61,7 @@ export default function AboutPage() {
         2) The Owner doesn&apos;t own any VNs published here. Credit to the authors of the VNs is on the VN pages.
         </Typography>
         <Typography>
-        3) If You wish to takedown your VN uploaded by the Owner because of a request for it to be uploaded, the Owner have to verify User's true ownership of the VN in question. Any takedown requests will be treated seriously and within reasonable time. The Owner will do their best to accomodate your request. If the Owner cannot verify you as the owner of the VN, the Owner is not obliged to take down the VN. <br />
+        3) If You wish to takedown your VN uploaded by the Owner because of a request for it to be uploaded, the Owner have to verify User&apos;s true ownership of the VN in question. Any takedown requests will be treated seriously and within reasonable time. The Owner will do their best to accomodate your request. If the Owner cannot verify you as the owner of the VN, the Owner is not obliged to take down the VN. <br />
         </Typography>
         <Typography>
         4) The Owner is not responsible for any content uploaded by the Authors. If the Author uploads any illegal conent they will be held responsible and the Owner will remove the content uploaded. Any content uploaded by the Owner is verified to have the correct license for free public redistribution. <br />
