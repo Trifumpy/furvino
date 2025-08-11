@@ -79,7 +79,7 @@ export default function AboutPage() {
         6) User login information including passwords is handled by Clerk. We do not store any of your login credentials.
       </Typography>
       <Typography>
-        7) a
+        7) This is a test if the actions work correctly. If you are reading this, it means that the actions work correctly.
       </Typography>
       <Typography>
         8) By using this website, the User agrees that they are of age 18 or older.
