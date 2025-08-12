@@ -16,9 +16,6 @@ function isFile(p: string) {
 
 if (!fs.existsSync(baseDir)) {
   console.warn(`[STACK] Watch directory does not exist: ${baseDir}`);
-  console.warn(
-    "[STACK] Set STACK_WATCH_DIR to your actual local sync path for 'furvino/novels' and rerun."
-  );
 }
 
 const watcher = chokidar.watch(baseDir, {
