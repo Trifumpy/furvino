@@ -61,5 +61,3 @@ watcher.on("all", (event, p) => {
 watcher.on("ready", () => {
   console.log(`[STACK] Watching for new files under ${baseDir}`);
 });
-
-

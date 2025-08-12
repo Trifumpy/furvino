@@ -182,5 +182,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse>({ success: false, error: (error as Error).message }, { status: 500 });
   }
 }
-
-
