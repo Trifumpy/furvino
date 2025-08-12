@@ -15,6 +15,7 @@ export function Header() {
         >
           FurViNo
         </Typography>
+<<<<<<< HEAD
         {/* Desktop nav */}
         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
           <Button LinkComponent={Link} href="/" color="inherit">
@@ -31,6 +32,17 @@ export function Header() {
         <Box sx={{ display: { xs: "flex", sm: "none" } }}>
           <MobileNavMenu />
         </Box>
+=======
+        <Button LinkComponent={Link} href="/" color="inherit">
+          Browse
+        </Button>
+        <Button LinkComponent={Link} href="/favorites" color="inherit">
+          Favorites
+        </Button>
+        <Button LinkComponent={Link} href="/about" color="inherit">
+          About
+        </Button>
+>>>>>>> b8b39ff (added about page and filled it out, will add more to legal)
         <Box flexGrow={1} />
         <Auth />
       </Toolbar>
