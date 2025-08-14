@@ -32,6 +32,8 @@ services:
     depends_on:
       - app
       - db
+    volumes:
+      - /home/github/STACK:/STACK
     networks:
       - services
 
