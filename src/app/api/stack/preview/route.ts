@@ -19,27 +19,35 @@ export async function GET(req: NextRequest) {
 
   try {
     const base = (process.env.STACK_API_URL ?? '').replace(/\/+$/,'');
+    const maxRetries = Number(process.env.STACK_PREVIEW_AUTH_RETRIES ?? 6);
+    const retryDelayMs = Number(process.env.STACK_PREVIEW_AUTH_RETRY_MS ?? 500);
     
     // Prepare auth body (include password if provided)
-    const body = pw ? JSON.stringify({ password: pw }) : undefined;
+    const bodyObj: { password: string } | undefined = pw ? { password: pw } : undefined;
 
     // Authorize to get X-ShareToken
     console.log(`[STACK Preview] Authorizing share ${t}...`);
-    const auth = await fetch(`${base}/share/${t}`, { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: body && Object.keys(body).length > 0 ? JSON.stringify(body) : undefined
-    });
-    
-    if (auth.status !== 201) {
+    let auth: Response | undefined;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      auth = await fetch(`${base}/share/${t}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyObj ? JSON.stringify(bodyObj) : undefined,
+      });
+      if (auth.status === 201) break;
+      if ([404, 409, 412, 423, 503].includes(auth.status) && attempt < maxRetries) {
+        console.warn(`[STACK Preview] Auth attempt ${attempt}/${maxRetries} failed (${auth.status}). Retrying in ${retryDelayMs}ms...`);
+        await new Promise((r) => setTimeout(r, retryDelayMs));
+        continue;
+      }
       console.error(`[STACK Preview] Share auth failed with status ${auth.status}`);
-      return new Response(`Share authentication failed (status: ${auth.status})`, { 
+      return new Response(`Share authentication failed (status: ${auth.status})`, {
         status: 403,
-        headers: { 'Content-Type': 'text/plain' }
+        headers: { 'Content-Type': 'text/plain' },
       });
     }
     
-    const shareToken = auth.headers.get('x-sharetoken');
+    const shareToken = (auth as Response).headers.get('x-sharetoken');
     if (!shareToken) {
       console.error('[STACK Preview] No ShareToken in response headers');
       return new Response('Share authentication failed - no token received', { 
