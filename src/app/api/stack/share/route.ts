@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { loadEnv } from "@/utils/loadEnvConfig";
 import fs from "fs/promises";
 import path from "path";
 
@@ -28,14 +29,19 @@ type CreateShareResponse = {
 
 export async function POST(req: NextRequest) {
   try {
+    // Ensure .env.local is loaded in dev
+    loadEnv();
     const { filePath } = (await req.json()) as { filePath?: string };
+    console.log("[STACK] API called with filePath:", filePath);
 
     if (!filePath) {
       return NextResponse.json<ApiResponse>({ success: false, error: "No filePath provided" }, { status: 400 });
     }
 
-    const baseDir = "/home/github/STACK/furvino/novels";
+    const baseDir = process.env.STACK_WATCH_DIR || "/home/trifumpy/stack/furvino/novels"; //CHANGE
+    console.log("[STACK] baseDir:", baseDir);
     if (!filePath.startsWith(baseDir)) {
+      console.warn("[STACK] Rejecting file outside baseDir", { baseDir, filePath });
       return NextResponse.json<ApiResponse>(
         { success: false, error: "File not in novels directory or subfolders" },
         { status: 400 }
@@ -62,6 +68,11 @@ export async function POST(req: NextRequest) {
     const shareBaseUrlEnv = process.env.STACK_SHARE_BASE_URL; // optional override, e.g. https://tenant.stackstorage.com/s
 
     if (!baseUrl || !username || !password) {
+      console.error("[STACK] Missing envs", {
+        STACK_API_URL: !!baseUrl,
+        STACK_USERNAME: !!username,
+        STACK_PASSWORD: !!password,
+      });
       return NextResponse.json<ApiResponse>(
         { success: false, error: "Missing STACK_API_URL, STACK_USERNAME or STACK_PASSWORD in environment variables" },
         { status: 500 }
@@ -76,7 +87,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!authResponse.ok) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Authentication failed" }, { status: authResponse.status });
+      const txt = await authResponse.text().catch(() => "");
+      console.error("[STACK] Authentication failed", authResponse.status, txt || authResponse.statusText);
+      return NextResponse.json<ApiResponse>({ success: false, error: `Authentication failed: ${txt || authResponse.statusText}` }, { status: authResponse.status });
     }
 
     const sessionToken = authResponse.headers.get("x-sessiontoken") ?? undefined;
@@ -95,7 +108,9 @@ export async function POST(req: NextRequest) {
       headers: { "x-sessiontoken": sessionToken },
     });
     if (!meResponse.ok) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Failed to fetch user info" }, { status: meResponse.status });
+      const txt = await meResponse.text().catch(() => "");
+      console.error("[STACK] /me failed", meResponse.status, txt || meResponse.statusText);
+      return NextResponse.json<ApiResponse>({ success: false, error: `Failed to fetch user info: ${txt || meResponse.statusText}` }, { status: meResponse.status });
     }
     const meData = (await meResponse.json()) as MeResponse;
     let currentParentId = meData.filesNodeID;
@@ -107,7 +122,9 @@ export async function POST(req: NextRequest) {
         headers: { "x-sessiontoken": sessionToken },
       });
       if (!listResponse.ok) {
-        return NextResponse.json<ApiResponse>({ success: false, error: "Failed to list nodes" }, { status: listResponse.status });
+        const txt = await listResponse.text().catch(() => "");
+        console.error("[STACK] list nodes failed", listResponse.status, txt || listResponse.statusText);
+        return NextResponse.json<ApiResponse>({ success: false, error: `Failed to list nodes: ${txt || listResponse.statusText}` }, { status: listResponse.status });
       }
       const listData = (await listResponse.json()) as ListNodeResponse;
       const existingDir = listData.nodes.find((n) => n.name === dir && n.dir);
@@ -120,8 +137,10 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({ parentID: currentParentId, name: dir }),
         });
         if (!createDirResponse.ok) {
+          const txt = await createDirResponse.text().catch(() => "");
+          console.error("[STACK] create directory failed", createDirResponse.status, txt || createDirResponse.statusText);
           return NextResponse.json<ApiResponse>(
-            { success: false, error: "Failed to create directory" },
+            { success: false, error: `Failed to create directory: ${txt || createDirResponse.statusText}` },
             { status: createDirResponse.status }
           );
         }
@@ -146,7 +165,9 @@ export async function POST(req: NextRequest) {
       body: fileContent,
     });
     if (!uploadResponse.ok) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "File upload failed" }, { status: uploadResponse.status });
+      const txt = await uploadResponse.text().catch(() => "");
+      console.error("[STACK] upload failed", uploadResponse.status, txt || uploadResponse.statusText);
+      return NextResponse.json<ApiResponse>({ success: false, error: `File upload failed: ${txt || uploadResponse.statusText}` }, { status: uploadResponse.status });
     }
     const nodeId = uploadResponse.headers.get("x-id");
     if (!nodeId) {
@@ -160,7 +181,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ nodeId: parseInt(nodeId, 10), type: "Public" }),
     });
     if (!shareResponse.ok) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Failed to create public share" }, { status: shareResponse.status });
+      const txt = await shareResponse.text().catch(() => "");
+      console.error("[STACK] create share failed", shareResponse.status, txt || shareResponse.statusText);
+      return NextResponse.json<ApiResponse>({ success: false, error: `Failed to create public share: ${txt || shareResponse.statusText}` }, { status: shareResponse.status });
     }
     const shareData = (await shareResponse.json()) as CreateShareResponse;
 
@@ -177,8 +200,10 @@ export async function POST(req: NextRequest) {
     }
     const shareUrl = `${shareBaseUrl.replace(/\/$/, "")}/${shareData.urlToken}`;
 
+    console.log("[STACK] share created", shareUrl);
     return NextResponse.json<ApiResponse>({ success: true, shareUrl });
   } catch (error) {
+    console.error("[STACK] API unhandled error", error);
     return NextResponse.json<ApiResponse>({ success: false, error: (error as Error).message }, { status: 500 });
   }
 }

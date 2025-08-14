@@ -9,7 +9,7 @@
     "lint": "next lint",
     "seed": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed.ts",
     "dump": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/dump.ts",
-    "watch:stack": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/watchStack.ts"
+    "watch:stack": "ts-node -r dotenv/config --compiler-options '{\"module\":\"CommonJS\"}' scripts/watchStack.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.28.1",
@@ -36,15 +36,18 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tanstack/eslint-plugin-query": "^5.83.1",
+    "@types/axios": "^0.14.4",
     "@types/node": "^20.19.9",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axios": "^1.11.0",
+    "chokidar": "^3.6.0",
+    "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "prettier": "^3.6.2",
     "prisma": "^6.13.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "chokidar": "^3.6.0"
+    "typescript": "^5.8.3"
   }
 }

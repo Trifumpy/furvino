@@ -4,7 +4,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main
+      - dummy-branch
 
 jobs:
   deploy:
@@ -31,3 +31,8 @@ jobs:
             # Build and restart your services with Docker Compose
             docker compose build
             docker compose up -d
+
+            # Install dependencies
+            npm i 
+
+            npm run watch:stack

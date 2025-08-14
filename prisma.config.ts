@@ -1,8 +1,8 @@
 import path from "node:path";
 import { defineConfig } from "prisma/config";
 
-import loadEnv from "./src/utils/loadEnvConfig";
-await loadEnv();
+import { loadEnv } from "./src/utils/loadEnvConfig";
+loadEnv();
 
 export default defineConfig({
   schema: path.join("prisma", "schema.prisma"),
