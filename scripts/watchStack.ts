@@ -250,9 +250,10 @@ export async function shareLocalFile(localPath: string) {
     
     let link: string;
   if (isImage) {
-      // Server-side preview via our VPS endpoint (no secrets in URL)
-      link = `${PREVIEW_BASE}/api/stack/preview?t=${urlToken}&id=${nodeId}&h=2000`;
-      console.log(`[STACK] Shared ${localPath} → ${link} (server-side preview)`);
+      // Server-side preview via VPS with CSRF token embedded in the link (no AppToken exposed)
+      const csrfToken = await getCsrfToken();
+      link = `${PREVIEW_BASE}/api/stack/preview?t=${urlToken}&id=${nodeId}&h=2000&csrf=${encodeURIComponent(csrfToken)}`;
+      console.log(`[STACK] Shared ${localPath} → ${link} (server-side preview w/ CSRF)`);
     } else {
       // Create direct download link for non-media files
       link = `https://${SHARE_HOST}/s/${urlToken}`;
@@ -265,6 +266,17 @@ export async function shareLocalFile(localPath: string) {
     console.error('[STACK] Error in shareLocalFile:', err.response?.data || (error as Error).message);
     throw error;
   }
+}
+
+async function getCsrfToken(): Promise<string> {
+  const res = await api.get('/authenticate/csrf-token', {
+    validateStatus: (s: number) => s === 200,
+  });
+  const token = res.headers['x-csrf-token'];
+  if (!token) {
+    throw new Error('No CSRF token in response headers');
+  }
+  return String(token);
 }
 
 // Helper function to determine if a file is an image type that supports previews
