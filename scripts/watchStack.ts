@@ -91,13 +91,27 @@ async function uploadFileToStack(localPath: string) {
   
   console.log(`[STACK] Uploading ${localPath} to ${stackPath}`);
   
-  // Skipping directory creation by request. We will try to resolve an existing parent, otherwise use root.
+  // First, ensure the directory structure exists (create last segment under its parent)
+  try {
+    const parentDirPath = path.dirname(dirPath);
+    const dirName = path.basename(dirPath);
+    await api.post('/directories', {
+      parentPath: parentDirPath,
+      name: dirName
+    });
+    console.log(`[STACK] Created directory: ${dirPath}`);
+  } catch (error: unknown) {
+    const err = error as { response?: { status?: number; data?: unknown } };
+    if (err.response?.status !== 409) { // 409 = already exists
+      console.warn(`[STACK] Directory creation warning:`, err.response?.data || (error as Error).message);
+    }
+  }
   
   // Upload the file using STACK's upload API
   const fileBuffer = fs.readFileSync(localPath);
   const fileNameBase64 = Buffer.from(fileName).toString('base64');
   
-  // Resolve parent directory ID if it exists; otherwise fallback to STACK_PREFIX root or 0
+  // We need to get the parent directory ID first
   let parentId = 0; // Default to root
   try {
     const dirResponse = await api.get('/node-id', { 
@@ -106,21 +120,8 @@ async function uploadFileToStack(localPath: string) {
     });
     parentId = Number(dirResponse.headers['x-id']);
     console.log(`[STACK] Using parent directory ID: ${parentId}`);
-  } catch {}
-  if (!parentId) {
-    try {
-      const prefixRes = await api.get('/node-id', {
-        params: { path: STACK_PREFIX },
-        validateStatus: (s: number) => s === 204
-      });
-      parentId = Number(prefixRes.headers['x-id']);
-      if (parentId) {
-        console.log(`[STACK] Using STACK_PREFIX as parent ID: ${parentId}`);
-      }
-    } catch {}
-  }
-  if (!parentId) {
-    console.warn(`[STACK] No existing parent found for ${dirPath}. Uploading to root (0).`);
+  } catch (error) {
+    console.warn(`[STACK] Could not get directory ID, using root (0):`, (error as Error).message);
   }
   
   // Check if file already exists
@@ -250,10 +251,9 @@ export async function shareLocalFile(localPath: string) {
     
     let link: string;
   if (isImage) {
-      // Direct STACK preview URL with CSRF token (no AppToken exposed)
-      const csrfToken = await getCsrfToken();
-      link = `https://${SHARE_HOST}/api/v2/share/${urlToken}/files/${nodeId}/preview?height=2000&CSRF-Token=${encodeURIComponent(csrfToken)}`;
-      console.log(`[STACK] Shared ${localPath} → ${link} (direct STACK preview)`);
+      // Server-side token via our public preview proxy
+      link = `${PREVIEW_BASE}/api/stack/preview?t=${urlToken}&id=${nodeId}&h=2000`;
+      console.log(`[STACK] Shared ${localPath} → ${link} (server-side preview proxy)`);
     } else {
       // Create direct download link for non-media files
       link = `https://${SHARE_HOST}/s/${urlToken}`;
@@ -266,17 +266,6 @@ export async function shareLocalFile(localPath: string) {
     console.error('[STACK] Error in shareLocalFile:', err.response?.data || (error as Error).message);
     throw error;
   }
-}
-
-async function getCsrfToken(): Promise<string> {
-  const res = await api.get('/authenticate/csrf-token', {
-    validateStatus: (s: number) => s === 200,
-  });
-  const token = res.headers['x-csrf-token'];
-  if (!token) {
-    throw new Error('No CSRF token in response headers');
-  }
-  return String(token);
 }
 
 // Helper function to determine if a file is an image type that supports previews
