@@ -250,10 +250,10 @@ export async function shareLocalFile(localPath: string) {
     
     let link: string;
   if (isImage) {
-      // Server-side preview via VPS with CSRF token embedded in the link (no AppToken exposed)
+      // Direct STACK preview URL with CSRF token (no AppToken exposed)
       const csrfToken = await getCsrfToken();
-      link = `${PREVIEW_BASE}/api/stack/preview?t=${urlToken}&id=${nodeId}&h=2000&csrf=${encodeURIComponent(csrfToken)}`;
-      console.log(`[STACK] Shared ${localPath} → ${link} (server-side preview w/ CSRF)`);
+      link = `https://${SHARE_HOST}/api/v2/share/${urlToken}/files/${nodeId}/preview?height=2000&CSRF-Token=${encodeURIComponent(csrfToken)}`;
+      console.log(`[STACK] Shared ${localPath} → ${link} (direct STACK preview)`);
     } else {
       // Create direct download link for non-media files
       link = `https://${SHARE_HOST}/s/${urlToken}`;
