@@ -56,12 +56,47 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    console.log(`[STACK Preview] Got ShareToken, fetching preview for node ${id}...`);
-    
-    // Fetch preview using the ShareToken
-    const upstream = await fetch(`${base}/share/${t}/files/${id}/preview?height=${h}`, {
-      headers: { 'X-ShareToken': String(shareToken) }, 
-      cache: 'no-store'
+    console.log(`[STACK Preview] Got ShareToken, acquiring CSRF token...`);
+
+    // Acquire CSRF token using AppToken (server-side only, never exposed)
+    const appToken = process.env.STACK_APP_TOKEN;
+    if (!appToken) {
+      console.error('[STACK Preview] Missing STACK_APP_TOKEN for CSRF retrieval');
+      return new Response('Server misconfiguration: missing STACK_APP_TOKEN', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+
+    const csrfResp = await fetch(`${base}/authenticate/csrf-token`, {
+      headers: { 'X-AppToken': appToken },
+      cache: 'no-store',
+    });
+    if (csrfResp.status !== 200) {
+      console.error(`[STACK Preview] CSRF fetch failed with status ${csrfResp.status}`);
+      return new Response(`Failed to fetch CSRF token (status: ${csrfResp.status})`, {
+        status: 502,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+    const csrfToken = csrfResp.headers.get('x-csrf-token');
+    if (!csrfToken) {
+      console.error('[STACK Preview] Missing x-csrf-token header');
+      return new Response('Failed to fetch CSRF token', { status: 502 });
+    }
+
+    console.log(`[STACK Preview] CSRF acquired, fetching preview for node ${id}...`);
+
+    // Fetch preview using the ShareToken; include CSRF-Token in query
+    const previewUrl = new URL(`${base}/share/${t}/files/${id}/preview`);
+    if (h) previewUrl.searchParams.set('height', String(h));
+    if (w) previewUrl.searchParams.set('width', String(w));
+    if (format) previewUrl.searchParams.set('format', String(format));
+    previewUrl.searchParams.set('CSRF-Token', csrfToken);
+
+    const upstream = await fetch(previewUrl.toString(), {
+      headers: { 'X-ShareToken': String(shareToken) },
+      cache: 'no-store',
     });
     
     if (!upstream.ok) {
