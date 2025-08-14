@@ -4,6 +4,6 @@ COPY package*.json ./
 
 RUN npm install
 
-COPY ./scripts ./scripts
+COPY . .
 
 CMD ["npm", "run", "watch:stack"]
