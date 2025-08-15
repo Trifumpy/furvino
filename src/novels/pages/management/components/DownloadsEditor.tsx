@@ -1,7 +1,7 @@
 import { CreateNovelBody, PLATFORMS, Platform } from "@/contracts/novels";
 import { PLATFORM_ICONS, PLATFORM_NAMES } from "@/generic/data";
 import { FileOrUrlInput, KeyMapField, KeyMapKey } from "@/generic/input";
-import { useRecordArrayAdapter } from "@/novels/hooks";
+import { useRecordArrayAdapter } from "@/generic/hooks";
 import { Stack, Typography } from "@mui/material";
 import { DownloadIcon } from "lucide-react";
 

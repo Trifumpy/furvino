@@ -8,6 +8,7 @@ import {
   ExternalSite,
   ListedNovel,
   Platform,
+  GetNovelsQParams,
 } from "@/contracts/novels";
 import { getUserByExternalId } from "../users";
 
@@ -17,8 +18,17 @@ type PrismaNovelWithAuthor = Prisma.PromiseReturnType<
   author?: { id: string; name: string } | null;
 };
 
-export async function getListedNovels(): Promise<ListedNovel[]> {
+export async function getAllNovels(options: GetNovelsQParams) {
+  const { authorId, tags, search } = options;
+
+  const where: Prisma.NovelWhereInput = {
+    authorId: authorId || undefined,
+    tags: tags ? { hasEvery: tags } : undefined,
+    title: search ? { contains: search, mode: "insensitive" } : undefined,
+  };
+
   const novelsWithAuthors = await prisma.novel.findMany({
+    where,
     include: {
       author: {
         select: {
@@ -29,8 +39,7 @@ export async function getListedNovels(): Promise<ListedNovel[]> {
     },
   });
 
-  // Map the Prisma result to match the Novel type if needed
-  return novelsWithAuthors.map(enrichNovelWithauthor);
+  return novelsWithAuthors.map(enrichNovelWithAuthor);
 }
 
 export async function getListedNovel(novelId: string): Promise<ListedNovel | null> {
@@ -48,7 +57,7 @@ export async function getListedNovel(novelId: string): Promise<ListedNovel | nul
   if (!novel) {
     return null;
   }
-  return enrichNovelWithauthor(novel);
+  return enrichNovelWithAuthor(novel);
 }
 
 export async function getNovel(novelId: string): Promise<Novel | null> {
@@ -77,13 +86,13 @@ export async function enrichNovel(data: Novel) {
     throw new NotFoundError("Author not found");
   }
 
-  return enrichNovelWithauthor({
+  return enrichNovelWithAuthor({
     ...data,
     author
   });
 }
 
-function enrichNovelWithauthor(data: PrismaNovelWithAuthor): ListedNovel {
+function enrichNovelWithAuthor(data: PrismaNovelWithAuthor): ListedNovel {
   return {
     ...data,
     author: data.author || { id: data.authorId, name: "Unknown Author" },

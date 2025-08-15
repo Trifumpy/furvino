@@ -4,6 +4,8 @@ import {
   Dialog,
   DialogActions,
   DialogActionsProps,
+  DialogContent,
+  DialogContentProps,
   DialogProps,
   DialogTitle,
   DialogTitleProps,
@@ -104,4 +106,8 @@ export function ModalActions({
       </Stack>
     </DialogActions>
   );
+}
+
+export function ModalContent({ children, ...props }: DialogContentProps) {
+  return <DialogContent {...props}>{children}</DialogContent>;
 }

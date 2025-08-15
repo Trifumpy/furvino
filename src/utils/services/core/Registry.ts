@@ -1,9 +1,9 @@
+import { SETTINGS } from "@/app/api/settings";
 import { AuthorsService } from "../authors";
 import { NovelsService } from "../novels";
 import { UsersService } from "../users";
 
-// Optionally read from env or config
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = SETTINGS.apiUrl;
 
 export class Registry {
   // Singleton instance

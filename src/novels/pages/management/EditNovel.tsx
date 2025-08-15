@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { startTransition, useMemo } from "react";
 import { useNovel } from "@/novels/providers";
 import { NovelForm } from "./components";
+import { pruneEmptyKeys } from "@/utils/lib/collections";
 
 export function EditNovelPage() {
   const { novel } = useNovel();
@@ -17,9 +18,9 @@ export function EditNovelPage() {
       title: novel.title || "",
       authorId: novel.author.id || "",
       description: novel.description || "",
-      coverImage: novel.thumbnailUrl || undefined,
-      externalUrls: novel.externalUrls || {},
-      magnetUrls: novel.magnetUrls || {},
+      thumbnailUrl: novel.thumbnailUrl || undefined,
+      externalUrls: pruneEmptyKeys(novel.externalUrls || {}),
+      magnetUrls: pruneEmptyKeys(novel.magnetUrls || {}),
       tags: novel.tags || [],
     };
   }, [novel]);
@@ -36,15 +37,17 @@ function EditFormInternal({
 }: {
   novel: CreateNovelBody & { id: string };
 }) {
-  const { updateNovel } = useUpdateNovel(novel.id);
+  const { updateNovel, isUpdating } = useUpdateNovel(novel.id);
   const router = useRouter();
 
   return (
     <NovelForm
       existingId={novel.id}
       defaultData={novel}
+      loading={isUpdating}
       onSubmit={async (data) => {
         await updateNovel(data);
+        router.push(`/novels/${novel.id}`);
         startTransition(() => {
           router.refresh();
         });

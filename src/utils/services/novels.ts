@@ -1,4 +1,4 @@
-import { CreateNovelBody, ListedNovel, UpdateNovelBody } from "@/contracts/novels";
+import { CreateNovelBody, GetNovelsQParams, ListedNovel, UpdateNovelBody, UpdateNovelThumbnailBody } from "@/contracts/novels";
 import { HttpService } from "./core";
 import { novelTags } from "../cacheTags";
 
@@ -7,10 +7,11 @@ export class NovelsService extends HttpService {
     super(baseUrl, '/novels');
   }
   
-  getNovels() {
+  getNovels(options: GetNovelsQParams = {}) {
     // Request is too big to cache
     return this.get<ListedNovel[]>('/', {
       cache: 'no-cache',
+      queryParams: options,
     });
   }
   getNovelById(id: string) {
@@ -27,5 +28,12 @@ export class NovelsService extends HttpService {
   }
   updateNovel(id: string, novel: UpdateNovelBody) {
     return this.put<ListedNovel, UpdateNovelBody>(`/${id}`, novel);
+  }
+
+  uploadThumbnail(novelId: string, thumbnailFile: File) {
+    const formData = new FormData();
+    formData.append('thumbnail', thumbnailFile);
+
+    return this.put<ListedNovel, UpdateNovelThumbnailBody>(`/${novelId}/thumbnail`, formData);
   }
 }

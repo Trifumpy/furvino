@@ -20,7 +20,7 @@ export function getUserByExternalId(
     where: {
       clerkId: externalId,
       deletedAt: options?.includeDeleted ? undefined : null,
-    },
+    }
   });
 }
 

@@ -4,8 +4,8 @@ import {
   ExternalSite,
 } from "@/contracts/novels";
 import { SERVICE_ICONS, SERVICE_NAMES } from "@/generic/data";
+import { useRecordArrayAdapter } from "@/generic/hooks";
 import { KeyMapKey, StringKeyMapField } from "@/generic/input";
-import { useRecordArrayAdapter } from "@/novels/hooks";
 import { Stack, Typography } from "@mui/material";
 import { LinkIcon } from "lucide-react";
 

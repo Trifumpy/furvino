@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOrCreateUserByExternalId } from "./users";
 import { auth } from "@clerk/nextjs/server";
 import {
+  BadRequestError,
   ForbiddenError,
   NotFoundError,
   RoleRequiredError,
@@ -59,6 +60,9 @@ export async function validateRequestBody<T>(
 }
 
 export function handleError(error: unknown) {
+  if (error instanceof BadRequestError) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
   if (error instanceof UnauthorizedError) {
     return NextResponse.json({ error: error.message }, { status: 401 });
   }

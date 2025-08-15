@@ -3,6 +3,7 @@ import { ThemeProvider } from "./providers/ThemeProvider";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { CoreProvider } from "./CoreProvider";
 import { PropsWithChildren } from "react";
+import { Toasts } from "./components";
 
 // Font variables should be defined in theme.ts
 // However, Next.js font optimization requires literals
@@ -24,6 +25,7 @@ export function BaseLayout({ children }: PropsWithChildren) {
           <AppRouterCacheProvider>
             <ThemeProvider>{children}</ThemeProvider>
           </AppRouterCacheProvider>
+          <Toasts />
         </body>
       </html>
     </CoreProvider>
