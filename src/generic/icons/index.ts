@@ -13,3 +13,4 @@ export * from './TelegramIcon';
 export * from './YoutubeIcon';
 export * from './CarrdIcon';
 export * from './LinktreeIcon';
+export * from './ErrorIcon';

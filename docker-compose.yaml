@@ -25,17 +25,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - services
-  watcher:
-    build:
-      context: .
-      dockerfile: Dockerfile.watcher
-    depends_on:
-      - app
-      - db
-    volumes:
-      - /home/github/STACK:/STACK
-    networks:
-      - services
 
 volumes:
   postgres_data: {}
