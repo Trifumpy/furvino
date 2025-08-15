@@ -53,6 +53,8 @@ COPY --from=builder /app/public ./public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Ensure /STACK exists and set permissions for nextjs user
+RUN mkdir -p /STACK && chown nextjs:nodejs /STACK
 
 USER nextjs
 
