@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
 import { Buffer } from 'buffer';
+import { SETTINGS } from '@/app/api/settings';
 
 interface ApiResponse {
   success: boolean;
@@ -58,9 +59,9 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
   const filename = path.basename(relativePath);
   const dirname = path.dirname(relativePath);
 
-  const baseUrl =  process.env.STACK_API_URL;
-  const username = process.env.STACK_USERNAME;
-  const password = process.env.STACK_PASSWORD;
+  const baseUrl =  SETTINGS.stack.apiUrl;
+  const username = SETTINGS.stack.username;
+  const password = SETTINGS.stack.password;
 
   if (!username || !password) {
     return res.status(500).json({ success: false, error: 'Missing STACK_USERNAME or STACK_PASSWORD in environment variables' });

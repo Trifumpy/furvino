@@ -6,9 +6,12 @@ services:
     ports:
       - "3000:3000"
     env_file:
+      - .env.production.local
       - .env.local
     environment:
       - NODE_ENV=production
+    volumes:
+      - /home/github/STACK:/STACK
     depends_on:
       - db
     networks:

@@ -7,7 +7,12 @@ type Props = {
 
 export function ErrorPage({ message }: Props) {
   return (
-    <Stack gap={2}>
+    <Stack
+      gap={2}
+      alignItems="center"
+      justifyContent="center"
+      style={{ height: "60vh" }}
+    >
       <Typography variant="h2" color="text.primary">
         An Error Occurred
       </Typography>

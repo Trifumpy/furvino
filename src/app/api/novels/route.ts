@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
-import { enrichNovel, getListedNovels, validateNovelData } from "./utils";
-import { ensureAdmin, revalidateTags, wrapRoute } from "../utils";
+import { enrichNovel, getAllNovels, validateNovelData } from "./utils";
+import { ensureAdmin, getQueryParams, revalidateTags, wrapRoute } from "../utils";
 import prisma from "@/utils/db";
-import { CreateNovelResponse } from "@/contracts/novels";
+import { CreateNovelResponse, getNovelsQParamsSchema } from "@/contracts/novels";
 import { novelTags } from "@/utils";
 
-export async function GET() {
-  const novels = await getListedNovels();
+export const GET = wrapRoute(async (req) => {
+  const options = getQueryParams(req, getNovelsQParamsSchema); 
+
+  const novels = await getAllNovels(options);
 
   return NextResponse.json(novels);
-}
+});
 
 export const POST = wrapRoute(async (req) => {
   const novelData = await req.json();

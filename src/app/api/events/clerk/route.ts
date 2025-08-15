@@ -2,8 +2,7 @@ import { Webhook } from 'svix'; // Clerk uses svix-style signing
 import { headers } from 'next/headers';
 import { ClerkEvent } from './types';
 import { processEvent } from './utils';
-
-const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
+import { SETTINGS } from '../../settings';
 
 export async function POST(req: Request) {
   const payload = await req.text(); // Read raw text to verify signature
@@ -12,7 +11,7 @@ export async function POST(req: Request) {
   const svixTimestamp = headerList.get("svix-timestamp")!;
   const svixSignature = headerList.get("svix-signature")!;
 
-  const wh = new Webhook(WEBHOOK_SECRET);
+  const wh = new Webhook(SETTINGS.clerk.webhookSecret);
 
   let evt: ClerkEvent;
   try {

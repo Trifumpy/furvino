@@ -24,10 +24,13 @@
     "@tanstack/react-query": "^5.84.1",
     "@tanstack/react-query-devtools": "^5.84.2",
     "lucide-react": "^0.536.0",
+    "mime": "^4.0.7",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.62.0",
+    "react-toastify": "^11.0.5",
     "svix": "^1.70.1",
     "usehooks-ts": "^3.1.1",
     "zod": "^4.0.15"

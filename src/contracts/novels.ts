@@ -26,7 +26,7 @@ export type Platform = z.infer<typeof platformEnum>;
 
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_SNIPPET_LENGTH = 250;
-export const MAX_DESCRIPTION_LENGTH = 1000;
+export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
@@ -44,13 +44,27 @@ export type NovelSchema = z.infer<typeof novelSchema>;
 export type GetNovelParams = { novelId: string };
 export type GetNovelResponse = ListedNovel;
 
+export const getNovelsQParamsSchema = z.object({
+  authorId: z.string(),
+  tags: z.array(z.string()),
+  search: z.string(),
+}).partial();
+export type GetNovelsQParams = z.infer<typeof getNovelsQParamsSchema>;
+
 export const createNovelSchema = novelSchema.omit({ id: true });
 export type CreateNovelBody = z.infer<typeof createNovelSchema>;
 export type CreateNovelResponse = ListedNovel;
 
-export type UpdateNovelParams = { novelId: string };
+export const novelTargetSchema = z.object({ novelId: z.string().min(1) });
+export type NovelTarget = z.infer<typeof novelTargetSchema>;
+export type UpdateNovelParams = NovelTarget;
 export type UpdateNovelBody = z.infer<typeof novelSchema>;
 export type UpdateNovelResponse = ListedNovel;
+
+export const MAX_THUMBNAIL_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export type UpdateNovelThumbnailParams = NovelTarget;
+export type UpdateNovelThumbnailBody = FormData;
+export type UpdateNovelThumbnailResponse = ListedNovel;
 
 import { Author } from "@/users/types";
 

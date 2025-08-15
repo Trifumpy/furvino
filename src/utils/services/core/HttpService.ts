@@ -7,7 +7,7 @@ export class HttpServiceError extends Error {
 
   constructor(message: string, status?: number, originalError?: unknown) {
     super(message);
-    this.name = 'HttpServiceError';
+    this.name = "HttpServiceError";
     this.status = status;
     this.originalError = originalError;
   }
@@ -15,8 +15,11 @@ export class HttpServiceError extends Error {
 
 interface RequestOptions<TBody = unknown> {
   headers?: Record<string, string>;
-  queryParams?: Record<string, string | number | boolean | undefined>;
-  cache?: RequestInit['cache'];
+  queryParams?: Record<
+    string,
+    string | string[] | number | boolean | undefined
+  >;
+  cache?: RequestInit["cache"];
   body?: TBody;
   next?: NextFetchRequestConfig;
 }
@@ -26,17 +29,26 @@ export abstract class HttpService {
   protected prefix: string;
 
   constructor(baseUrl: string, prefix: string) {
-    this.baseUrl = baseUrl.replace(/\/+$/, ''); // strip trailing slash
-    this.prefix = prefix.replace(/^\/+/, '');  // strip leading slash
+    this.baseUrl = baseUrl.replace(/\/+$/, ""); // strip trailing slash
+    this.prefix = prefix.replace(/^\/+/, ""); // strip leading slash
   }
 
-  private buildUrl(path: string, queryParams?: RequestOptions['queryParams']): string {
-    let url = `${this.baseUrl}/${this.prefix}${path.startsWith('/') ? path : '/' + path}`;
+  private buildUrl(
+    path: string,
+    queryParams?: RequestOptions["queryParams"]
+  ): string {
+    let url = `${this.baseUrl}/${this.prefix}${path.startsWith("/") ? path : "/" + path}`;
 
     if (queryParams) {
       const query = new URLSearchParams();
       Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach((v) => {
+            if (v !== undefined) {
+              query.append(key, String(v));
+            }
+          });
+        } else if (value !== undefined) {
           query.append(key, String(value));
         }
       });
@@ -60,7 +72,6 @@ export abstract class HttpService {
       method,
       next: options.next,
       headers: {
-        'Content-Type': 'application/json',
         ...(options.headers || {}),
       },
     };
@@ -70,22 +81,32 @@ export abstract class HttpService {
     }
 
     if (options.body !== undefined) {
-      fetchOptions.body = JSON.stringify(options.body);
+      if (options.body instanceof FormData) {
+        // Let fetch handle the headers automatically
+        fetchOptions.body = options.body;
+      } else {
+        fetchOptions.body = JSON.stringify(options.body);
+        (fetchOptions.headers as Record<string, string>)["Content-Type"] =
+          "application/json";
+      }
     }
 
     try {
       const res = await fetch(url, fetchOptions);
 
       if (!res.ok) {
-        const errorText = await res.text().catch(() => '');
+        const errorText = await res.text().catch(() => "");
         const errorMessage = `HTTP ${res.status} ${res.statusText}: ${errorText}`;
-        console.error(`[HttpService] Error response for ${method} ${url}:`, errorMessage);
+        console.error(
+          `[HttpService] Error response for ${method} ${url}:`,
+          errorMessage
+        );
         throw new HttpServiceError(errorMessage, res.status);
       }
 
       // Try to parse JSON response, but allow empty body
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
         return (await res.json()) as TResult;
       } else {
         // If not JSON, just return null
@@ -94,28 +115,49 @@ export abstract class HttpService {
     } catch (err) {
       if (err instanceof HttpServiceError) throw err;
 
-      console.error(`[HttpService] Network or unexpected error for ${method} ${url}:`, err);
+      console.error(
+        `[HttpService] Network or unexpected error for ${method} ${url}:`,
+        err
+      );
       throw new HttpServiceError(String(err), undefined, err);
     }
   }
 
-  public get<T>(path: string, options?: Omit<RequestOptions, 'body'>): Promise<T> {
-    return this.request<T>('GET', path, options);
+  public get<T>(
+    path: string,
+    options?: Omit<RequestOptions, "body">
+  ): Promise<T> {
+    return this.request<T>("GET", path, options);
   }
 
-  public post<TResult, TBody>(path: string, body?: TBody, options?: Omit<RequestOptions, 'body'>): Promise<TResult> {
-    return this.request<TResult, TBody>('POST', path, { ...options, body });
+  public post<TResult, TBody>(
+    path: string,
+    body?: TBody,
+    options?: Omit<RequestOptions, "body">
+  ): Promise<TResult> {
+    return this.request<TResult, TBody>("POST", path, { ...options, body });
   }
 
-  public put<TResult, TBody>(path: string, body?: TBody, options?: Omit<RequestOptions, 'body'>): Promise<TResult> {
-    return this.request<TResult, TBody>('PUT', path, { ...options, body });
+  public put<TResult, TBody>(
+    path: string,
+    body?: TBody,
+    options?: Omit<RequestOptions, "body">
+  ): Promise<TResult> {
+    return this.request<TResult, TBody>("PUT", path, { ...options, body });
   }
 
-  public patch<TResult, TBody>(path: string, body?: TBody, options?: Omit<RequestOptions, 'body'>): Promise<TResult> {
-    return this.request<TResult, TBody>('PATCH', path, { ...options, body });
+  public patch<TResult, TBody>(
+    path: string,
+    body?: TBody,
+    options?: Omit<RequestOptions, "body">
+  ): Promise<TResult> {
+    return this.request<TResult, TBody>("PATCH", path, { ...options, body });
   }
 
-  public delete<T>(path: string, options?: Omit<RequestOptions, 'body'>): Promise<T> {
-    return this.request<T>('DELETE', path, options);
+  public delete<T>(
+    path: string,
+    options?: Omit<RequestOptions, "body">
+  ): Promise<T> {
+    return this.request<T>("DELETE", path, options);
   }
 }

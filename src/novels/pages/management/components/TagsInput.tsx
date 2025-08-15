@@ -25,13 +25,7 @@ export function TagsInput({ value, onChange, ...props }: Props) {
   const [query, setQuery] = useState("");
   const handleChange = (newValue: TagWithId[]) => {
     onChange(newValue.map((v) => v.id));
-    const lastAdded = newValue[newValue.length - 1];
-    if (lastAdded && lastAdded.id && !TAGS[lastAdded.id as Tag]) {
-      setExtraTags((prev) => [...prev, lastAdded.id]);
-    }
   };
-
-  const [extraTags, setExtraTags] = useState<string[]>([]);
 
   const options: SelectorOption<TagWithId>[] = useMemo(() => {
     const result = Object.entries(TAGS).map(
@@ -42,12 +36,14 @@ export function TagsInput({ value, onChange, ...props }: Props) {
         }) as SelectorOption<TagWithId>
     );
 
-    result.push(
-      ...extraTags.map((tag) => ({
-        value: { id: tag },
-        label: tag,
-      }))
-    );
+    value.forEach((tag) => {
+      if (!result.some((option) => option.value.id === tag)) {
+        result.push({
+          value: { id: tag },
+          label: tag,
+        });
+      }
+    });
 
     result.sort((a, b) =>
       a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
@@ -67,7 +63,7 @@ export function TagsInput({ value, onChange, ...props }: Props) {
     }
 
     return result;
-  }, [extraTags, query]);
+  }, [query, value]);
 
   const selectedSet = useMemo(() => new Set(value), [value]);
   const selectedOptions = useMemo(

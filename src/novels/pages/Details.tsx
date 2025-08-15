@@ -1,15 +1,17 @@
 "use client";
 
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useNovel } from "../providers";
 import { DEFAULT_NOVEL_COVER_URL } from "../components/constants";
 import { Links } from "../components/Links";
 import { NovelDownloads } from "../components";
 import { NovelTags } from "../components/NovelTags";
 import { SafeImage } from "@/generic/display";
+import Link from "next/link";
+import { PencilIcon } from "lucide-react";
 
 export function NovelDetailsPage() {
-  const { novel } = useNovel();
+  const { novel, canEdit } = useNovel();
 
   if (!novel) {
     return;
@@ -42,7 +44,16 @@ export function NovelDetailsPage() {
           justifyContent="space-between"
         >
           <Typography variant="h4" component="h1">
-            {novel.title}
+            {novel.title}{" "}
+            {canEdit && (
+              <IconButton
+                LinkComponent={Link}
+                href={`/novels/${novel.id}/edit`}
+                aria-label="Edit Novel"
+              >
+                <PencilIcon />
+              </IconButton>
+            )}
           </Typography>
           <Links novel={novel} />
         </Stack>
