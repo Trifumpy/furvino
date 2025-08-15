@@ -17,9 +17,6 @@ console.log('[STACK] Environment variables loaded from .env.local');
 const requiredEnvVars = {
   STACK_API_URL: process.env.STACK_API_URL,
   STACK_APP_TOKEN: process.env.STACK_APP_TOKEN,
-  WATCH_ROOT: process.env.WATCH_ROOT,
-  STACK_PREFIX: process.env.STACK_PREFIX,
-  STACK_SHARE_HOST: process.env.STACK_SHARE_HOST
 };
 
 // Check for missing or invalid values
@@ -42,15 +39,12 @@ const api = axios.create({
 const WATCH_ROOT    = process.env.WATCH_ROOT    ?? '/home/trifumpy/STACK/furvino/novels';
 const STACK_PREFIX  = process.env.STACK_PREFIX  ?? 'files/furvino/novels';
 const SHARE_HOST    = process.env.STACK_SHARE_HOST    ?? 'tomikolasek.stackstorage.com';
-const PREVIEW_BASE  = (process.env.STACK_PREVIEW_BASE 
-  || process.env.PUBLIC_BASE_URL 
-  || process.env.NEXT_PUBLIC_SITE_URL 
-  || 'http://localhost:3000').replace(/\/+$/,'');
 
 // Retry configuration (tuned for slow STACK mounts)
 const RETRY_BASE_MS = Number(process.env.STACK_RETRY_BASE_MS ?? 5000); // 5s default
 const RETRY_MAX_ATTEMPTS = Number(process.env.STACK_RETRY_MAX_ATTEMPTS ?? 120); // up to ~10min default
-const SHARE_RETRY_ATTEMPTS = Number(process.env.STACK_SHARE_RETRY_ATTEMPTS ?? 5); // share creation retries
+// Share creation retry configuration
+const SHARE_RETRY_ATTEMPTS = Number(process.env.STACK_SHARE_RETRY_ATTEMPTS ?? 5);
 const SHARE_RETRY_BASE_MS = Number(process.env.STACK_SHARE_RETRY_BASE_MS ?? 5000);
 // Re-detection configuration
 const REDETECT_MAX_ATTEMPTS = Number(process.env.STACK_REDETECT_MAX_ATTEMPTS ?? 5);
@@ -61,7 +55,6 @@ console.log(`[STACK]   API URL: ${BASE}`);
 console.log(`[STACK]   Watch Root: ${WATCH_ROOT}`);
 console.log(`[STACK]   Stack Prefix: ${STACK_PREFIX}`);
 console.log(`[STACK]   Share Host: ${SHARE_HOST}`);
-console.log(`[STACK]   Preview Base: ${PREVIEW_BASE}`);
 console.log(`[STACK]   Retry Base (ms): ${RETRY_BASE_MS}`);
 console.log(`[STACK]   Retry Attempts: ${RETRY_MAX_ATTEMPTS}`);
 console.log(`[STACK]   Share Retry Base (ms): ${SHARE_RETRY_BASE_MS}`);
@@ -232,49 +225,43 @@ async function getOrCreatePublicShare(nodeId: number) {
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
+
 export async function shareLocalFile(localPath: string) {
   try {
-    // First upload the file to STACK
-    const nodeId = await uploadFileToStack(localPath);
+    // Upload the file to STACK
+    const uploadedNodeId = await uploadFileToStack(localPath);
     const stackPath = toStackPath(localPath);
     try {
-      await ensureNodeIndexed(stackPath, Number(nodeId));
+      await ensureNodeIndexed(stackPath, Number(uploadedNodeId));
     } catch {}
-    
-    // Then create or get existing public share
-    const urlToken = await getOrCreatePublicShare(nodeId);
-    
-    // Determine if this is a media file that should get a preview link
+
+    // Determine if this is an image file; if so, skip preview/share link
     const fileName = path.basename(localPath);
     const fileExt = path.extname(fileName).toLowerCase();
-  const isImage = isImageFileType(fileExt);
-    
-    let link: string;
-  if (isImage) {
-      // Server-side token via our public preview proxy
-      link = `${PREVIEW_BASE}/api/stack/preview?t=${urlToken}&id=${nodeId}&h=2000`;
-      console.log(`[STACK] Shared ${localPath} → ${link} (server-side preview proxy)`);
-    } else {
-      // Create direct download link for non-media files
-      link = `https://${SHARE_HOST}/s/${urlToken}`;
-      console.log(`[STACK] Shared ${localPath} → ${link} (download link)`);
+    const isImage = ((): boolean => {
+      const imageExtensions = [
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.svg'
+      ];
+      return imageExtensions.includes(fileExt);
+    })();
+
+    if (isImage) {
+      console.log(`[STACK] Uploaded image ${localPath} → ${stackPath} (node ${uploadedNodeId}); skipping preview/share link`);
+      return null;
     }
-    
+
+    // Create or get existing public share for non-image files
+    const urlToken = await getOrCreatePublicShare(Number(uploadedNodeId));
+    const link = `https://${SHARE_HOST}/s/${urlToken}`;
+    console.log(`[STACK] Shared ${localPath} → ${link} (download link)`);
     return link;
   } catch (error: unknown) {
     const err = error as { response?: { data?: unknown } };
-    console.error('[STACK] Error in shareLocalFile:', err.response?.data || (error as Error).message);
+    console.error('[STACK] Error uploading file:', err.response?.data || (error as Error).message);
     throw error;
   }
 }
 
-// Helper function to determine if a file is an image type that supports previews
-function isImageFileType(fileExt: string): boolean {
-  const imageExtensions = [
-    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.svg'
-  ];
-  return imageExtensions.includes(fileExt);
-}
 
 // Watcher setup
 console.log(`[STACK] Starting watcher for: ${WATCH_ROOT}`);
@@ -305,6 +292,10 @@ async function shareWithRetries(filePath: string, attempts = RETRY_MAX_ATTEMPTS)
     }
     try {
       const link = await shareLocalFile(filePath);
+      if (link === null) {
+        console.log(`[STACK] No share link generated for image file: ${filePath}`);
+        return null;
+      }
       console.log(`[STACK] Share link created: ${link}`);
       return link;
     } catch (err: unknown) {
@@ -314,19 +305,23 @@ async function shareWithRetries(filePath: string, attempts = RETRY_MAX_ATTEMPTS)
       }
       const status = (err as { response?: { status?: number } })?.response?.status ?? 0;
       const delay = Math.min(RETRY_BASE_MS + i * 1000, RETRY_BASE_MS * 12);
-      console.warn(`[STACK] shareLocalFile attempt ${i}/${attempts} failed${status ? ` (status ${status})` : ''}. Retrying in ${delay}ms...`);
+      console.warn(`[STACK] share/upload attempt ${i}/${attempts} failed${status ? ` (status ${status})` : ''}. Retrying in ${delay}ms...`);
       await sleep(delay);
     }
   }
-  throw new Error('Failed to create share link after multiple attempts');
+  throw new Error('Failed to upload file after multiple attempts');
 }
 
 watcher.on('add', async (filePath) => {
   console.log(`[STACK] New file detected: ${filePath}`);
   try {
     const link = await shareWithRetries(filePath);
-    if (!link) {
+    if (link === undefined) {
       console.warn(`[STACK] Skipping re-detect; file is gone: ${filePath}`);
+      return;
+    }
+    if (link === null) {
+      // Image case: uploaded but no share link as requested
       return;
     }
   } catch (err: unknown) {
@@ -335,7 +330,7 @@ watcher.on('add', async (filePath) => {
       return;
     }
     const error = err as { response?: { status?: number; data?: unknown } };
-    console.error('[STACK] Share failed after retries:', error?.response?.status ?? (err as Error).message);
+    console.error('[STACK] Upload failed after retries:', error?.response?.status ?? (err as Error).message);
     if (error?.response?.data) console.error(error.response.data);
     // Undetect strategy: temporarily unwatch and re-add after a delay to bypass caching
     try {
@@ -350,7 +345,7 @@ watcher.on('add', async (filePath) => {
         watcher.add(filePath);
         try {
           const link = await shareWithRetries(filePath, Math.ceil(RETRY_MAX_ATTEMPTS / 6));
-          if (!link) {
+          if (link === undefined) {
             console.warn(`[STACK] File disappeared during re-detect; aborting: ${filePath}`);
             return;
           }
