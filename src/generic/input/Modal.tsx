@@ -77,6 +77,9 @@ export type ModalActionsProps = DialogActionsProps & {
   loading?: boolean;
   disabled?: boolean;
   close: () => void;
+  cancelColor?: import("@mui/material").ButtonProps["color"];
+  submitColor?: import("@mui/material").ButtonProps["color"];
+  placeCancelAfterSubmit?: boolean;
 };
 export function ModalActions({
   close,
@@ -84,6 +87,9 @@ export function ModalActions({
   cancelAction = "Cancel",
   loading = false,
   disabled = false,
+  cancelColor,
+  submitColor,
+  placeCancelAfterSubmit = false,
   children,
   ...props
 }: ModalActionsProps) {
@@ -91,14 +97,25 @@ export function ModalActions({
     <DialogActions {...props}>
       <Stack direction="row" justifyContent="flex-end" gap={1}>
         {children}
-        <Button onClick={close} color="secondary">
-          {cancelAction}
-        </Button>
-        {submitAction && (
+        {submitAction && !placeCancelAfterSubmit && (
           <Button
             disabled={loading || disabled}
             loading={loading}
             type="submit"
+            color={submitColor}
+          >
+            {submitAction}
+          </Button>
+        )}
+        <Button onClick={close} color={cancelColor ?? "secondary"}>
+          {cancelAction}
+        </Button>
+        {submitAction && placeCancelAfterSubmit && (
+          <Button
+            disabled={loading || disabled}
+            loading={loading}
+            type="submit"
+            color={submitColor}
           >
             {submitAction}
           </Button>
@@ -109,5 +126,12 @@ export function ModalActions({
 }
 
 export function ModalContent({ children, ...props }: DialogContentProps) {
-  return <DialogContent {...props}>{children}</DialogContent>;
+  return (
+    <DialogContent
+      {...props}
+      sx={{ overflow: "visible", pt: 1, ...(props as { sx?: object }).sx }}
+    >
+      {children}
+    </DialogContent>
+  );
 }

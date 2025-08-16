@@ -26,8 +26,8 @@ export function MobileNavMenu() {
         <MenuItem component={Link} href="/" onClick={handleClose}>
           Browse
         </MenuItem>
-        <MenuItem component={Link} href="/favorites" onClick={handleClose}>
-          Favorites
+        <MenuItem component={Link} href="/collections" onClick={handleClose}>
+          Collections
         </MenuItem>
         <MenuItem component={Link} href="/about" onClick={handleClose}>
           About

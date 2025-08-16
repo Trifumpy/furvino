@@ -8,3 +8,8 @@ export const authorKeys = {
   all: ['authors'],
   author: (authorId: string) => [...authorKeys.all, authorId],
 }
+
+export const collectionKeys = {
+  all: ['collections'] as const,
+  mine: () => [...collectionKeys.all, 'me'] as const,
+}

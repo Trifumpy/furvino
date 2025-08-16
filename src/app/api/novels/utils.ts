@@ -92,7 +92,7 @@ export async function enrichNovel(data: Novel) {
   });
 }
 
-function enrichNovelWithAuthor(data: PrismaNovelWithAuthor): ListedNovel {
+export function enrichNovelWithAuthor(data: PrismaNovelWithAuthor): ListedNovel {
   return {
     ...data,
     author: data.author || { id: data.authorId, name: "Unknown Author" },

@@ -1,5 +1,5 @@
-import { FavoritesPage } from "@/novels/pages";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <FavoritesPage />;
+  redirect("/collections");
 }

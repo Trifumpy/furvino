@@ -22,12 +22,13 @@ interface Props {
   novel: ListedNovel;
   isFavorited: boolean;
   onToggleFavorite: (id: string) => void;
+  disableLink?: boolean;
 }
 
 const AUTOMATIC_DESCRIPTION_SNIPPET_LENGTH = 200;
 const SHOW_FAVORITE_BUTTON = false;
 
-export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
+export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = false }: Props) {
   const theme = useTheme();
   const heartColor = isFavorited
     ? theme.palette.error.main
@@ -42,45 +43,57 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite }: Props) {
 
   const detailsUrl = `/novels/${novel.id}`;
 
+  const MediaAndContent = (
+    <>
+      <CardMedia
+        component="img"
+        height="160"
+        image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
+        alt={`Cover for ${novel.title}`}
+        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+          e.currentTarget.src = `https://placehold.co/600x400/1e1e1e/ffffff?text=Image+Error`;
+        }}
+      />
+      <CardContent>
+        <Stack pb={2}>
+          <Typography variant="h5" component="div">
+            {novel.title}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" mt={1}>
+            {novel.author.name}
+          </Typography>
+        </Stack>
+        {snippet ? (
+          <Typography variant="body2" color="text.secondary">
+            {snippet}
+          </Typography>
+        ) : (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            fontStyle="italic"
+          >
+            No description available.
+          </Typography>
+        )}
+      </CardContent>
+    </>
+  );
+
   return (
     <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Link
-        href={detailsUrl}
-        style={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}
-      >
-        <CardMedia
-          component="img"
-          height="160"
-          image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
-          alt={`Cover for ${novel.title}`}
-          onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-            e.currentTarget.src = `https://placehold.co/600x400/1e1e1e/ffffff?text=Image+Error`;
-          }}
-        />
-        <CardContent>
-          <Stack pb={2}>
-            <Typography variant="h5" component="div">
-              {novel.title}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" mt={1}>
-              {novel.author.name}
-            </Typography>
-          </Stack>
-          {snippet ? (
-            <Typography variant="body2" color="text.secondary">
-              {snippet}
-            </Typography>
-          ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              fontStyle="italic"
-            >
-              No description available.
-            </Typography>
-          )}
-        </CardContent>
-      </Link>
+      {disableLink ? (
+        <div style={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}>
+          {MediaAndContent}
+        </div>
+      ) : (
+        <Link
+          href={detailsUrl}
+          style={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}
+        >
+          {MediaAndContent}
+        </Link>
+      )}
       <CardActions
         sx={{
           display: "flex",

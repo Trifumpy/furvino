@@ -13,15 +13,15 @@ export function Header() {
           sx={{ flexGrow: 1, cursor: "pointer" }}
           href="/"
         >
-          FurViNo
+          Furvino
         </Typography>
         {/* Desktop nav */}
         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
           <Button LinkComponent={Link} href="/" color="inherit">
             Browse
           </Button>
-          <Button LinkComponent={Link} href="/favorites" color="inherit">
-            Favorites
+          <Button LinkComponent={Link} href="/collections" color="inherit">
+            Collections
           </Button>
           <Button LinkComponent={Link} href="/about" color="inherit">
             About

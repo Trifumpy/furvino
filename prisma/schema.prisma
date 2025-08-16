@@ -39,6 +39,7 @@ model Novel {
   views        Int          @default(0)
   comments     Comment[]
   ratings      UserRating[]
+  collectionItems CollectionItem[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @default(now()) @updatedAt
 
@@ -92,8 +93,51 @@ model User {
   ratings  UserRating[]
   author   Author?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId String?      @unique
+  collections Collection[]
+  followedCollections CollectionFollow[]
 
   @@index([clerkId])
   @@index([email])
   @@index([username])
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  items       CollectionItem[]
+  followers   CollectionFollow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId])
+  @@unique([userId, name])
+}
+
+model CollectionItem {
+  id           String      @id @default(uuid())
+  collectionId String
+  collection   Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  novelId      String
+  novel        Novel       @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+
+  @@unique([collectionId, novelId])
+  @@index([novelId])
+}
+
+model CollectionFollow {
+  id           String     @id @default(uuid())
+  collectionId String
+  userId       String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([collectionId, userId])
+  @@index([userId])
 }
