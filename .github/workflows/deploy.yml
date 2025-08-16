@@ -29,6 +29,7 @@ jobs:
             git pull origin main
 
             # Install dependencies
+            npm ci
             npm i 
             
             # Build and restart your services with Docker Compose

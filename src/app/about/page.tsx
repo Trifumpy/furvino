@@ -8,7 +8,7 @@ export default function AboutPage() {
     <Stack spacing={2}>
       <Typography variant="h4">Contact</Typography>
       <Typography>
-        If you want to get an Author account, please contact me on any of these forms.
+        If you want to get an Author account, please contact me on any of these options below.
         Or do you have any questions, suggestions, want novels to be added or anything else? Below are a few different ways you can contact me. <br />
         Telegram:
         {" "}
@@ -150,7 +150,7 @@ export default function AboutPage() {
       <Typography>Withdraw consent</Typography>
       <Typography>Receive a copy of your data (data portability)</Typography>
       <Typography>
-        To exercise these rights, contact:       <Link href= "mailto:trifumpy@gmail.com" target="_blank" rel="noopener">trifumpy@gmail.com</Link>  
+        To exercise these rights, contact:       <Link href="mailto:furvino.com@gmail.com" target="_blank" rel="noopener">furvino.com@gmail.com</Link>  
       </Typography>
       <Typography>
         The Website uses only essential cookies unless you give explicit consent for additional ones.
