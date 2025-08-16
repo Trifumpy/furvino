@@ -27,12 +27,14 @@ jobs:
             
             # Pull the latest changes from the main branch
             git pull origin main
+
+            # Install dependencies
+            npm i 
             
             # Build and restart your services with Docker Compose
             docker compose build
             docker compose up -d
 
-            # Install dependencies
-            npm i 
+
 
             npm run watch:stack
