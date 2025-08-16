@@ -21,6 +21,7 @@ import { fieldValidationToRecord } from "@/utils/lib/validation";
 import { ClipboardCopyIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import { useUpdateNovelThumbnail } from "@/novels/hooks";
+import { TextLengthCounterAdornment } from "@/generic/display";
 
 type Props = {
   existingId?: string;
@@ -28,6 +29,7 @@ type Props = {
   defaultData: CreateNovelBody;
   onSubmit: (data: CreateNovelBody) => Promise<void>;
   loading?: boolean;
+  disabled?: boolean;
   action?: string;
 };
 
@@ -37,11 +39,13 @@ export function NovelForm({
   defaultData,
   onSubmit,
   loading,
+  disabled,
   action = "Save",
 }: Props) {
   const {
     register,
     setValue,
+    watch,
     handleSubmit,
     control,
     formState: { errors },
@@ -77,6 +81,10 @@ export function NovelForm({
       toast.error((error as Error).message || "Error uploading thumbnail.");
     }
   };
+
+  const textTitle = watch("title");
+  const textDescription = watch("description");
+  const textSnippet = watch("snippet");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -122,7 +130,17 @@ export function NovelForm({
             label="Title"
             error={!!errors.title}
             helperText={errors.title?.message}
-            slotProps={{ htmlInput: { maxLength: MAX_TITLE_LENGTH } }}
+            slotProps={{
+              htmlInput: { maxLength: MAX_TITLE_LENGTH },
+              input: {
+                endAdornment: (
+                  <TextLengthCounterAdornment
+                    value={textTitle}
+                    maxLength={MAX_TITLE_LENGTH}
+                  />
+                ),
+              },
+            }}
             sx={{ flexGrow: 1 }}
           />
           {!fixedAuthorId && (
@@ -148,7 +166,17 @@ export function NovelForm({
           rows={3}
           error={!!errors.authorId}
           helperText={errors.authorId?.message}
-          slotProps={{ htmlInput: { maxLength: MAX_SNIPPET_LENGTH } }}
+          slotProps={{
+            htmlInput: { maxLength: MAX_SNIPPET_LENGTH },
+            input: {
+              endAdornment: (
+                <TextLengthCounterAdornment
+                  value={textSnippet ?? ""}
+                  maxLength={MAX_SNIPPET_LENGTH}
+                />
+              ),
+            },
+          }}
         />
         <TextField
           {...register("description")}
@@ -157,7 +185,17 @@ export function NovelForm({
           rows={5}
           error={!!errors.description}
           helperText={errors.description?.message}
-          slotProps={{ htmlInput: { maxLength: MAX_DESCRIPTION_LENGTH } }}
+          slotProps={{
+            htmlInput: { maxLength: MAX_DESCRIPTION_LENGTH },
+            input: {
+              endAdornment: (
+                <TextLengthCounterAdornment
+                  value={textDescription ?? ""}
+                  maxLength={MAX_DESCRIPTION_LENGTH}
+                />
+              ),
+            },
+          }}
         />
         <Controller
           name="tags"
@@ -197,8 +235,9 @@ export function NovelForm({
         <Button
           type="submit"
           loading={loading}
+          disabled={disabled}
           variant="contained"
-          sx={{ alignSelf: "center" }}
+          sx={{ alignSelf: "center", py: 1, px: 3, my: 2 }}
         >
           {action}
         </Button>

@@ -11,7 +11,7 @@ import {
 } from "./errors";
 import z from "zod";
 import { NextParams } from "../types";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, unstable_expireTag } from "next/cache";
 
 export async function ensureClerkId(): Promise<{ clerkId: string }> {
   const { userId: clerkId } = await auth();
@@ -161,5 +161,13 @@ export function revalidateTags(tags: readonly string[]) {
     tags.forEach((tag) => revalidateTag(tag));
   } else {
     console.warn("revalidateTag is not available, skipping tag revalidation");
+  }
+}
+
+export function evictTags(tags: readonly string[]) {
+  if (typeof unstable_expireTag === "function") {
+    tags.forEach((tag) => unstable_expireTag(tag));
+  } else {
+    console.warn("unstable_expireTag is not available, skipping tag eviction");
   }
 }

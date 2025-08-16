@@ -36,4 +36,8 @@ export class NovelsService extends HttpService {
 
     return this.put<ListedNovel, UpdateNovelThumbnailBody>(`/${novelId}/thumbnail`, formData);
   }
+
+  deleteNovel(novelId: string) {
+    return this.delete<void>(`/${novelId}`);
+  }
 }
