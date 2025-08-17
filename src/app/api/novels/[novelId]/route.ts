@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel, validateNovelData } from "../utils";
-import { revalidateTags, wrapRoute } from "../../utils";
+import { deleteNovel, enrichNovel, ensureCanUpdateNovel, ensureCanUpdateNovelById, ensureGetNovel, validateNovelData } from "../utils";
+import { evictTags, revalidateTags, wrapRoute } from "../../utils";
 import prisma from "@/utils/db";
 import { GetNovelParams, GetNovelResponse, UpdateNovelParams, UpdateNovelResponse } from "@/contracts/novels";
 import { novelTags } from "@/utils";
@@ -39,4 +39,16 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
   const novel = await enrichNovel(updatedNovel) satisfies UpdateNovelResponse;
 
   return NextResponse.json(novel, { status: 200 });
+});
+
+export const DELETE = wrapRoute<GetNovelParams>(async (_unused, { params }) => {
+  const { novelId } = await params;
+
+  await ensureCanUpdateNovelById(novelId);
+  await deleteNovel(novelId);
+
+  evictTags(novelTags.novel(novelId));
+  revalidateTags(novelTags.list());
+
+  return new NextResponse(null, { status: 204 });
 });

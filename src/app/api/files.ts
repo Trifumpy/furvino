@@ -12,7 +12,7 @@ export async function uploadFileToStack(
 ): Promise<string> {
   const fullPath = path.join(SETTINGS.stack.mountedRoot, filePath);
 
-  await ensureFolderExists(path.dirname(fullPath));
+  await ensureFolderExists(path.dirname(filePath));
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -57,6 +57,11 @@ export async function clearStackFolder(folderPath: string): Promise<void> {
       }
     })
   );
+}
+
+export async function deleteStackFolder(folderPath: string): Promise<void> {
+  const fullPath = path.join(SETTINGS.stack.mountedRoot, folderPath);
+  await rm(fullPath, { recursive: true, force: true });
 }
 
 // Helper types

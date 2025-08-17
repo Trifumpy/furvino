@@ -11,6 +11,7 @@ import {
   GetNovelsQParams,
 } from "@/contracts/novels";
 import { getUserByExternalId } from "../users";
+import { deleteStackFolder } from "../files";
 
 type PrismaNovelWithAuthor = Prisma.PromiseReturnType<
   typeof prisma.novel.findUnique
@@ -152,6 +153,16 @@ export async function ensureGetNovel(novelId: string): Promise<Novel> {
   return novel;
 }
 
+export async function deleteNovel(novelId: string): Promise<void> {
+  const novel = await ensureGetNovel(novelId);
+  await prisma.novel.delete({
+    where: { id: novel.id },
+  });
+
+  // Delete associated files if any
+  await deleteStackFolder(`novels/${novel.id}`);
+}
+
 // ENRICHMENT
 
 export async function enrichNovel(data: Novel) {
@@ -247,4 +258,12 @@ export async function ensureCanUpdateNovel(
   if (!canUpdate) {
     throw new ForbiddenError("You do not have permission to update this novel");
   }
+}
+
+export async function ensureCanUpdateNovelById(
+  novelId: string
+): Promise<Novel> {
+  const novel = await ensureGetNovel(novelId);
+  await ensureCanUpdateNovel(novel);
+  return novel;
 }

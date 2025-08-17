@@ -5,6 +5,7 @@ import { useCreateNovel } from "@/novels/hooks";
 import { useRouter } from "next/navigation";
 import { NovelForm } from "./components";
 import { Stack, Typography } from "@mui/material";
+import { useState } from "react";
 
 const DEFAULT_NOVEL: CreateNovelBody = {
   title: "",
@@ -18,6 +19,7 @@ const DEFAULT_NOVEL: CreateNovelBody = {
 
 export function CreateNovelPage() {
   const { createNovel, isCreating } = useCreateNovel();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
   return (
@@ -27,11 +29,13 @@ export function CreateNovelPage() {
       </Typography>
       <NovelForm
         defaultData={DEFAULT_NOVEL}
-        action="Create Novel"
+        action={isRedirecting ? "Redirecting..." : "Create Novel"}
         loading={isCreating}
+        disabled={isRedirecting}
         onSubmit={async (data) => {
           const novel = await createNovel(data);
-          router.push(`/novels/${novel.id}`);
+          setIsRedirecting(true);
+          router.push(`/novels/${novel.id}/edit`);
         }}
       />
     </Stack>

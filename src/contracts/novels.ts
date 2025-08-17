@@ -1,3 +1,5 @@
+import { Author } from "@/users/types";
+import { urlOrEmpty } from "./core";
 import z from "zod";
 
 export const EXTERNAL_SITES = [
@@ -34,9 +36,9 @@ export const novelSchema = z.object({
   authorId: z.string().min(1, "Author ID is required"),
   description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
-  thumbnailUrl: z.url().optional(),
-  externalUrls: z.partialRecord(externalSiteEnum, z.url()).optional(),
-  magnetUrls: z.partialRecord(platformEnum, z.url()).optional(),
+  thumbnailUrl: urlOrEmpty.optional(),
+  externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
+  magnetUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
   tags: z.array(z.string()).max(MAX_TAGS).optional(),
 });
 export type NovelSchema = z.infer<typeof novelSchema>;
@@ -78,8 +80,6 @@ export const MAX_THUMBNAIL_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export type UpdateNovelThumbnailParams = NovelTarget;
 export type UpdateNovelThumbnailBody = FormData;
 export type UpdateNovelThumbnailResponse = ListedNovel;
-
-import { Author } from "@/users/types";
 
 export type ListedNovel = {
   id: string;
