@@ -1,9 +1,14 @@
+"use client";
+
 import * as React from 'react';
 import Link from 'next/link';
 import { Button, Container, Stack, Typography } from '@mui/material';
 import { ErrorIcon } from '@/generic/icons';
 
 export default function NotFound() {
+  React.useEffect(() => {
+    document.title = 'Page not found | Furvino';
+  }, []);
   return (
     <Container component="main" sx={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', py: 8 }}>
       <Stack spacing={3} alignItems="center" sx={{ textAlign: 'center', maxWidth: 640, width: '100%' }}>

@@ -6,6 +6,9 @@ import { Button, Container, Stack, Typography } from '@mui/material';
 import { ErrorIcon } from '@/generic/icons';
 
 export default function GlobalError({ reset }: { reset: () => void }) {
+  React.useEffect(() => {
+    document.title = 'Error | Furvino';
+  }, []);
   return (
     <html>
       <body>

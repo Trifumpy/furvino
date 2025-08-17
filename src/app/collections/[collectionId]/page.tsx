@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useRegistry } from "@/utils/client";
 import { NovelCard } from "@/novels/components/NovelCard";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PencilIcon, Trash2Icon, XIcon, CheckIcon } from "lucide-react";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input";
 import { toast } from "react-toastify";
@@ -20,6 +20,19 @@ export default function Page() {
     queryFn: () => collections.getCollection(collectionId),
     enabled: !!collectionId,
   });
+
+  // Keep the browser tab title in sync with the loaded collection name
+  useEffect(() => {
+    if (!data?.name) return;
+    const previous = document.title;
+    document.title = data.name;
+    return () => {
+      // do not overwrite if we navigated away to another page that set its own title
+      if (document.title === data.name) {
+        document.title = previous;
+      }
+    };
+  }, [data?.name]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");

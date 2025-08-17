@@ -111,6 +111,14 @@ export async function getAllNovels(options: GetNovelsQParams) {
       return sortByComputedAverage === 'highest' ? bv - av : av - bv;
     });
   }
+  if (sort === 'mostRatings') {
+    const novelIdToCount: Record<string, number> = Object.fromEntries(ratings.map(r => [r.novelId, r._count.novelId]));
+    novelsWithAuthors = novelsWithAuthors.sort((a, b) => {
+      const ac = novelIdToCount[a.id] ?? 0;
+      const bc = novelIdToCount[b.id] ?? 0;
+      return bc - ac;
+    });
+  }
 
   return novelsWithAuthors.map((n) => {
     const listed = enrichNovelWithAuthor(n);

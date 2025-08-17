@@ -9,6 +9,7 @@ export default async function App({ searchParams }: { searchParams: Promise<{ [k
     "lastUpdated",
     "mostViewed",
     "leastViewed",
+    "mostRatings",
     "highestRating",
     "lowestRating",
     "mostDiscussed",

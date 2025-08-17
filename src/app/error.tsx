@@ -7,6 +7,9 @@ import { ErrorIcon } from '@/generic/icons';
 
 export default function Error({ reset }: { reset: () => void }) {
   const build = process.env.NEXT_PUBLIC_COMMIT?.slice(0, 7) ?? '';
+  React.useEffect(() => {
+    document.title = 'Error | Furvino';
+  }, []);
 
   return (
     <Container component="main" sx={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', py: 8 }}>
