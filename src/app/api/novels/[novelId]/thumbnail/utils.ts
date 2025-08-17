@@ -38,7 +38,10 @@ export async function setNovelThumbnail(novelId: string, thumbnailFile: File) {
 
   // Served from our API
   const sanitizedName = sanitizeFilename(thumbnailFile.name);
-  const thumbnailUrl = `${SETTINGS.apiUrl}/novels/${novelId}/thumbnail/${sanitizedName}`;
+  // Add a version query parameter so browsers can cache aggressively while
+  // still getting fresh content on updates.
+  const versionParam = Date.now();
+  const thumbnailUrl = `${SETTINGS.apiUrl}/novels/${novelId}/thumbnail/${sanitizedName}?v=${versionParam}`;
   const dbPromise = prisma.novel.update({
     where: { id: novelId },
     data: { thumbnailUrl },

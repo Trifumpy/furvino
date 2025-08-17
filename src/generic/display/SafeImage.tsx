@@ -25,6 +25,7 @@ export function SafeImage(props: ImageProps & { src: string }) {
   const { src, alt, ...rest } = props;
 
   if (isTrusted(src)) {
+    // Let Next/Image set optimal caching/headers for trusted hosts
     return <Image src={src} alt={alt} {...rest} />;
   }
 

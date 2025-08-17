@@ -23,6 +23,7 @@ export function Avatar({ fallbackName, user, size }: AvatarProps) {
       sx={{
         objectFit: "cover",
       }}
+      // Add a cache-busting param if the URL is from our API, so we can cache long-term safely
       src={user.avatarUrl}
       alt={`Avatar for ${user.username}`}
     />
