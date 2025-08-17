@@ -19,7 +19,7 @@ type PrismaNovelWithAuthor = Prisma.PromiseReturnType<
 };
 
 export async function getAllNovels(options: GetNovelsQParams) {
-  const { authorId, tags, search } = options;
+  const { authorId, tags, search, sort } = options;
 
   const where: Prisma.NovelWhereInput = {
     authorId: authorId || undefined,
@@ -27,8 +27,56 @@ export async function getAllNovels(options: GetNovelsQParams) {
     title: search ? { contains: search, mode: "insensitive" } : undefined,
   };
 
-  const novelsWithAuthors = await prisma.novel.findMany({
+  // Determine ordering
+  const orderBy: Prisma.NovelOrderByWithRelationInput[] = [];
+  let sortByComputedAverage: 'highest' | 'lowest' | null = null;
+  switch (sort) {
+    case "newest":
+      orderBy.push({ createdAt: "desc" });
+      break;
+    case "oldest":
+      orderBy.push({ createdAt: "asc" });
+      break;
+    case "lastUpdated":
+      orderBy.push({ updatedAt: "desc" });
+      break;
+    case "mostViewed":
+      orderBy.push({ views: "desc" });
+      break;
+    case "leastViewed":
+      orderBy.push({ views: "asc" });
+      break;
+    case "titleAsc":
+      orderBy.push({ title: "asc" });
+      break;
+    case "titleDesc":
+      orderBy.push({ title: "desc" });
+      break;
+    // Future: implement based on aggregates once stored
+    case "mostDiscussed":
+      orderBy.push({ comments: { _count: "desc" } as unknown as never });
+      break;
+    case "highestRating":
+      sortByComputedAverage = 'highest';
+      break;
+    case "lowestRating":
+      sortByComputedAverage = 'lowest';
+      break;
+    case "mostRatings":
+      orderBy.push({ ratings: { _count: "desc" } as unknown as never });
+      break;
+    case "mostDiscussed":
+      orderBy.push({ comments: { _count: "desc" } as unknown as never });
+      break;
+    default:
+      // Default to newest if not specified
+      orderBy.push({ createdAt: "desc" });
+      break;
+  }
+
+  let novelsWithAuthors = await prisma.novel.findMany({
     where,
+    orderBy,
     include: {
       author: {
         select: {
@@ -36,10 +84,39 @@ export async function getAllNovels(options: GetNovelsQParams) {
           name: true,
         },
       },
+      _count: { select: { ratings: true } },
     },
   });
 
-  return novelsWithAuthors.map(enrichNovelWithAuthor);
+  const novelIds = novelsWithAuthors.map((n) => n.id);
+  const ratings = await prisma.userRating.groupBy({
+    by: ['novelId'],
+    where: { novelId: { in: novelIds } },
+    _avg: { plot: true, characters: true, backgroundsUi: true, characterArt: true, music: true, soundEffects: true, emotionalImpact: true },
+    _count: { novelId: true },
+  });
+  const novelIdToAvg: Record<string, number> = {};
+  for (const r of ratings) {
+    const parts = [r._avg.plot, r._avg.characters, r._avg.backgroundsUi, r._avg.characterArt, r._avg.music, r._avg.soundEffects, r._avg.emotionalImpact]
+      .filter((v): v is number => typeof v === 'number' && v > 0);
+    const avg = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : 0;
+    novelIdToAvg[r.novelId] = avg;
+  }
+
+  if (sortByComputedAverage) {
+    novelsWithAuthors = novelsWithAuthors.sort((a, b) => {
+      const av = novelIdToAvg[a.id] ?? 0;
+      const bv = novelIdToAvg[b.id] ?? 0;
+      return sortByComputedAverage === 'highest' ? bv - av : av - bv;
+    });
+  }
+
+  return novelsWithAuthors.map((n) => {
+    const listed = enrichNovelWithAuthor(n);
+    listed.ratingsSummary.average = novelIdToAvg[n.id] ?? 0;
+    listed.ratingsSummary.total = (ratings.find((r) => r.novelId === n.id)?._count.novelId) ?? 0;
+    return listed;
+  });
 }
 
 export async function getListedNovel(novelId: string): Promise<ListedNovel | null> {

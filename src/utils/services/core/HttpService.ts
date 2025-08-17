@@ -76,6 +76,10 @@ export abstract class HttpService {
       },
     };
 
+    if (options.cache) {
+      fetchOptions.cache = options.cache;
+    }
+
     if (options.queryParams) {
       options.queryParams = sanitizeQueryParams(options.queryParams);
     }

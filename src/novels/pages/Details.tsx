@@ -4,7 +4,7 @@ import { Box, Button, IconButton, Stack, TextField, Typography } from "@mui/mate
 import { useNovel } from "../providers";
 import { DEFAULT_NOVEL_COVER_URL } from "../components/constants";
 import { Links } from "../components/Links";
-import { NovelDownloads } from "../components";
+import { NovelComments, NovelDownloads, NovelRatings, NovelRatingsList } from "../components";
 import { NovelTags } from "../components/NovelTags";
 import { SafeImage } from "@/generic/display";
 import Link from "next/link";
@@ -118,6 +118,15 @@ export function NovelDetailsPage() {
       <Stack direction="row" justifyContent="center" my={4}>
         <NovelDownloads novel={novel} />
       </Stack>
+      <Box my={4}>
+        <NovelRatings />
+      </Box>
+      <Box my={2}>
+        <NovelRatingsList />
+      </Box>
+      <Box my={4}>
+        <NovelComments />
+      </Box>
       {user && (
         <Modal
           isOpen={isOpen}

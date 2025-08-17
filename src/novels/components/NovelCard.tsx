@@ -11,6 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { DEFAULT_NOVEL_COVER_URL } from "./constants";
+import { Rating } from "@mui/material";
 import { HeartIcon } from "lucide-react";
 import { trimString } from "@/utils";
 import Link from "next/link";
@@ -62,6 +63,15 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = 
           <Typography variant="caption" color="text.secondary" mt={1}>
             {novel.author.name}
           </Typography>
+          <Stack direction="row" alignItems="center" gap={1}>
+            {(() => {
+              const avg = novel.ratingsSummary?.average ?? 0;
+              const roundedTenth = Math.round(avg * 10) / 10;
+              return (
+                <Rating size="small" readOnly value={roundedTenth} precision={0.1} max={5} />
+              );
+            })()}
+          </Stack>
         </Stack>
         {snippet ? (
           <Typography variant="body2" color="text.secondary">

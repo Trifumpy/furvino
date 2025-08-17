@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert, Box, CircularProgress, Grid, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { NovelCard } from "../components/NovelCard";
 import { useNovels, useSearch } from "../providers";
-import { SearchBar } from "../components";
+import { SearchBar, SortSelect } from "../components";
 
 export function BrowsePage() {
   const { novels, favoriteIds, toggleFavorite } = useNovels();
@@ -15,7 +15,12 @@ export function BrowsePage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Discover Your Next Story
         </Typography>
-        <SearchBar />
+        <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "center" }}>
+          <Box sx={{ flex: 1 }}>
+            <SearchBar />
+          </Box>
+          <SortSelect />
+        </Stack>
       </Box>
       {novels.length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", my: 5 }}>

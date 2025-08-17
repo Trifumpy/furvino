@@ -10,12 +10,13 @@ export async function NovelsProvider({
   authorId,
   search,
   tags,
+  sort,
 }: Props) {
   const { novels } = Registry.get();
 
   let allNovels: ListedNovel[] = [];
   try {
-    allNovels = await novels.getNovels({ authorId, search, tags });
+    allNovels = await novels.getNovels({ authorId, search, tags, sort });
   } catch (error) {
     console.error("Failed to fetch novels:", error);
   }

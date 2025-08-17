@@ -2,3 +2,7 @@ export * from './SearchBar';
 export * from './NovelCard';
 export * from './NovelDownloads';
 export * from './NovelTag';
+export * from './SortSelect';
+export * from './NovelComments';
+export * from './NovelRatings';
+export * from './NovelRatingsList';

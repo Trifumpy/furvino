@@ -54,11 +54,16 @@ model Comment {
   userId  String
   text    String
 
+  parentId String?
+  parent   Comment?   @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[]  @relation("CommentToReplies")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([novelId])
   @@index([userId])
+  @@index([parentId])
 }
 
 model UserRating {
@@ -68,6 +73,14 @@ model UserRating {
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String
   value   Int
+  plot              Int @default(0)
+  characters        Int @default(0)
+  backgroundsUi     Int @default(0)
+  characterArt      Int @default(0)
+  music             Int @default(0)
+  soundEffects      Int @default(0)
+  emotionalImpact   Int @default(0)
+  reason            String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

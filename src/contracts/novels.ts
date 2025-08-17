@@ -48,6 +48,19 @@ export const getNovelsQParamsSchema = z.object({
   authorId: z.string(),
   tags: z.array(z.string()),
   search: z.string(),
+  sort: z.enum([
+    "newest",
+    "oldest",
+    "lastUpdated",
+    "mostViewed",
+    "leastViewed",
+    "mostRatings",
+    "highestRating",
+    "lowestRating",
+    "mostDiscussed",
+    "titleAsc",
+    "titleDesc",
+  ]),
 }).partial();
 export type GetNovelsQParams = z.infer<typeof getNovelsQParamsSchema>;
 
@@ -92,6 +105,15 @@ export type RatingsSummary = {
   total: number;
   average: number;
   recent: UserRating[];
+  categories?: {
+    plot: number;
+    characters: number;
+    backgroundsUi: number;
+    characterArt: number;
+    music: number;
+    soundEffects: number;
+    emotionalImpact: number;
+  };
 }
 
 export type Stats = {
@@ -107,5 +129,73 @@ export type Comment = {
 
 export type UserRating = {
   userId: string;
-  value: number;
+  plot?: number;
+  characters?: number;
+  backgroundsUi?: number;
+  characterArt?: number;
+  music?: number;
+  soundEffects?: number;
+  emotionalImpact?: number;
+  reason?: string | null;
 }
+
+export const ratingCategories = [
+  "plot",
+  "characters",
+  "backgroundsUi",
+  "characterArt",
+  "music",
+  "soundEffects",
+  "emotionalImpact",
+] as const;
+export type RatingCategory = (typeof ratingCategories)[number];
+
+export type UpsertRatingBody = {
+  categories: Partial<Record<RatingCategory, number>>;
+  reason?: string; // up to 1000 chars
+};
+export type UpsertRatingResponse = {
+  average: number;
+  total: number;
+  mine: UserRating;
+};
+
+export type ListedUserRating = {
+  id: string;
+  novelId: string;
+  user: {
+    id: string;
+    username: string;
+    avatarUrl?: string | null;
+    authorId?: string | null;
+  };
+  plot: number;
+  characters: number;
+  backgroundsUi: number;
+  characterArt: number;
+  music: number;
+  soundEffects: number;
+  emotionalImpact: number;
+  reason: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+export type GetRecentRatingsResponse = ListedUserRating[];
+
+// Comments API contracts
+export type NovelCommentUser = {
+  id: string;
+  username: string;
+  avatarUrl?: string | null;
+  authorId?: string | null;
+};
+export type NovelComment = {
+  id: string;
+  text: string;
+  createdAt: string;
+  user: NovelCommentUser;
+  replies?: NovelComment[];
+};
+export type GetNovelCommentsResponse = NovelComment[];
+export type CreateNovelCommentBody = { text: string; parentId?: string };
+export type CreateNovelCommentResponse = NovelComment;
