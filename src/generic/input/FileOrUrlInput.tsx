@@ -1,4 +1,4 @@
-import { mergeSlotProps, Stack, Typography, useTheme } from "@mui/material";
+import { Button, mergeSlotProps, Stack, Typography, useTheme } from "@mui/material";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -25,7 +25,7 @@ export function FileOrUrlInput<TKey extends string>({
   accept,
   maxSize = DEFAULT_MAX_FILE_SIZE,
 }: Props<TKey>) {
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
       const file = acceptedFiles[0];
@@ -48,6 +48,7 @@ export function FileOrUrlInput<TKey extends string>({
     accept,
     maxSize,
     multiple: false,
+    noClick: true,
   });
 
   const rootProps = getRootProps();
@@ -95,7 +96,7 @@ export function FileOrUrlInput<TKey extends string>({
         {isHttpUrl ? (
           <Stack alignItems="center" gap={1}>
             <ExternalLinkIcon size={32} />
-            <Typography variant="body2" color="primary.main" component="a" href={value} target="_blank" rel="noopener noreferrer">
+            <Typography variant="body2" color="primary.main" component="a" href={value} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
               Open current file
             </Typography>
           </Stack>
@@ -106,12 +107,9 @@ export function FileOrUrlInput<TKey extends string>({
           <Typography variant="body2" color="textPrimary">
             Drop a file here
           </Typography>
-          <Typography variant="body2" color="textPrimary">
-            or
-          </Typography>
-          <Typography variant="body2" color="primary.main">
+          <Button size="small" variant="outlined" onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(); }} disabled={loading || disabled} sx={{ mt: 1 }}>
             Choose a file
-          </Typography>
+          </Button>
         </Stack>
       </Stack>
       {error && (
