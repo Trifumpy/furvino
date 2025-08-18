@@ -62,7 +62,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         value={mapping}
         onChange={setMapping}
         errors={errors}
-        ValueField={ValueField as unknown as any}
+        ValueField={ValueField}
       />
     </Stack>
   );

@@ -1,4 +1,4 @@
-import { Box, mergeSlotProps, Stack, Typography, useTheme } from "@mui/material";
+import { mergeSlotProps, Stack, Typography, useTheme } from "@mui/material";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -17,7 +17,7 @@ const DEFAULT_MAX_FILE_SIZE = 128 * 1024 * 1024; // 128 MB
 export function FileOrUrlInput<TKey extends string>({
   label = "File or URL",
   value,
-  onChange,
+  onChange, // required by ValueFieldProps but not used when URL input is removed
   error,
   disabled = false,
   onUpload,

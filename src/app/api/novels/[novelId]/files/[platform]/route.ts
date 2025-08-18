@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { wrapRoute, revalidateTags } from "@/app/api/utils";
 import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
-import { PLATFORMS } from "@/contracts/novels";
+import { PLATFORMS, Platform } from "@/contracts/novels";
 import { BadRequestError } from "@/app/api/errors";
 import path from "path";
 import { sanitizeFilename, uploadFileToStack, readFileFromStack } from "@/app/api/files";
@@ -9,15 +9,17 @@ import prisma from "@/utils/db";
 import { SETTINGS } from "@/app/api/settings";
 import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
+import { Prisma } from "@/generated/prisma";
 
 const MAX_NOVEL_FILE_SIZE = 128 * 1024 * 1024; // 128MB
 
 export const PUT = wrapRoute(async (request, { params }) => {
   const { novelId, platform } = await params as { novelId: string; platform: string };
 
-  if (!PLATFORMS.includes(platform as any)) {
+  if (!PLATFORMS.includes(platform as Platform)) {
     throw new BadRequestError("Invalid platform");
   }
+  const typedPlatform = platform as Platform;
 
   const novel = await ensureGetNovel(novelId);
   await ensureCanUpdateNovel(novel);
@@ -28,7 +30,7 @@ export const PUT = wrapRoute(async (request, { params }) => {
   if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
 
   const sanitizedName = sanitizeFilename(file.name);
-  const stackRelativePath = path.join("novels", novelId, "files", platform, sanitizedName);
+  const stackRelativePath = path.join("novels", novelId, "files", typedPlatform, sanitizedName);
 
   // Save to mounted stack
   await uploadFileToStack(stackRelativePath, file);
@@ -39,13 +41,19 @@ export const PUT = wrapRoute(async (request, { params }) => {
   const shareUrl = await stack.uploadAndShareByRelativePath(stackRelativePath, buffer);
 
   // Patch DB field
+  const existingMagnetUrls: Prisma.JsonObject =
+    typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
+      ? (novel.magnetUrls as Prisma.JsonObject)
+      : {};
+  const nextMagnetUrls: Prisma.JsonObject = {
+    ...existingMagnetUrls,
+    [typedPlatform]: shareUrl,
+  };
+
   const patched = await prisma.novel.update({
     where: { id: novelId },
     data: {
-      magnetUrls: {
-        ...(novel.magnetUrls ?? {}),
-        [platform]: shareUrl,
-      } as any,
+      magnetUrls: nextMagnetUrls,
     },
   });
 
