@@ -35,10 +35,23 @@ export const PUT = wrapRoute(async (request, { params }) => {
   // Save to mounted stack
   await uploadFileToStack(stackRelativePath, file);
 
-  // Share via STACK API
-  const buffer = await readFileFromStack(stackRelativePath);
-  const stack = new StackService(SETTINGS.stack.apiUrl, SETTINGS.stack.username, SETTINGS.stack.password);
-  const shareUrl = await stack.uploadAndShareByRelativePath(stackRelativePath, buffer);
+  // Share via STACK API (use external STACK API URL, not our Next API)
+  const externalApiUrl = process.env.STACK_API_URL;
+  const stackUsername = process.env.STACK_USERNAME;
+  const stackPassword = process.env.STACK_PASSWORD;
+  if (!externalApiUrl || !stackUsername || !stackPassword) {
+    throw new Error("STACK API credentials are not configured (STACK_API_URL, STACK_USERNAME, STACK_PASSWORD)");
+  }
+
+  const stack = new StackService(externalApiUrl, stackUsername, stackPassword);
+  let shareUrl: string;
+  const maybeExistingNodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
+  if (maybeExistingNodeId) {
+    shareUrl = await stack.shareNode(maybeExistingNodeId);
+  } else {
+    const buffer = await readFileFromStack(stackRelativePath);
+    shareUrl = await stack.uploadAndShareByRelativePath(stackRelativePath, buffer);
+  }
 
   // Patch DB field
   const existingMagnetUrls: Prisma.JsonObject =
