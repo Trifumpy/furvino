@@ -88,6 +88,10 @@ export function NovelDetailsPage() {
               </IconButton>
             )}
           </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            by {" "}
+            <Link href={`/authors/${novel.author.id}`}>{novel.author.name}</Link>
+          </Typography>
           <Links novel={novel} />
         </Stack>
         <NovelTags tags={novel.tags} chipSize="medium" />

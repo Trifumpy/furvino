@@ -5,7 +5,8 @@ import { useCreateNovel } from "@/novels/hooks";
 import { useRouter } from "next/navigation";
 import { NovelForm } from "./components";
 import { Stack, Typography } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useUser } from "@/users/providers";
 
 const DEFAULT_NOVEL: CreateNovelBody = {
   title: "",
@@ -21,6 +22,8 @@ export function CreateNovelPage() {
   const { createNovel, isCreating } = useCreateNovel();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
+  const { user, isAdmin } = useUser();
+  const fixedAuthorId = useMemo(() => (!isAdmin ? user?.authorId ?? "" : undefined), [isAdmin, user]);
 
   return (
     <Stack gap={2}>
@@ -28,10 +31,12 @@ export function CreateNovelPage() {
         Create Novel
       </Typography>
       <NovelForm
-        defaultData={DEFAULT_NOVEL}
+        fixedAuthorId={fixedAuthorId}
+        defaultData={{ ...DEFAULT_NOVEL, authorId: fixedAuthorId ?? "" }}
         action={isRedirecting ? "Redirecting..." : "Create Novel"}
         loading={isCreating}
         disabled={isRedirecting}
+        minimal
         onSubmit={async (data) => {
           const novel = await createNovel(data);
           setIsRedirecting(true);

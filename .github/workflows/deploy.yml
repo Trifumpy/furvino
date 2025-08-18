@@ -35,7 +35,3 @@ jobs:
             # Build and restart your services with Docker Compose
             docker compose build
             docker compose up -d
-
-
-
-            npm run watch:stack

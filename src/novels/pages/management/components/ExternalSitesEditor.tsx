@@ -1,8 +1,4 @@
-import {
-  CreateNovelBody,
-  EXTERNAL_SITES,
-  ExternalSite,
-} from "@/contracts/novels";
+import { EXTERNAL_SITES, ExternalSite } from "@/contracts/novels";
 import { SERVICE_ICONS, SERVICE_NAMES } from "@/generic/data";
 import { useRecordArrayAdapter } from "@/generic/hooks";
 import { KeyMapKey, StringKeyMapField } from "@/generic/input";
@@ -16,8 +12,8 @@ export const keys: KeyMapKey<ExternalSite>[] = EXTERNAL_SITES.map((site) => ({
 }));
 
 type Props = {
-  value: CreateNovelBody["externalUrls"];
-  onChange: (value: CreateNovelBody["externalUrls"]) => void;
+  value: Partial<Record<ExternalSite, string>> | undefined;
+  onChange: (value: Partial<Record<ExternalSite, string>> | undefined) => void;
   errors?: Record<ExternalSite, string>;
 };
 

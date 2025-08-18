@@ -1,9 +1,13 @@
 import { Author, User } from "@/generated/prisma";
+import { externalSiteEnum } from "@/contracts/novels";
+import { urlOrEmpty } from "./core";
 import z from "zod";
 
 export const authorSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string"),
   name: z.string().min(1, "Name is required"),
+  externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
+  description: z.string().max(10000).optional().nullable(),
 })
 export type AuthorSchema = z.infer<typeof authorSchema>;
 

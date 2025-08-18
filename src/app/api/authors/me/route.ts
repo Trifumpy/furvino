@@ -1,12 +1,13 @@
 import { getOrCreateUserByExternalId } from "../../users";
-import { ensureClerkId, validateRequestBody, wrapRoute } from "../../utils";
+import { ensureClerkId, revalidateTags, validateRequestBody, wrapRoute } from "../../utils";
 import { createAuthorSchema, updateAuthorSchema } from "@/contracts/users";
 import { NextResponse } from "next/server";
-import { enrichAuthorWithUser, getAuthor } from "../utils";
+import { enrichAuthorWithUser, getAuthor, sanitizeAuthor } from "../utils";
 import prisma from "@/utils/db";
 import { linkAuthor } from "../[authorId]/link/utils";
 import { Author } from "@/generated/prisma";
 import { NotFoundError } from "../../errors";
+import { authorTags } from "@/utils";
 
 export const GET = wrapRoute(async () => {
   const { clerkId } = await ensureClerkId();
@@ -19,7 +20,7 @@ export const GET = wrapRoute(async () => {
   const result = await getAuthor(user.authorId);
   const enrichedAuthor = enrichAuthorWithUser(result, user);
   
-  return NextResponse.json(enrichedAuthor, { status: 200 });
+  return NextResponse.json(sanitizeAuthor(enrichedAuthor), { status: 200 });
 });
 
 export const PUT = wrapRoute(async (request) => {
@@ -44,5 +45,8 @@ export const PUT = wrapRoute(async (request) => {
   }
 
   const status = created ? 201 : 200;
-  return NextResponse.json(enrichAuthorWithUser(author, user), { status });
+  const enriched = enrichAuthorWithUser(author, user);
+  revalidateTags(authorTags.author(enriched.id));
+  revalidateTags(authorTags.list());
+  return NextResponse.json(sanitizeAuthor(enriched), { status });
 });

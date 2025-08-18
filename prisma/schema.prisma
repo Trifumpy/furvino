@@ -18,6 +18,8 @@ datasource db {
 model Author {
   id   String @id @default(uuid())
   name String
+  externalUrls Json?
+  description  String?
 
   novels Novel[]
   user   User?
@@ -113,6 +115,8 @@ model User {
   @@index([email])
   @@index([username])
 }
+
+// AuthorManager table removed (managers feature deferred)
 
 model Collection {
   id          String   @id @default(uuid())

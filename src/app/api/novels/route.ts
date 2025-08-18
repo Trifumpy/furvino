@@ -16,8 +16,6 @@ export const GET = wrapRoute(async (req) => {
 export const POST = wrapRoute(async (req) => {
   const novelData = await req.json();
 
-  await ensureAdmin();
-
   const validatedNovel = await validateNovelData(novelData);
   const { id, ...data } = validatedNovel;
   const newNovel = await (

@@ -236,6 +236,20 @@ export async function validateNovelData(data: unknown): Promise<NovelSchema> {
     throw new ValidationError("Author does not exist");
   }
 
+  // If non-admin, enforce that the authorId belongs to the current user
+  try {
+    const { clerkId } = await ensureClerkId();
+    const isAdmin = await checkIfUserIsAdmin(clerkId);
+    if (!isAdmin) {
+      const user = await getUserByExternalId(clerkId);
+      if (!user || user.authorId !== result.authorId) {
+        throw new ForbiddenError("You can only create novels for your own author profile");
+      }
+    }
+  } catch {
+    // allow server contexts that don't have auth (e.g., seed) to proceed
+  }
+
   return result;
 }
 

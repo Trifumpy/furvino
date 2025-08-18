@@ -7,6 +7,7 @@ import {
   GetAuthorsResponse,
   LinkAuthorBody,
   LinkAuthorResponse,
+  UpdateAuthorBody,
 } from "@/contracts/users";
 
 export class AuthorsService extends HttpService {
@@ -26,7 +27,8 @@ export class AuthorsService extends HttpService {
   getAuthorById(id: string) {
     return this.get<GetAuthorResponse>(`/${id}`, {
       next: {
-        revalidate: 60 * 30, // revalidate every 30 minutes
+        revalidate: 60 * 30,
+        tags: ['authors', `authors:${id}`],
       },
     });
   }
@@ -35,9 +37,22 @@ export class AuthorsService extends HttpService {
     return this.post<CreateAuthorResponse, CreateAuthorBody>("/", author);
   }
 
+   updateMe(author: UpdateAuthorBody) {
+     return this.put<GetAuthorResponse, UpdateAuthorBody>(`/me`, author, { cache: 'no-store' });
+   }
+
+   updateAuthor(authorId: string, author: UpdateAuthorBody) {
+     return this.put<GetAuthorResponse, UpdateAuthorBody>(`/${authorId}`, author, { cache: 'no-store' });
+   }
+
   linkAuthor(authorId: string, userId: string) {
     return this.patch<LinkAuthorResponse, LinkAuthorBody>(`/${authorId}/link`, {
       userId,
     });
   }
+
+  deleteAuthor(authorId: string) {
+    return this.delete<{ ok: true }>(`/${authorId}`);
+  }
+ 
 }

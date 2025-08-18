@@ -31,6 +31,7 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   action?: string;
+  minimal?: boolean;
 };
 
 export function NovelForm({
@@ -41,6 +42,7 @@ export function NovelForm({
   loading,
   disabled,
   action = "Save",
+  minimal = false,
 }: Props) {
   const {
     register,
@@ -89,7 +91,7 @@ export function NovelForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack gap={1}>
-        {existingId && (
+        {!minimal && existingId && (
           <Controller
             name="thumbnailUrl"
             control={control}
@@ -105,7 +107,7 @@ export function NovelForm({
             )}
           />
         )}
-        {existingId && (
+        {!minimal && existingId && (
           <Stack direction="row" alignItems="center" gap={1}>
             <TextField
               sx={{ flexGrow: 1 }}
@@ -159,78 +161,82 @@ export function NovelForm({
             />
           )}
         </Stack>
-        <TextField
-          {...register("snippet")}
-          label="Snippet"
-          multiline
-          rows={3}
-          error={!!errors.authorId}
-          helperText={errors.authorId?.message}
-          slotProps={{
-            htmlInput: { maxLength: MAX_SNIPPET_LENGTH },
-            input: {
-              endAdornment: (
-                <TextLengthCounterAdornment
-                  value={textSnippet ?? ""}
-                  maxLength={MAX_SNIPPET_LENGTH}
-                />
-              ),
-            },
-          }}
-        />
-        <TextField
-          {...register("description")}
-          label="Description"
-          multiline
-          rows={5}
-          error={!!errors.description}
-          helperText={errors.description?.message}
-          slotProps={{
-            htmlInput: { maxLength: MAX_DESCRIPTION_LENGTH },
-            input: {
-              endAdornment: (
-                <TextLengthCounterAdornment
-                  value={textDescription ?? ""}
-                  maxLength={MAX_DESCRIPTION_LENGTH}
-                />
-              ),
-            },
-          }}
-        />
-        <Controller
-          name="tags"
-          control={control}
-          render={({ field }) => (
-            <TagsInput
-              value={field.value ?? []}
-              onChange={field.onChange}
-              error={errors.tags?.message}
+        {!minimal && (
+          <>
+            <TextField
+              {...register("snippet")}
+              label="Snippet"
+              multiline
+              rows={3}
+              error={!!errors.authorId}
+              helperText={errors.authorId?.message}
+              slotProps={{
+                htmlInput: { maxLength: MAX_SNIPPET_LENGTH },
+                input: {
+                  endAdornment: (
+                    <TextLengthCounterAdornment
+                      value={textSnippet ?? ""}
+                      maxLength={MAX_SNIPPET_LENGTH}
+                    />
+                  ),
+                },
+              }}
             />
-          )}
-        />
-        <Controller
-          name="externalUrls"
-          control={control}
-          render={({ field }) => (
-            <ExternalSitesEditor
-              value={field.value}
-              onChange={field.onChange}
-              errors={fieldValidationToRecord(errors.externalUrls)}
+            <TextField
+              {...register("description")}
+              label="Description"
+              multiline
+              rows={5}
+              error={!!errors.description}
+              helperText={errors.description?.message}
+              slotProps={{
+                htmlInput: { maxLength: MAX_DESCRIPTION_LENGTH },
+                input: {
+                  endAdornment: (
+                    <TextLengthCounterAdornment
+                      value={textDescription ?? ""}
+                      maxLength={MAX_DESCRIPTION_LENGTH}
+                    />
+                  ),
+                },
+              }}
             />
-          )}
-        />
-        {existingId && (
-          <Controller
-            name="magnetUrls"
-            control={control}
-            render={({ field }) => (
-              <DownloadsEditor
-                value={field.value}
-                onChange={field.onChange}
-                errors={fieldValidationToRecord(errors.magnetUrls)}
+            <Controller
+              name="tags"
+              control={control}
+              render={({ field }) => (
+                <TagsInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  error={errors.tags?.message}
+                />
+              )}
+            />
+            <Controller
+              name="externalUrls"
+              control={control}
+              render={({ field }) => (
+                <ExternalSitesEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  errors={fieldValidationToRecord(errors.externalUrls)}
+                />
+              )}
+            />
+            {existingId && (
+              <Controller
+                name="magnetUrls"
+                control={control}
+                render={({ field }) => (
+                  <DownloadsEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    errors={fieldValidationToRecord(errors.magnetUrls)}
+                  />
+                )}
               />
             )}
-          />
+          </>
         )}
         <Button
           type="submit"

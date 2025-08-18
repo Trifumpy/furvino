@@ -54,6 +54,7 @@ export function NovelComments() {
     enabled: !!novel,
   });
   const [isOpenAll, setIsOpenAll] = useState(false);
+  const [replyOpenForIdAll, setReplyOpenForIdAll] = useState<string | null>(null);
   const allCommentsQuery = useQuery({
     queryKey: ["novelCommentsAll", novel?.id],
     queryFn: () => novels.getComments(novel!.id, { limit: 1000, replies: 50 }),
@@ -66,6 +67,7 @@ export function NovelComments() {
     onSuccess: () => {
       setText("");
       client.invalidateQueries({ queryKey: ["novelComments", novel?.id] });
+      client.invalidateQueries({ queryKey: ["novelCommentsAll", novel?.id] });
     },
   });
 
@@ -136,9 +138,9 @@ export function NovelComments() {
                     {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                   </Typography>
                 </Stack>
-                <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{c.text}</Typography>
+                <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -7, sm: 0 } }}>{c.text}</Typography>
                 {user && (
-                  <Stack direction="row" gap={1} alignItems="center" mt={0.5}>
+                  <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -7, sm: 0 } }}>
                     <Button
                       size="small"
                       variant="text"
@@ -159,13 +161,15 @@ export function NovelComments() {
                   </Stack>
                 )}
                 {user && replyOpenForId === c.id && (
-                  <ReplyBox
-                    parentId={c.id}
-                    onSubmit={(replyText) => {
-                      addComment.mutate({ novelId: novel.id, text: replyText, parentId: c.id });
-                      setReplyOpenForId(null);
-                    }}
-                  />
+                  <Box sx={{ ml: { xs: -7, sm: 0 } }}>
+                    <ReplyBox
+                      parentId={c.id}
+                      onSubmit={(replyText) => {
+                        addComment.mutate({ novelId: novel.id, text: replyText, parentId: c.id });
+                        setReplyOpenForId(null);
+                      }}
+                    />
+                  </Box>
                 )}
                 {c.replies && c.replies.length > 0 && (
                   <Stack gap={2} mt={1} ml={-7} sx={{ borderLeft: '2px solid', borderColor: 'divider', pl: 1 }}>
@@ -194,9 +198,9 @@ export function NovelComments() {
                                 {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                               </Typography>
                             </Stack>
-                            <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{r.text}</Typography>
+                            <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -6, sm: 0 } }}>{r.text}</Typography>
                             {user && (
-                              <Stack direction="row" gap={1} alignItems="center" mt={0.5}>
+                              <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -6, sm: 0 } }}>
                                 <Button
                                   size="small"
                                   variant="text"
@@ -261,19 +265,40 @@ export function NovelComments() {
                       <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                         {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                       </Typography>
-                      {canDelete && (
+                    </Stack>
+                    <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -7, sm: 0 } }}>{c.text}</Typography>
+                    {user && (
+                      <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -7, sm: 0 } }}>
                         <Button
                           size="small"
-                          color="error"
-                          onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
-                          disabled={deleteComment.isPending}
-                          sx={{ ml: "auto" }}
+                          variant="text"
+                          onClick={() => setReplyOpenForIdAll((prev) => (prev === c.id ? null : c.id))}
                         >
-                          Delete
+                          {replyOpenForIdAll === c.id ? "Cancel" : "Reply"}
                         </Button>
-                      )}
-                    </Stack>
-                    <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{c.text}</Typography>
+                        {canDelete && (
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
+                            disabled={deleteComment.isPending}
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </Stack>
+                    )}
+                    {user && replyOpenForIdAll === c.id && (
+                      <Box sx={{ ml: { xs: -7, sm: 0 } }}>
+                        <ReplyBox
+                          parentId={c.id}
+                          onSubmit={(replyText) => {
+                            addComment.mutate({ novelId: novel.id, text: replyText, parentId: c.id });
+                            setReplyOpenForIdAll(null);
+                          }}
+                        />
+                      </Box>
+                    )}
                     {c.replies && c.replies.length > 0 && (
                       <Stack gap={2} mt={1} ml={-7} sx={{ borderLeft: '2px solid', borderColor: 'divider', pl: 1 }}>
                         {c.replies.map((r) => {
@@ -283,7 +308,7 @@ export function NovelComments() {
                             (!!user.authorId && user.authorId === novel.author.id)
                           );
                           return (
-                            <Stack key={`all-${r.id}`} direction={{ xs: "column", sm: "column" }} gap={1} alignItems="flex-start">
+                            <Stack key={`all-${r.id}`} direction="row" gap={2} alignItems="flex-start">
                               <Box
                                 component="img"
                                 src={r.user.avatarUrl || "https://placehold.co/64x64?text=?"}
@@ -296,19 +321,20 @@ export function NovelComments() {
                                   <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                                     {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                                   </Typography>
-                                  {rCanDelete && (
+                                </Stack>
+                                <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -6, sm: 0 } }}>{r.text}</Typography>
+                                {rCanDelete && (
+                                  <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -6, sm: 0 } }}>
                                     <Button
                                       size="small"
                                       color="error"
                                       onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: r.id })}
                                       disabled={deleteComment.isPending}
-                                      sx={{ ml: "auto" }}
                                     >
                                       Delete
                                     </Button>
-                                  )}
-                                </Stack>
-                                <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{r.text}</Typography>
+                                  </Stack>
+                                )}
                               </Stack>
                             </Stack>
                           );
