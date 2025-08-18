@@ -1,4 +1,4 @@
-import { CreateNovelBody, CreateNovelCommentBody, CreateNovelCommentResponse, GetNovelsQParams, GetNovelCommentsResponse, ListedNovel, ListedUserRating, UpdateNovelBody, UpdateNovelThumbnailBody, UpsertRatingBody } from "@/contracts/novels";
+import { CreateNovelBody, CreateNovelCommentBody, CreateNovelCommentResponse, GetNovelsQParams, GetNovelCommentsResponse, ListedNovel, ListedUserRating, Platform, UpdateNovelBody, UpdateNovelThumbnailBody, UpsertRatingBody } from "@/contracts/novels";
 import { HttpService } from "./core";
 import { novelTags } from "../cacheTags";
 
@@ -72,6 +72,13 @@ export class NovelsService extends HttpService {
     formData.append('thumbnail', thumbnailFile);
 
     return this.put<ListedNovel, UpdateNovelThumbnailBody>(`/${novelId}/thumbnail`, formData);
+  }
+
+  uploadFile(novelId: string, platform: Platform, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.put<ListedNovel, FormData>(`/${novelId}/files/${platform}`, formData);
   }
 
   deleteNovel(novelId: string) {

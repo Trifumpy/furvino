@@ -232,6 +232,7 @@ export function NovelForm({
                     value={field.value}
                     onChange={field.onChange}
                     errors={fieldValidationToRecord(errors.magnetUrls)}
+                    novelId={existingId}
                   />
                 )}
               />

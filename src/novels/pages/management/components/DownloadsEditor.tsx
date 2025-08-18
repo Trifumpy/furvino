@@ -4,6 +4,8 @@ import { FileOrUrlInput, KeyMapField, KeyMapKey } from "@/generic/input";
 import { useRecordArrayAdapter } from "@/generic/hooks";
 import { Stack, Typography } from "@mui/material";
 import { DownloadIcon } from "lucide-react";
+import { useUploadNovelFile } from "@/novels/hooks";
+import { ValueFieldProps } from "@/generic/input/KeyMapField";
 
 export const keys: KeyMapKey<Platform>[] = PLATFORMS.map((platform) => ({
   label: PLATFORM_NAMES[platform],
@@ -15,12 +17,32 @@ type Props = {
   value: CreateNovelBody["magnetUrls"];
   onChange: (value: CreateNovelBody["magnetUrls"]) => void;
   errors?: Record<Platform, string>;
+  novelId?: string;
 };
 
-export function DownloadsEditor({ value, onChange, errors }: Props) {
+export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
   const [mapping, setMapping] = useRecordArrayAdapter<Platform, string>(
     value ?? {},
     onChange
+  );
+
+  const { uploadFile, isUploading } = useUploadNovelFile();
+
+  const ValueField = ({ itemKey, value, onChange, error, disabled }: ValueFieldProps<Platform, string>) => (
+    <FileOrUrlInput<Platform>
+      itemKey={itemKey}
+      value={value}
+      onChange={onChange}
+      error={error}
+      disabled={disabled}
+      loading={isUploading}
+      onUpload={async (file) => {
+        if (!novelId) return;
+        const novel = await uploadFile({ novelId, platform: itemKey, file });
+        const url = novel.magnetUrls?.[itemKey] ?? "";
+        onChange(url);
+      }}
+    />
   );
 
   return (
@@ -40,7 +62,7 @@ export function DownloadsEditor({ value, onChange, errors }: Props) {
         value={mapping}
         onChange={setMapping}
         errors={errors}
-        ValueField={FileOrUrlInput}
+        ValueField={ValueField as unknown as any}
       />
     </Stack>
   );

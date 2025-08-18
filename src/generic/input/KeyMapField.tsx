@@ -205,7 +205,7 @@ function KeyValueFieldFrame<TKey extends string, TValue>({
     <Stack direction="row" alignItems="center" gap={1}>
       {label}
       <ValueField
-        itemKey={"" as TKey}
+        itemKey={(itemKey?.value as TKey) ?? ("" as TKey)}
         value={value}
         onChange={(...args) => onChange?.(...args)}
         error={error}
