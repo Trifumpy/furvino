@@ -1,4 +1,9 @@
-import { CreateNovelBody, PLATFORMS, Platform } from "@/contracts/novels";
+import {
+  CreateNovelBody,
+  MAX_NOVEL_FILE_SIZE,
+  PLATFORMS,
+  Platform,
+} from "@/contracts/novels";
 import { PLATFORM_ICONS, PLATFORM_NAMES } from "@/generic/data";
 import { FileOrUrlInput, KeyMapField, KeyMapKey } from "@/generic/input";
 import { useRecordArrayAdapter } from "@/generic/hooks";
@@ -27,11 +32,18 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     onChange
   );
 
-  const ValueField = ({ itemKey, value, onChange, error, disabled }: ValueFieldProps<Platform, string>) => {
+  const ValueField = ({
+    itemKey,
+    value,
+    onChange,
+    error,
+    disabled,
+  }: ValueFieldProps<Platform, string>) => {
     const { uploadFile, isUploading, progress } = useUploadNovelFile();
     return (
       <FileOrUrlInput<Platform>
         itemKey={itemKey}
+        label={`File for ${PLATFORM_NAMES[itemKey] ?? "-"}`}
         value={value}
         onChange={onChange}
         error={error}
@@ -39,6 +51,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         loading={isUploading}
         progressPercent={progress?.percent}
         etaSeconds={progress?.etaSeconds}
+        maxSize={MAX_NOVEL_FILE_SIZE}
         onUpload={async (file) => {
           if (!novelId) return;
           const novel = await uploadFile({ novelId, platform: itemKey, file });

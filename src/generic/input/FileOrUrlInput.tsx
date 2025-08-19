@@ -1,8 +1,15 @@
-import { Button, LinearProgress, Stack, Typography, useTheme } from "@mui/material";
+import {
+  Button,
+  LinearProgress,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import { ValueFieldProps } from "./KeyMapField";
+import Link from "next/link";
 
 type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
   label?: string;
@@ -14,12 +21,11 @@ type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
   etaSeconds?: number;
 };
 
-const DEFAULT_MAX_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
+const DEFAULT_MAX_FILE_SIZE = Math.floor(1024 * 1024 * 1024); // 1 GB
 
 export function FileOrUrlInput<TKey extends string>({
   label = "File or URL",
   value,
-  onChange: _onChange, // required by ValueFieldProps but not used when URL input is removed
   error,
   disabled = false,
   onUpload,
@@ -45,7 +51,9 @@ export function FileOrUrlInput<TKey extends string>({
     },
     onDropRejected(fileRejections) {
       fileRejections.forEach(({ file, errors }) => {
-        errors.forEach((err) => toast.error(`File ${file.name} rejected: ${err.message}`));
+        errors.forEach((err) =>
+          toast.error(`File ${file.name} rejected: ${err.message}`)
+        );
       });
     },
     disabled: loading || disabled,
@@ -65,10 +73,16 @@ export function FileOrUrlInput<TKey extends string>({
 
   const isHttpUrl = typeof value === "string" && /^(https?:)?\/\//i.test(value);
 
-  const isNullStringError = typeof error === 'string' && /Invalid input: expected string, received null/i.test(error);
+  const isNullStringError =
+    typeof error === "string" &&
+    /Invalid input: expected string, received null/i.test(error);
   const helperMessage = isNullStringError
     ? "file is uploading to the cloud from the server. Please wait a few moments, the link is being created"
     : error;
+
+  const iconColor = disabled
+    ? theme.palette.action.disabled
+    : theme.palette.primary.main;
 
   return (
     <Stack position="relative">
@@ -101,34 +115,61 @@ export function FileOrUrlInput<TKey extends string>({
       >
         <input {...getInputProps()} />
         {isHttpUrl ? (
-          <Stack alignItems="center" gap={1}>
+          <Stack
+            component={Link}
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            alignItems="center"
+            gap={1}
+          >
             <ExternalLinkIcon size={32} />
-            <Typography variant="body2" color="primary.main" component="a" href={value} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+            <Typography variant="body2" color="primary.main">
               Open current file
             </Typography>
           </Stack>
         ) : (
-          <CloudUploadIcon size={48} />
+          <CloudUploadIcon size={48} color={iconColor} />
         )}
         <Stack alignItems="center">
           <Typography variant="body2" color="textPrimary">
             Drop a file here
           </Typography>
-          <Button size="small" variant="outlined" onClick={(e) => { e.preventDefault(); e.stopPropagation(); open(); }} disabled={loading || disabled} sx={{ mt: 1 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              open();
+            }}
+            disabled={loading || disabled}
+            sx={{ mt: 1 }}
+          >
             Choose a file
           </Button>
         </Stack>
       </Stack>
-      {typeof progressPercent === 'number' && progressPercent >= 0 && (
+      {typeof progressPercent === "number" && progressPercent >= 0 && (
         <Stack gap={0.5} sx={{ mt: 1, px: 1 }}>
-          <LinearProgress variant="determinate" value={Math.min(progressPercent, 100)} />
+          <LinearProgress
+            variant="determinate"
+            value={Math.min(progressPercent, 100)}
+          />
           <Typography variant="caption" color="textSecondary">
-            {progressPercent}%{typeof etaSeconds === 'number' && etaSeconds > 0 ? ` • ~${etaSeconds}s remaining` : ''}
+            {progressPercent}%
+            {typeof etaSeconds === "number" && etaSeconds > 0
+              ? ` • ~${etaSeconds}s remaining`
+              : ""}
           </Typography>
         </Stack>
       )}
       {helperMessage && (
-        <Typography pl={2} variant="caption" color={isNullStringError ? "textSecondary" : "error"}>
+        <Typography
+          pl={2}
+          variant="caption"
+          color={isNullStringError ? "textSecondary" : "error"}
+        >
           {helperMessage}
         </Typography>
       )}
