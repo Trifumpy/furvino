@@ -1,6 +1,6 @@
 import { NextParams } from "@/app/types";
 import { EditNovelPage } from "@/novels/pages";
-import { NovelProvider } from "@/novels/providers";
+import { NovelProvider } from "@/novels/providers/NovelProvider";
 
 type PageProps = NextParams<{
   novelId: string;

@@ -26,7 +26,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     onChange
   );
 
-  const { uploadFile, isUploading } = useUploadNovelFile();
+  const { uploadFile, isUploading, progress } = useUploadNovelFile();
 
   const ValueField = ({ itemKey, value, onChange, error, disabled }: ValueFieldProps<Platform, string>) => (
     <FileOrUrlInput<Platform>
@@ -36,6 +36,8 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
       error={error}
       disabled={disabled}
       loading={isUploading}
+      progressPercent={progress?.percent}
+      etaSeconds={progress?.etaSeconds}
       onUpload={async (file) => {
         if (!novelId) return;
         const novel = await uploadFile({ novelId, platform: itemKey, file });

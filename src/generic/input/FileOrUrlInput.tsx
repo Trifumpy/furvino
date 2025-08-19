@@ -1,4 +1,4 @@
-import { Button, mergeSlotProps, Stack, Typography, useTheme } from "@mui/material";
+import { Button, LinearProgress, Stack, Typography, useTheme } from "@mui/material";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -10,6 +10,8 @@ type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
   loading?: boolean;
   accept?: Accept;
   maxSize?: number;
+  progressPercent?: number;
+  etaSeconds?: number;
 };
 
 const DEFAULT_MAX_FILE_SIZE = 128 * 1024 * 1024; // 128 MB
@@ -17,13 +19,15 @@ const DEFAULT_MAX_FILE_SIZE = 128 * 1024 * 1024; // 128 MB
 export function FileOrUrlInput<TKey extends string>({
   label = "File or URL",
   value,
-  onChange, // required by ValueFieldProps but not used when URL input is removed
+  onChange: _onChange, // required by ValueFieldProps but not used when URL input is removed
   error,
   disabled = false,
   onUpload,
   loading = false,
   accept,
   maxSize = DEFAULT_MAX_FILE_SIZE,
+  progressPercent,
+  etaSeconds,
 }: Props<TKey>) {
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop: async (acceptedFiles) => {
@@ -84,12 +88,10 @@ export function FileOrUrlInput<TKey extends string>({
         borderRadius={2}
         alignItems="center"
         gap={2}
-        {...mergeSlotProps({}, {
-          sx: {
-            border: `2px dashed ${borderColor}`,
-            cursor: loading || disabled ? "not-allowed" : "pointer",
-          },
-        })}
+        sx={{
+          border: `2px dashed ${borderColor}`,
+          cursor: loading || disabled ? "not-allowed" : "pointer",
+        }}
         {...rootProps}
       >
         <input {...getInputProps()} />
@@ -112,6 +114,14 @@ export function FileOrUrlInput<TKey extends string>({
           </Button>
         </Stack>
       </Stack>
+      {typeof progressPercent === 'number' && progressPercent >= 0 && (
+        <Stack gap={0.5} sx={{ mt: 1, px: 1 }}>
+          <LinearProgress variant="determinate" value={Math.min(progressPercent, 100)} />
+          <Typography variant="caption" color="textSecondary">
+            {progressPercent}%{typeof etaSeconds === 'number' && etaSeconds > 0 ? ` • ~${etaSeconds}s remaining` : ''}
+          </Typography>
+        </Stack>
+      )}
       {error && (
         <Typography pl={2} variant="caption" color="error">
           {error}

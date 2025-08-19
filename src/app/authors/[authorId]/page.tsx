@@ -1,4 +1,4 @@
-import { NovelsProvider } from "@/novels/providers";
+import { NovelsProvider } from "@/novels/providers/NovelsProvider";
 import AuthorPageClient from "./AuthorPageClient";
 
 export default async function AuthorPage({

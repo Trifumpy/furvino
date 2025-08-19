@@ -74,11 +74,42 @@ export class NovelsService extends HttpService {
     return this.put<ListedNovel, UpdateNovelThumbnailBody>(`/${novelId}/thumbnail`, formData);
   }
 
-  uploadFile(novelId: string, platform: Platform, file: File) {
+  uploadFile(
+    novelId: string,
+    platform: Platform,
+    file: File,
+    onProgress?: (loaded: number, total: number) => void
+  ) {
+    // Use XHR to report upload progress
+    const url = `${this.baseUrl}/${this.prefix}/${novelId}/files/${platform}`;
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.put<ListedNovel, FormData>(`/${novelId}/files/${platform}`, formData);
+    return new Promise<ListedNovel>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', url);
+      xhr.responseType = 'json';
+
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable && onProgress) {
+          onProgress(evt.loaded, evt.total);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response as ListedNovel);
+        } else {
+          const text = typeof xhr.response === 'string' ? xhr.response : JSON.stringify(xhr.response);
+          reject(new Error(`HTTP ${xhr.status}: ${text}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.onabort = () => reject(new Error('Upload aborted'));
+
+      xhr.send(formData);
+    });
   }
 
   deleteNovel(novelId: string) {

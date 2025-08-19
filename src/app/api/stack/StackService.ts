@@ -1,4 +1,3 @@
-import { SETTINGS } from "@/app/api/settings";
 
 export class StackService {
   private baseUrl: string;
@@ -68,6 +67,78 @@ export class StackService {
     const idHeader = resp.headers.get("x-id");
     if (!idHeader) throw new Error("STACK upload: missing node id");
     return parseInt(idHeader, 10);
+  }
+
+  private async startUploadSession(
+    sessionToken: string,
+    parentID: number,
+    filename: string,
+    totalSize: number,
+    chunkSize: number
+  ): Promise<string> {
+    const resp = await fetch(`${this.baseUrl}/upload/session/start`, {
+      method: "POST",
+      headers: {
+        "x-sessiontoken": sessionToken,
+        "x-filebytesize": totalSize.toString(),
+        "x-chunkbytesize": chunkSize.toString(),
+        "x-parentid": parentID.toString(),
+        "x-filename": Buffer.from(filename).toString("base64"),
+      },
+    });
+    if (!resp.ok) throw new Error(`STACK start session failed (${resp.status})`);
+    const sessionId = resp.headers.get("x-sessionid");
+    if (!sessionId) throw new Error("STACK start session: missing session id");
+    return sessionId;
+  }
+
+  private async appendUploadChunk(
+    sessionToken: string,
+    sessionId: string,
+    startOffset: number,
+    chunk: Buffer
+  ): Promise<void> {
+    const resp = await fetch(`${this.baseUrl}/upload/session/append`, {
+      method: "POST",
+      headers: {
+        "x-sessiontoken": sessionToken,
+        "x-sessionid": sessionId,
+        "x-startoffset": startOffset.toString(),
+      },
+      body: chunk,
+    });
+    if (resp.status !== 201) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`STACK append failed (${resp.status}): ${text || resp.statusText}`);
+    }
+  }
+
+  async uploadLargeFileWithSession(
+    relativeDirParts: string[],
+    filename: string,
+    readChunk: (start: number, chunkSize: number) => Promise<Buffer | null>,
+    totalSize: number,
+    chunkSize: number
+  ): Promise<number> {
+    const sessionToken = await this.authenticate();
+    let parentId = await this.getFilesRoot(sessionToken);
+    for (const part of relativeDirParts) {
+      parentId = await this.ensureDirectory(sessionToken, parentId, part);
+    }
+    const sessionId = await this.startUploadSession(sessionToken, parentId, filename, totalSize, chunkSize);
+    let offset = 0;
+    while (offset < totalSize) {
+      const chunk = await readChunk(offset, chunkSize);
+      if (!chunk || chunk.length === 0) break;
+      await this.appendUploadChunk(sessionToken, sessionId, offset, chunk);
+      offset += chunk.length;
+    }
+
+    // After completion, look up node by filename to obtain nodeId
+    const nodes = await this.listChildren(sessionToken, parentId);
+    const node = nodes.find((n) => !n.dir && n.name === filename);
+    if (!node) throw new Error("STACK: uploaded file not found after session completion");
+    return node.id;
   }
 
   private async createPublicShare(sessionToken: string, nodeId: number): Promise<{ urlToken: string }> {

@@ -6,8 +6,8 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env.production.local
       - .env.local
+      - .env.production.local
     environment:
       - NODE_ENV=production
     volumes:

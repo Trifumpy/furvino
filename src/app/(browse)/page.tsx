@@ -1,5 +1,6 @@
 import { BrowsePage } from "../../novels/pages";
-import { NovelsProvider, SearchProvider } from "@/novels/providers";
+import { SearchProvider } from "@/novels/providers";
+import { NovelsProvider } from "@/novels/providers/NovelsProvider";
 
 export default async function App({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const sp = await searchParams;
