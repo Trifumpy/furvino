@@ -6,11 +6,14 @@ import path from "path";
 import mime from "mime";
 import { SETTINGS } from "./settings";
 
+const ROOT = SETTINGS.stack.mountedRoot;
+const BASE_FOLDER = path.join(ROOT, SETTINGS.stack.prefix);
+
 export async function uploadFileToStack(
   filePath: string,
   file: Blob | File
 ): Promise<string> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, filePath);
+  const fullPath = path.join(BASE_FOLDER, filePath);
 
   await ensureFolderExists(path.dirname(filePath));
 
@@ -22,22 +25,22 @@ export async function uploadFileToStack(
 }
 
 export async function ensureFolderExists(folderPath: string): Promise<void> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, folderPath);
+  const fullPath = path.join(BASE_FOLDER, folderPath);
   await mkdir(fullPath, { recursive: true });
 }
 
 export async function readFileFromStack(filePath: string): Promise<Buffer> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, filePath);
+  const fullPath = path.join(BASE_FOLDER, filePath);
   return await readFile(fullPath);
 }
 
 export async function streamFileFromStack(filePath: string): Promise<TypedFileStream> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, filePath);
+  const fullPath = path.join(BASE_FOLDER, filePath);
   return getTypedStreamFromPath(fullPath);
 }
 
 export async function clearStackFolder(folderPath: string): Promise<void> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, folderPath);
+  const fullPath = path.join(BASE_FOLDER, folderPath);
 
   // Ensure the folder exists
   await mkdir(fullPath, { recursive: true });
@@ -60,7 +63,7 @@ export async function clearStackFolder(folderPath: string): Promise<void> {
 }
 
 export async function deleteStackFolder(folderPath: string): Promise<void> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, folderPath);
+  const fullPath = path.join(BASE_FOLDER, folderPath);
   await rm(fullPath, { recursive: true, force: true });
 }
 
@@ -111,7 +114,7 @@ export async function getFileByFolder(
 async function getFirstFilePathInFolder(
   folderPath: string
 ): Promise<string | null> {
-  const fullPath = path.join(SETTINGS.stack.mountedRoot, folderPath);
+  const fullPath = path.join(BASE_FOLDER, folderPath);
   const entries = await readdir(fullPath);
 
   for (const entry of entries) {

@@ -1,3 +1,4 @@
+import { SETTINGS } from "../settings";
 
 export class StackService {
   private baseUrl: string;
@@ -8,6 +9,15 @@ export class StackService {
     this.baseUrl = baseUrl;
     this.username = username;
     this.password = password;
+  }
+
+  static instance: StackService | null = null;
+  static get(): StackService {
+    if (!StackService.instance) {
+      const { stack } = SETTINGS;
+      StackService.instance = new StackService(stack.apiUrl, stack.username, stack.password);
+    }
+    return StackService.instance;
   }
 
   private async authenticate(): Promise<string> {
@@ -250,5 +260,3 @@ export class StackService {
     return `${base}/${urlToken}`;
   }
 }
-
-

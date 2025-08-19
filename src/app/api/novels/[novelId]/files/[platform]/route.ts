@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
 import { wrapRoute, revalidateTags } from "@/app/api/utils";
 import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
-import { PLATFORMS, Platform } from "@/contracts/novels";
+import { MAX_NOVEL_FILE_SIZE, PLATFORMS, Platform } from "@/contracts/novels";
 import { BadRequestError } from "@/app/api/errors";
-import path from "path";
-import { sanitizeFilename, uploadFileToStack } from "@/app/api/files";
 import prisma from "@/utils/db";
 import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
-import { SETTINGS } from "@/app/api/settings";
 import { Prisma } from "@/generated/prisma";
+import { getUploadFolder, saveNovelFile } from "../utils";
 
-const MAX_NOVEL_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
+type Params = { novelId: string; platform: string };
 
-export const PUT = wrapRoute(async (request, { params }) => {
-  const { novelId, platform } = await params as { novelId: string; platform: string };
+export const PUT = wrapRoute<Params>(async (request, { params }) => {
+  const { novelId, platform } = await params;
 
   if (!PLATFORMS.includes(platform as Platform)) {
     throw new BadRequestError("Invalid platform");
@@ -29,33 +27,17 @@ export const PUT = wrapRoute(async (request, { params }) => {
   if (!file) throw new BadRequestError("File is required");
   if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
 
-  const sanitizedName = sanitizeFilename(file.name);
-  // Include prefix under files/ if configured, so STACK path matches ingested structure
-  const rawPrefix = process.env.STACK_PREFIX || SETTINGS.stack.prefix || "/files";
-  let prefixUnderFiles = rawPrefix.replace(/^\/+/, "");
-  if (prefixUnderFiles.startsWith("files/")) prefixUnderFiles = prefixUnderFiles.slice(6);
-  const baseParts = prefixUnderFiles.split("/").filter(Boolean);
-  const stackRelativePath = path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform, sanitizedName);
+  const relativePath = getUploadFolder(novelId, typedPlatform);
+  const stackPath = await saveNovelFile(relativePath, file);
 
-  // Save to mounted stack
-  await uploadFileToStack(stackRelativePath, file);
-
-  // After saving to mounted storage, wait for STACK to ingest the file and create a public share link
-  const externalApiUrl = process.env.STACK_API_URL;
-  const stackUsername = process.env.STACK_USERNAME;
-  const stackPassword = process.env.STACK_PASSWORD;
-  if (!externalApiUrl || !stackUsername || !stackPassword) {
-    throw new Error("STACK API credentials are not configured (STACK_API_URL, STACK_USERNAME, STACK_PASSWORD)");
-  }
-
-  const stack = new StackService(externalApiUrl, stackUsername, stackPassword);
+  const stack = StackService.get();
 
   // Poll for the existing directory and file to appear in STACK after the watcher syncs it
   const maxAttempts = 60; // ~60s at 1s interval
   const intervalMs = 1000;
   let nodeId: number | null = null;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    nodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
+    nodeId = await stack.getNodeIdByRelativePath(stackPath);
     if (nodeId) break;
     await new Promise((r) => setTimeout(r, intervalMs));
   }
@@ -63,25 +45,22 @@ export const PUT = wrapRoute(async (request, { params }) => {
     throw new Error("File not yet available in STACK after upload. Please try again in a moment.");
   }
 
-  // Cleanup: delete any other files in this platform folder so only this file remains
-  await stack.deleteOtherFilesInDir(path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform), nodeId);
-
   const shareUrl = await stack.shareNode(nodeId);
 
   // Patch DB field
-  const existingMagnetUrls: Prisma.JsonObject =
+  const existingFileUrls: Prisma.JsonObject =
     typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
       ? (novel.magnetUrls as Prisma.JsonObject)
       : {};
-  const nextMagnetUrls: Prisma.JsonObject = {
-    ...existingMagnetUrls,
+  const fileUrls: Prisma.JsonObject = {
+    ...existingFileUrls,
     [typedPlatform]: shareUrl,
   };
 
   const patched = await prisma.novel.update({
     where: { id: novelId },
     data: {
-      magnetUrls: nextMagnetUrls,
+      magnetUrls: fileUrls,
     },
   });
 
@@ -91,5 +70,3 @@ export const PUT = wrapRoute(async (request, { params }) => {
   revalidateTags(novelTags.list());
   return NextResponse.json(result, { status: 200 });
 });
-
-

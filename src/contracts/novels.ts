@@ -81,6 +81,8 @@ export type UpdateNovelThumbnailParams = NovelTarget;
 export type UpdateNovelThumbnailBody = FormData;
 export type UpdateNovelThumbnailResponse = ListedNovel;
 
+export const MAX_NOVEL_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
+
 export type ListedNovel = {
   id: string;
   title: string;

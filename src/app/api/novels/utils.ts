@@ -30,7 +30,7 @@ export async function getAllNovels(options: GetNovelsQParams) {
 
   // Determine ordering
   const orderBy: Prisma.NovelOrderByWithRelationInput[] = [];
-  let sortByComputedAverage: 'highest' | 'lowest' | null = null;
+  let sortByComputedAverage: "highest" | "lowest" | null = null;
   switch (sort) {
     case "newest":
       orderBy.push({ createdAt: "desc" });
@@ -58,10 +58,10 @@ export async function getAllNovels(options: GetNovelsQParams) {
       orderBy.push({ comments: { _count: "desc" } as unknown as never });
       break;
     case "highestRating":
-      sortByComputedAverage = 'highest';
+      sortByComputedAverage = "highest";
       break;
     case "lowestRating":
-      sortByComputedAverage = 'lowest';
+      sortByComputedAverage = "lowest";
       break;
     case "mostRatings":
       orderBy.push({ ratings: { _count: "desc" } as unknown as never });
@@ -91,16 +91,33 @@ export async function getAllNovels(options: GetNovelsQParams) {
 
   const novelIds = novelsWithAuthors.map((n) => n.id);
   const ratings = await prisma.userRating.groupBy({
-    by: ['novelId'],
+    by: ["novelId"],
     where: { novelId: { in: novelIds } },
-    _avg: { plot: true, characters: true, backgroundsUi: true, characterArt: true, music: true, soundEffects: true, emotionalImpact: true },
+    _avg: {
+      plot: true,
+      characters: true,
+      backgroundsUi: true,
+      characterArt: true,
+      music: true,
+      soundEffects: true,
+      emotionalImpact: true,
+    },
     _count: { novelId: true },
   });
   const novelIdToAvg: Record<string, number> = {};
   for (const r of ratings) {
-    const parts = [r._avg.plot, r._avg.characters, r._avg.backgroundsUi, r._avg.characterArt, r._avg.music, r._avg.soundEffects, r._avg.emotionalImpact]
-      .filter((v): v is number => typeof v === 'number' && v > 0);
-    const avg = parts.length ? parts.reduce((a, b) => a + b, 0) / parts.length : 0;
+    const parts = [
+      r._avg.plot,
+      r._avg.characters,
+      r._avg.backgroundsUi,
+      r._avg.characterArt,
+      r._avg.music,
+      r._avg.soundEffects,
+      r._avg.emotionalImpact,
+    ].filter((v): v is number => typeof v === "number" && v > 0);
+    const avg = parts.length
+      ? parts.reduce((a, b) => a + b, 0) / parts.length
+      : 0;
     novelIdToAvg[r.novelId] = avg;
   }
 
@@ -108,11 +125,13 @@ export async function getAllNovels(options: GetNovelsQParams) {
     novelsWithAuthors = novelsWithAuthors.sort((a, b) => {
       const av = novelIdToAvg[a.id] ?? 0;
       const bv = novelIdToAvg[b.id] ?? 0;
-      return sortByComputedAverage === 'highest' ? bv - av : av - bv;
+      return sortByComputedAverage === "highest" ? bv - av : av - bv;
     });
   }
-  if (sort === 'mostRatings') {
-    const novelIdToCount: Record<string, number> = Object.fromEntries(ratings.map(r => [r.novelId, r._count.novelId]));
+  if (sort === "mostRatings") {
+    const novelIdToCount: Record<string, number> = Object.fromEntries(
+      ratings.map((r) => [r.novelId, r._count.novelId])
+    );
     novelsWithAuthors = novelsWithAuthors.sort((a, b) => {
       const ac = novelIdToCount[a.id] ?? 0;
       const bc = novelIdToCount[b.id] ?? 0;
@@ -123,12 +142,15 @@ export async function getAllNovels(options: GetNovelsQParams) {
   return novelsWithAuthors.map((n) => {
     const listed = enrichNovelWithAuthor(n);
     listed.ratingsSummary.average = novelIdToAvg[n.id] ?? 0;
-    listed.ratingsSummary.total = (ratings.find((r) => r.novelId === n.id)?._count.novelId) ?? 0;
+    listed.ratingsSummary.total =
+      ratings.find((r) => r.novelId === n.id)?._count.novelId ?? 0;
     return listed;
   });
 }
 
-export async function getListedNovel(novelId: string): Promise<ListedNovel | null> {
+export async function getListedNovel(
+  novelId: string
+): Promise<ListedNovel | null> {
   const novel = await prisma.novel.findUnique({
     where: { id: novelId },
     include: {
@@ -184,11 +206,13 @@ export async function enrichNovel(data: Novel) {
 
   return enrichNovelWithAuthor({
     ...data,
-    author
+    author,
   });
 }
 
-export function enrichNovelWithAuthor(data: PrismaNovelWithAuthor): ListedNovel {
+export function enrichNovelWithAuthor(
+  data: PrismaNovelWithAuthor
+): ListedNovel {
   return {
     ...data,
     author: data.author || { id: data.authorId, name: "Unknown Author" },
@@ -243,7 +267,9 @@ export async function validateNovelData(data: unknown): Promise<NovelSchema> {
     if (!isAdmin) {
       const user = await getUserByExternalId(clerkId);
       if (!user || user.authorId !== result.authorId) {
-        throw new ForbiddenError("You can only create novels for your own author profile");
+        throw new ForbiddenError(
+          "You can only create novels for your own author profile"
+        );
       }
     }
   } catch {
@@ -272,9 +298,7 @@ export async function checkIfUserCanUpdateNovel(
   return true;
 }
 
-export async function ensureCanUpdateNovel(
-  novel: Novel
-): Promise<void> {
+export async function ensureCanUpdateNovel(novel: Novel): Promise<void> {
   const { clerkId } = await ensureClerkId();
   const canUpdate = await checkIfUserCanUpdateNovel(clerkId, novel);
   if (!canUpdate) {
