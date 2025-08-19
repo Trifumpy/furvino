@@ -14,7 +14,7 @@ export async function uploadFileToStack(
   file: Blob | File
 ): Promise<string> {
   const stackPath = path.join(SETTINGS.stack.prefix, filePath);
-  const fullPath = path.join(ROOT, filePath);
+  const fullPath = path.join(ROOT, stackPath);
 
   await ensureFolderExists(path.dirname(filePath));
 
@@ -42,7 +42,7 @@ export async function streamFileFromStack(filePath: string): Promise<TypedFileSt
 
 export async function clearStackFolder(folderPath: string): Promise<void> {
   const fullPath = path.join(BASE_FOLDER, folderPath);
-
+ 
   // Ensure the folder exists
   await mkdir(fullPath, { recursive: true });
 

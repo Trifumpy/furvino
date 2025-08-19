@@ -7,8 +7,7 @@ import prisma from "@/utils/db";
 import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
 import { Prisma } from "@/generated/prisma";
-import { getUploadFolder, saveNovelFile } from "../utils";
-import path from "path";
+import { getUploadFolder, saveNovelFile, waitForNodeId } from "../utils";
 
 type Params = { novelId: string; platform: string };
 
@@ -31,28 +30,8 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const relativePath = getUploadFolder(novelId, typedPlatform);
   const stackPath = await saveNovelFile(relativePath, file);
 
-  const stack = StackService.get();
-
-  // Poll for the existing directory and file to appear in STACK after the watcher syncs it
-  // Retry more frequently and for a longer period (500ms for up to 5 minutes)
-  const maxAttempts = 600; // 600 * 500ms = ~300s (5 minutes)
-  const intervalMs = 500;
-  let nodeId: number | null = null;
-  // Try node-id endpoint by absolute path first (under /files)
-  const absoluteFilesPath = path.join("files", stackPath);
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    nodeId = await stack.getNodeIdByPath(absoluteFilesPath);
-    if (!nodeId) {
-      nodeId = await stack.getNodeIdByRelativePath(stackPath);
-    }
-    if (nodeId) break;
-    await new Promise((r) => setTimeout(r, intervalMs));
-  }
-  if (!nodeId) {
-    throw new Error("File not yet available in STACK after upload. Please try again in a moment.");
-  }
-
-  const shareUrl = await stack.shareNode(nodeId);
+  const nodeId = await waitForNodeId(stackPath);
+  const shareUrl = await StackService.get().shareNode(nodeId);
 
   // Patch DB field
   const existingFileUrls: Prisma.JsonObject =

@@ -227,11 +227,12 @@ export class StackService {
     const sessionToken = await this.authenticate();
     const url = `${this.baseUrl}/node-id?path=${encodeURIComponent(pathUnderFiles)}`;
     const resp = await fetch(url, { headers: { "x-sessiontoken": sessionToken } });
+    
     if (resp.status === 204) {
       const idHeader = resp.headers.get("x-id");
       return idHeader ? parseInt(idHeader, 10) : null;
-    }
-    if (resp.status === 404) return null;
+    } else if (resp.status === 404) return null;
+
     if (!resp.ok) throw new Error(`STACK get node by path failed (${resp.status})`);
     return null;
   }
