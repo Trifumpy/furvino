@@ -161,13 +161,41 @@ export class StackService {
   }
 
   private async createPublicShare(sessionToken: string, nodeId: number): Promise<{ urlToken: string }> {
-    const resp = await fetch(`${this.baseUrl}/share`, {
+    const resp = await fetch(`${this.baseUrl}/node-shares`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-sessiontoken": sessionToken },
-      body: JSON.stringify({ nodeId, type: "Public" }),
+      body: JSON.stringify({ nodeId, type: "Public", password: "" }),
     });
-    if (!resp.ok) throw new Error(`STACK create share failed (${resp.status})`);
-    return (await resp.json()) as { urlToken: string };
+    if (resp.status !== 201) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`STACK create share failed (${resp.status}): ${text || resp.statusText}`);
+    }
+    const token = resp.headers.get("x-urltoken");
+    const shareIdHeader = resp.headers.get("x-shareid");
+    if (!token) throw new Error("STACK create share: missing x-urltoken header");
+    // Ensure no password is required by clearing password if present
+    if (shareIdHeader) {
+      const shareId = parseInt(shareIdHeader, 10);
+      if (!Number.isNaN(shareId)) {
+        await this.updateShare(sessionToken, shareId, {
+          removePassword: true,
+          permissions: { readFile: true, readDirectory: true, createFile: false, createDirectory: false, updateFile: false, updateDirectory: false, deleteFile: false, deleteDirectory: false },
+        });
+      }
+    }
+    return { urlToken: token };
+  }
+
+  private async updateShare(sessionToken: string, shareId: number, body: Record<string, unknown>): Promise<void> {
+    const resp = await fetch(`${this.baseUrl}/node-shares/${shareId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "x-sessiontoken": sessionToken },
+      body: JSON.stringify(body),
+    });
+    if (resp.status !== 204) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`STACK update share failed (${resp.status}): ${text || resp.statusText}`);
+    }
   }
 
   async getDirectoryNodeIdByRelativePath(relativeDirPath: string): Promise<number | null> {
@@ -183,6 +211,19 @@ export class StackService {
       parentId = next.id;
     }
     return parentId;
+  }
+
+  async getNodeIdByPath(pathUnderFiles: string): Promise<number | null> {
+    const sessionToken = await this.authenticate();
+    const url = `${this.baseUrl}/node-id?path=${encodeURIComponent(pathUnderFiles)}`;
+    const resp = await fetch(url, { headers: { "x-sessiontoken": sessionToken } });
+    if (resp.status === 204) {
+      const idHeader = resp.headers.get("x-id");
+      return idHeader ? parseInt(idHeader, 10) : null;
+    }
+    if (resp.status === 404) return null;
+    if (!resp.ok) throw new Error(`STACK get node by path failed (${resp.status})`);
+    return null;
   }
 
   private async deleteNodeInternal(sessionToken: string, nodeId: number): Promise<void> {

@@ -30,7 +30,9 @@ export const PUT = wrapRoute(async (request, { params }) => {
   if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
 
   const sanitizedName = sanitizeFilename(file.name);
-  // Include prefix under files/ if configured, so STACK path matches ingested structure
+  // Local relative path from STACK_ROOT mount
+  const localRelativePath = path.join("novels", novelId, "files", typedPlatform, sanitizedName);
+  // Include prefix under files/ if configured, so STACK path matches ingested structure for API lookup
   const rawPrefix = process.env.STACK_PREFIX || SETTINGS.stack.prefix || "/files";
   let prefixUnderFiles = rawPrefix.replace(/^\/+/, "");
   if (prefixUnderFiles.startsWith("files/")) prefixUnderFiles = prefixUnderFiles.slice(6);
@@ -38,7 +40,7 @@ export const PUT = wrapRoute(async (request, { params }) => {
   const stackRelativePath = path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform, sanitizedName);
 
   // Save to mounted stack
-  await uploadFileToStack(stackRelativePath, file);
+  await uploadFileToStack(localRelativePath, file);
 
   // After saving to mounted storage, wait for STACK to ingest the file and create a public share link
   const externalApiUrl = process.env.STACK_API_URL;
@@ -51,11 +53,17 @@ export const PUT = wrapRoute(async (request, { params }) => {
   const stack = new StackService(externalApiUrl, stackUsername, stackPassword);
 
   // Poll for the existing directory and file to appear in STACK after the watcher syncs it
-  const maxAttempts = 60; // ~60s at 1s interval
-  const intervalMs = 1000;
+  // Retry more frequently and for a longer period (500ms for up to 5 minutes)
+  const maxAttempts = 600; // 600 * 500ms = ~300s (5 minutes)
+  const intervalMs = 500;
   let nodeId: number | null = null;
+  // Try node-id endpoint by absolute path first (under /files)
+  const absoluteFilesPath = path.posix.join("files", stackRelativePath);
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    nodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
+    nodeId = await stack.getNodeIdByPath(absoluteFilesPath);
+    if (!nodeId) {
+      nodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
+    }
     if (nodeId) break;
     await new Promise((r) => setTimeout(r, intervalMs));
   }
@@ -63,8 +71,7 @@ export const PUT = wrapRoute(async (request, { params }) => {
     throw new Error("File not yet available in STACK after upload. Please try again in a moment.");
   }
 
-  // Cleanup: delete any other files in this platform folder so only this file remains
-  await stack.deleteOtherFilesInDir(path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform), nodeId);
+  // Note: We no longer delete other files in this platform folder.
 
   const shareUrl = await stack.shareNode(nodeId);
 

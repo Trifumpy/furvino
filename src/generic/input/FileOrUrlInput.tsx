@@ -65,6 +65,11 @@ export function FileOrUrlInput<TKey extends string>({
 
   const isHttpUrl = typeof value === "string" && /^(https?:)?\/\//i.test(value);
 
+  const isNullStringError = typeof error === 'string' && /Invalid input: expected string, received null/i.test(error);
+  const helperMessage = isNullStringError
+    ? "file is uploading to the cloud from the server. Please wait a few moments, the link is being created"
+    : error;
+
   return (
     <Stack position="relative">
       {label && (
@@ -122,9 +127,9 @@ export function FileOrUrlInput<TKey extends string>({
           </Typography>
         </Stack>
       )}
-      {error && (
-        <Typography pl={2} variant="caption" color="error">
-          {error}
+      {helperMessage && (
+        <Typography pl={2} variant="caption" color={isNullStringError ? "textSecondary" : "error"}>
+          {helperMessage}
         </Typography>
       )}
     </Stack>
