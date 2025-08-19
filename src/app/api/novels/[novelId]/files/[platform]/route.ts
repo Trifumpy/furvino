@@ -59,7 +59,7 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
     typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
       ? (novel.magnetUrls as Prisma.JsonObject)
       : {};
-  const fileUrls: Prisma.JsonObject = {
+  const nextFileUrls: Prisma.JsonObject = {
     ...existingFileUrls,
     [typedPlatform]: shareUrl,
   };
@@ -67,7 +67,7 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const patched = await prisma.novel.update({
     where: { id: novelId },
     data: {
-      magnetUrls: fileUrls,
+      magnetUrls: nextFileUrls,
     },
   });
 
