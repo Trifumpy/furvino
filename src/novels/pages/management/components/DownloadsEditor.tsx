@@ -6,6 +6,7 @@ import { Stack, Typography } from "@mui/material";
 import { DownloadIcon } from "lucide-react";
 import { useUploadNovelFile } from "@/novels/hooks";
 import { ValueFieldProps } from "@/generic/input/KeyMapField";
+import { toast } from "react-toastify";
 
 export const keys: KeyMapKey<Platform>[] = PLATFORMS.map((platform) => ({
   label: PLATFORM_NAMES[platform],
@@ -26,26 +27,28 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     onChange
   );
 
-  const { uploadFile, isUploading, progress } = useUploadNovelFile();
-
-  const ValueField = ({ itemKey, value, onChange, error, disabled }: ValueFieldProps<Platform, string>) => (
-    <FileOrUrlInput<Platform>
-      itemKey={itemKey}
-      value={value}
-      onChange={onChange}
-      error={error}
-      disabled={disabled}
-      loading={isUploading}
-      progressPercent={progress?.percent}
-      etaSeconds={progress?.etaSeconds}
-      onUpload={async (file) => {
-        if (!novelId) return;
-        const novel = await uploadFile({ novelId, platform: itemKey, file });
-        const url = novel.magnetUrls?.[itemKey] ?? "";
-        onChange(url);
-      }}
-    />
-  );
+  const ValueField = ({ itemKey, value, onChange, error, disabled }: ValueFieldProps<Platform, string>) => {
+    const { uploadFile, isUploading, progress } = useUploadNovelFile();
+    return (
+      <FileOrUrlInput<Platform>
+        itemKey={itemKey}
+        value={value}
+        onChange={onChange}
+        error={error}
+        disabled={disabled}
+        loading={isUploading}
+        progressPercent={progress?.percent}
+        etaSeconds={progress?.etaSeconds}
+        onUpload={async (file) => {
+          if (!novelId) return;
+          const novel = await uploadFile({ novelId, platform: itemKey, file });
+          const url = novel.magnetUrls?.[itemKey] ?? "";
+          onChange(url);
+          toast.success("Upload successful");
+        }}
+      />
+    );
+  };
 
   return (
     <Stack

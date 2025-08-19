@@ -8,6 +8,7 @@ import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
 import { Prisma } from "@/generated/prisma";
 import { getUploadFolder, saveNovelFile } from "../utils";
+import path from "path";
 
 type Params = { novelId: string; platform: string };
 
@@ -33,11 +34,17 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const stack = StackService.get();
 
   // Poll for the existing directory and file to appear in STACK after the watcher syncs it
-  const maxAttempts = 60; // ~60s at 1s interval
-  const intervalMs = 1000;
+  // Retry more frequently and for a longer period (500ms for up to 5 minutes)
+  const maxAttempts = 600; // 600 * 500ms = ~300s (5 minutes)
+  const intervalMs = 500;
   let nodeId: number | null = null;
+  // Try node-id endpoint by absolute path first (under /files)
+  const absoluteFilesPath = path.join("files", stackPath);
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    nodeId = await stack.getNodeIdByRelativePath(stackPath);
+    nodeId = await stack.getNodeIdByPath(absoluteFilesPath);
+    if (!nodeId) {
+      nodeId = await stack.getNodeIdByRelativePath(stackPath);
+    }
     if (nodeId) break;
     await new Promise((r) => setTimeout(r, intervalMs));
   }

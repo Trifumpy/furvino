@@ -13,7 +13,8 @@ export async function uploadFileToStack(
   filePath: string,
   file: Blob | File
 ): Promise<string> {
-  const fullPath = path.join(BASE_FOLDER, filePath);
+  const stackPath = path.join(SETTINGS.stack.prefix, filePath);
+  const fullPath = path.join(ROOT, filePath);
 
   await ensureFolderExists(path.dirname(filePath));
 
@@ -21,7 +22,7 @@ export async function uploadFileToStack(
   const buffer = Buffer.from(arrayBuffer);
   await writeFile(fullPath, buffer);
 
-  return fullPath;
+  return stackPath;
 }
 
 export async function ensureFolderExists(folderPath: string): Promise<void> {
