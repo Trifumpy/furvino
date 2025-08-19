@@ -33,22 +33,20 @@ export class StackService {
 
   private async listChildren(sessionToken: string, parentID: number): Promise<Array<{ id: number; name: string; dir: boolean }>> {
     const resp = await fetch(`${this.baseUrl}/node?parentID=${parentID}&limit=100`, { headers: { "x-sessiontoken": sessionToken } });
-    if (!resp.ok) throw new Error(`STACK list nodes failed (${resp.status})`);
+    if (!resp.ok) {
+      if (resp.status === 404) return [];
+      throw new Error(`STACK list nodes failed (${resp.status})`);
+    }
     const data = (await resp.json()) as { nodes: { id: number; name: string; dir: boolean }[] };
     return data.nodes;
   }
 
   private async ensureDirectory(sessionToken: string, parentID: number, name: string): Promise<number> {
+    // Prefer not to create; only verify existence to avoid 404s
     const existing = (await this.listChildren(sessionToken, parentID)).find((n) => n.dir && n.name === name);
     if (existing) return existing.id;
-    const resp = await fetch(`${this.baseUrl}/node`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-sessiontoken": sessionToken },
-      body: JSON.stringify({ parentID, name }),
-    });
-    if (!resp.ok) throw new Error(`STACK create directory failed (${resp.status})`);
-    const data = (await resp.json()) as { id: number };
-    return data.id;
+    // Directory not visible yet
+    return Promise.reject(new Error(`STACK directory not found under parent ${parentID}: ${name}`));
   }
 
   private async uploadFile(sessionToken: string, parentID: number, filename: string, content: Buffer): Promise<number> {
@@ -113,6 +111,27 @@ export class StackService {
     }
   }
 
+  // Public helpers wrapping private methods
+  async listChildrenByParentId(parentID: number): Promise<Array<{ id: number; name: string; dir: boolean }>> {
+    const sessionToken = await this.authenticate();
+    return await this.listChildren(sessionToken, parentID);
+  }
+
+  async listChildrenByRelativeDir(relativeDirPath: string): Promise<Array<{ id: number; name: string; dir: boolean }>> {
+    const dirId = await this.getDirectoryNodeIdByRelativePath(relativeDirPath);
+    if (!dirId) return [];
+    return await this.listChildrenByParentId(dirId);
+  }
+
+  async deleteOtherFilesInDir(relativeDirPath: string, keepNodeId: number): Promise<void> {
+    const children = await this.listChildrenByRelativeDir(relativeDirPath);
+    for (const child of children) {
+      if (!child.dir && child.id !== keepNodeId) {
+        await this.deleteNode(child.id);
+      }
+    }
+  }
+
   async uploadLargeFileWithSession(
     relativeDirParts: string[],
     filename: string,
@@ -151,6 +170,35 @@ export class StackService {
     return (await resp.json()) as { urlToken: string };
   }
 
+  async getDirectoryNodeIdByRelativePath(relativeDirPath: string): Promise<number | null> {
+    const sessionToken = await this.authenticate();
+    let parentId = await this.getFilesRoot(sessionToken);
+    const parts = relativeDirPath.split("/").filter(Boolean);
+    for (const part of parts) {
+      const children = await this.listChildren(sessionToken, parentId);
+      const next = children.find((n) => n.dir && n.name === part);
+      if (!next) {
+        return null;
+      }
+      parentId = next.id;
+    }
+    return parentId;
+  }
+
+  private async deleteNodeInternal(sessionToken: string, nodeId: number): Promise<void> {
+    const resp = await fetch(`${this.baseUrl}/nodes/${nodeId}`, {
+      method: "DELETE",
+      headers: { "x-sessiontoken": sessionToken },
+    });
+    if (resp.status === 204 || resp.status === 404) return; // ok if already gone
+    if (!resp.ok) throw new Error(`STACK delete node failed (${resp.status})`);
+  }
+
+  async deleteNode(nodeId: number): Promise<void> {
+    const sessionToken = await this.authenticate();
+    await this.deleteNodeInternal(sessionToken, nodeId);
+  }
+
   private buildShareBaseUrl(): string {
     const configured = process.env.STACK_SHARE_BASE_URL;
     if (configured) return configured.replace(/\/$/, "");
@@ -169,7 +217,12 @@ export class StackService {
     const fileName = parts.pop();
     if (!fileName) return null;
     for (const part of parts) {
-      parentId = await this.ensureDirectory(sessionToken, parentId, part);
+      const children = await this.listChildren(sessionToken, parentId);
+      const next = children.find((n) => n.dir && n.name === part);
+      if (!next) {
+        return null; // directory chain does not exist (yet)
+      }
+      parentId = next.id;
     }
     const child = (await this.listChildren(sessionToken, parentId)).find((n) => !n.dir && n.name === fileName);
     return child?.id ?? null;

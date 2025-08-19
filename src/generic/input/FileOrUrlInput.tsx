@@ -14,7 +14,7 @@ type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
   etaSeconds?: number;
 };
 
-const DEFAULT_MAX_FILE_SIZE = 128 * 1024 * 1024; // 128 MB
+const DEFAULT_MAX_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
 
 export function FileOrUrlInput<TKey extends string>({
   label = "File or URL",

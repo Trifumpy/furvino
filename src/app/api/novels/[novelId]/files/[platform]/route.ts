@@ -4,10 +4,11 @@ import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/nov
 import { PLATFORMS, Platform } from "@/contracts/novels";
 import { BadRequestError } from "@/app/api/errors";
 import path from "path";
-import { sanitizeFilename, uploadFileToStack, readFileFromStack } from "@/app/api/files";
+import { sanitizeFilename, uploadFileToStack } from "@/app/api/files";
 import prisma from "@/utils/db";
 import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
+import { SETTINGS } from "@/app/api/settings";
 import { Prisma } from "@/generated/prisma";
 
 const MAX_NOVEL_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
@@ -29,12 +30,17 @@ export const PUT = wrapRoute(async (request, { params }) => {
   if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
 
   const sanitizedName = sanitizeFilename(file.name);
-  const stackRelativePath = path.join("novels", novelId, "files", typedPlatform, sanitizedName);
+  // Include prefix under files/ if configured, so STACK path matches ingested structure
+  const rawPrefix = process.env.STACK_PREFIX || SETTINGS.stack.prefix || "/files";
+  let prefixUnderFiles = rawPrefix.replace(/^\/+/, "");
+  if (prefixUnderFiles.startsWith("files/")) prefixUnderFiles = prefixUnderFiles.slice(6);
+  const baseParts = prefixUnderFiles.split("/").filter(Boolean);
+  const stackRelativePath = path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform, sanitizedName);
 
   // Save to mounted stack
   await uploadFileToStack(stackRelativePath, file);
 
-  // Share via STACK API (use external STACK API URL, not our Next API)
+  // After saving to mounted storage, wait for STACK to ingest the file and create a public share link
   const externalApiUrl = process.env.STACK_API_URL;
   const stackUsername = process.env.STACK_USERNAME;
   const stackPassword = process.env.STACK_PASSWORD;
@@ -43,30 +49,23 @@ export const PUT = wrapRoute(async (request, { params }) => {
   }
 
   const stack = new StackService(externalApiUrl, stackUsername, stackPassword);
-  let nodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
-  if (!nodeId) {
-    // Fallback to chunked upload session for very large files
-    const bufferChunkSize = 8 * 1024 * 1024; // 8 MiB
-    const totalSize = file.size;
-    const relativeDirParts = ["novels", novelId, "files", typedPlatform];
-    const filename = sanitizedName;
 
-    // Read from mounted file in chunks
-    const fullBuffer = await readFileFromStack(stackRelativePath);
-    const readChunk = async (start: number, chunkSize: number) => {
-      const end = Math.min(start + chunkSize, fullBuffer.length);
-      if (start >= end) return Buffer.alloc(0);
-      return Buffer.from(fullBuffer.subarray(start, end));
-    };
-
-    nodeId = await stack.uploadLargeFileWithSession(
-      relativeDirParts,
-      filename,
-      readChunk,
-      totalSize,
-      bufferChunkSize
-    );
+  // Poll for the existing directory and file to appear in STACK after the watcher syncs it
+  const maxAttempts = 60; // ~60s at 1s interval
+  const intervalMs = 1000;
+  let nodeId: number | null = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    nodeId = await stack.getNodeIdByRelativePath(stackRelativePath);
+    if (nodeId) break;
+    await new Promise((r) => setTimeout(r, intervalMs));
   }
+  if (!nodeId) {
+    throw new Error("File not yet available in STACK after upload. Please try again in a moment.");
+  }
+
+  // Cleanup: delete any other files in this platform folder so only this file remains
+  await stack.deleteOtherFilesInDir(path.posix.join(...baseParts, "novels", novelId, "files", typedPlatform), nodeId);
+
   const shareUrl = await stack.shareNode(nodeId);
 
   // Patch DB field
