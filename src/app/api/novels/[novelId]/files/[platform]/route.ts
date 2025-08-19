@@ -74,6 +74,26 @@ export const PUT = wrapRoute(async (request, { params }) => {
   // Note: We no longer delete other files in this platform folder.
 
   const shareUrl = await stack.shareNode(nodeId);
+  // Normalize share URL host/base if requested via env
+  let finalShareUrl = shareUrl;
+  try {
+    const u = new URL(shareUrl);
+    const targetBase = process.env.STACK_SHARE_BASE_URL;
+    const targetHost = process.env.STACK_SHARE_HOST;
+    if (targetBase) {
+      const b = new URL(targetBase);
+      u.protocol = b.protocol;
+      u.host = b.host;
+      // Ensure /s prefix is kept from base
+      const basePath = b.pathname.replace(/\/$/, "");
+      if (!u.pathname.startsWith(basePath)) {
+        u.pathname = `${basePath}${u.pathname.startsWith('/') ? '' : '/'}${u.pathname.replace(/^\/+/, '')}`;
+      }
+    } else if (targetHost) {
+      u.host = targetHost;
+    }
+    finalShareUrl = u.toString();
+  } catch {}
 
   // Patch DB field
   const existingMagnetUrls: Prisma.JsonObject =
@@ -82,7 +102,7 @@ export const PUT = wrapRoute(async (request, { params }) => {
       : {};
   const nextMagnetUrls: Prisma.JsonObject = {
     ...existingMagnetUrls,
-    [typedPlatform]: shareUrl,
+    [typedPlatform]: finalShareUrl,
   };
 
   const patched = await prisma.novel.update({

@@ -1,4 +1,6 @@
 
+import { SETTINGS } from "@/app/api/settings";
+
 export class StackService {
   private baseUrl: string;
   private username: string;
@@ -241,12 +243,19 @@ export class StackService {
   }
 
   private buildShareBaseUrl(): string {
-    const configured = process.env.STACK_SHARE_BASE_URL;
-    if (configured) return configured.replace(/\/$/, "");
+    const configuredBase = process.env.STACK_SHARE_BASE_URL;
+    if (configuredBase) return configuredBase.replace(/\/$/, "");
+
+    const configuredHost = process.env.STACK_SHARE_HOST || SETTINGS.stack.shareHost;
     try {
       const parsed = new URL(this.baseUrl);
-      return `${parsed.protocol}//${parsed.host}/s`;
+      const protocol = parsed.protocol || "https:";
+      if (configuredHost) {
+        return `${protocol}//${configuredHost.replace(/\/$/, "")}/s`;
+      }
+      return `${protocol}//${parsed.host}/s`;
     } catch {
+      if (configuredHost) return `https://${configuredHost.replace(/\/$/, "")}/s`;
       return "/s";
     }
   }
