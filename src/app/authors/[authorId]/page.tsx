@@ -28,7 +28,8 @@ export default async function AuthorPage({
   const isSortValue = (v: unknown): v is SortValue =>
     typeof v === "string" && (SORT_VALUES as readonly string[]).includes(v);
   const rawSort = typeof sp?.sort === "string" ? sp.sort : undefined;
-  const sortParam: SortValue | undefined = rawSort && isSortValue(rawSort) ? rawSort : undefined;
+  const sortParam: SortValue | undefined =
+    rawSort && isSortValue(rawSort) ? rawSort : undefined;
 
   return (
     <NovelsProvider authorId={authorId} sort={sortParam}>

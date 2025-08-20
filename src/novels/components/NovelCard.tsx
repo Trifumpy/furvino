@@ -29,7 +29,12 @@ interface Props {
 const AUTOMATIC_DESCRIPTION_SNIPPET_LENGTH = 200;
 const SHOW_FAVORITE_BUTTON = false;
 
-export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = false }: Props) {
+export function NovelCard({
+  novel,
+  isFavorited,
+  onToggleFavorite,
+  disableLink = false,
+}: Props) {
   const theme = useTheme();
   const heartColor = isFavorited
     ? theme.palette.error.main
@@ -52,7 +57,7 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = 
         image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
         alt={`Cover for ${novel.title}`}
         onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-          e.currentTarget.src = `https://placehold.co/600x400/1e1e1e/ffffff?text=Image+Error`;
+          e.currentTarget.src = `https://placehold.co/300x160/1e1e1e/ffffff?text=Image+Error`;
         }}
       />
       <CardContent>
@@ -68,7 +73,13 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = 
               const avg = novel.ratingsSummary?.average ?? 0;
               const roundedTenth = Math.round(avg * 10) / 10;
               return (
-                <Rating size="small" readOnly value={roundedTenth} precision={0.1} max={5} />
+                <Rating
+                  size="small"
+                  readOnly
+                  value={roundedTenth}
+                  precision={0.1}
+                  max={5}
+                />
               );
             })()}
           </Stack>
@@ -78,11 +89,7 @@ export function NovelCard({ novel, isFavorited, onToggleFavorite, disableLink = 
             {snippet}
           </Typography>
         ) : (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            fontStyle="italic"
-          >
+          <Typography variant="body2" color="text.secondary" fontStyle="italic">
             No description available.
           </Typography>
         )}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { enrichNovel, getAllNovels, validateNovelData } from "./utils";
-import { ensureAdmin, getQueryParams, revalidateTags, wrapRoute } from "../utils";
+import { getQueryParams, revalidateTags, wrapRoute } from "../utils";
 import prisma from "@/utils/db";
 import { CreateNovelResponse, getNovelsQParamsSchema } from "@/contracts/novels";
 import { novelTags } from "@/utils";

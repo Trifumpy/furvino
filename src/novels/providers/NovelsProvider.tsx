@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 import { GetNovelsQParams, ListedNovel } from "@/contracts/novels";
 import { ClientNovelsProvider } from "./ClientNovelsProvider";
-import { Registry } from "@/utils";
+import { getAllNovels } from "@/app/api/novels/utils";
 
 type Props = PropsWithChildren<GetNovelsQParams>;
 
@@ -12,11 +12,9 @@ export async function NovelsProvider({
   tags,
   sort,
 }: Props) {
-  const { novels } = Registry.get();
-
   let allNovels: ListedNovel[] = [];
   try {
-    allNovels = await novels.getNovels({ authorId, search, tags, sort });
+    allNovels = await getAllNovels({ authorId, search, tags, sort });
   } catch (error) {
     console.error("Failed to fetch novels:", error);
   }

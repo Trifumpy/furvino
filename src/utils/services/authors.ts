@@ -1,3 +1,4 @@
+import { authorTags } from "../cacheTags";
 import { HttpService } from "./core";
 import {
   CreateAuthorBody,
@@ -20,7 +21,7 @@ export class AuthorsService extends HttpService {
       cache: "no-cache",
       queryParams: {
         ...options,
-        includeDeleted: options.includeDeleted
+        includeDeleted: options.includeDeleted,
       },
     });
   }
@@ -28,7 +29,7 @@ export class AuthorsService extends HttpService {
     return this.get<GetAuthorResponse>(`/${id}`, {
       next: {
         revalidate: 60 * 30,
-        tags: ['authors', `authors:${id}`],
+        tags: authorTags.author(id),
       },
     });
   }
@@ -37,13 +38,19 @@ export class AuthorsService extends HttpService {
     return this.post<CreateAuthorResponse, CreateAuthorBody>("/", author);
   }
 
-   updateMe(author: UpdateAuthorBody) {
-     return this.put<GetAuthorResponse, UpdateAuthorBody>(`/me`, author, { cache: 'no-store' });
-   }
+  updateMe(author: UpdateAuthorBody) {
+    return this.put<GetAuthorResponse, UpdateAuthorBody>(`/me`, author, {
+      cache: "no-store",
+    });
+  }
 
-   updateAuthor(authorId: string, author: UpdateAuthorBody) {
-     return this.put<GetAuthorResponse, UpdateAuthorBody>(`/${authorId}`, author, { cache: 'no-store' });
-   }
+  updateAuthor(authorId: string, author: UpdateAuthorBody) {
+    return this.put<GetAuthorResponse, UpdateAuthorBody>(
+      `/${authorId}`,
+      author,
+      { cache: "no-store" }
+    );
+  }
 
   linkAuthor(authorId: string, userId: string) {
     return this.patch<LinkAuthorResponse, LinkAuthorBody>(`/${authorId}/link`, {
@@ -54,5 +61,4 @@ export class AuthorsService extends HttpService {
   deleteAuthor(authorId: string) {
     return this.delete<{ ok: true }>(`/${authorId}`);
   }
- 
 }

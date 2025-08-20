@@ -9,7 +9,7 @@ import {
 import { IsAdmin } from ".";
 import { IconButton, Stack } from "@mui/material";
 import Link from "next/link";
-import { WrenchIcon } from "lucide-react";
+import { BookUserIcon, WrenchIcon } from "lucide-react";
 import { useUser } from "@/users/providers";
 
 export function Auth() {
@@ -17,15 +17,25 @@ export function Auth() {
   return (
     <Stack direction="row" gap={2} alignItems="center">
       <IsAdmin>
-        {!user?.authorId && (
-          <IconButton LinkComponent={Link} href="/admin" color="inherit" aria-label="Admin panel">
+        {
+          <IconButton
+            LinkComponent={Link}
+            href="/admin"
+            color="inherit"
+            aria-label="Admin panel"
+          >
             <WrenchIcon />
           </IconButton>
-        )}
+        }
       </IsAdmin>
       {user?.authorId && (
-        <IconButton LinkComponent={Link} href="/authors/me" color="inherit" aria-label="Author panel">
-          <WrenchIcon />
+        <IconButton
+          LinkComponent={Link}
+          href="/authors/me"
+          color="inherit"
+          aria-label="Author panel"
+        >
+          <BookUserIcon />
         </IconButton>
       )}
       <SignedOut>

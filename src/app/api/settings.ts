@@ -4,11 +4,11 @@ export const SETTINGS = {
   stack: {
     mountedRoot: process.env.STACK_ROOT || "/STACK",
     prefix: process.env.STACK_PREFIX || "/furvino",
-    apiUrl: process.env.STACK_API_URL || "http://localhost:3000/api/stack",
+    apiUrl: process.env.STACK_API_URL || "https://stack.furvino.org/api/v2",
     username: process.env.STACK_USERNAME || "furvino",
     password: process.env.STACK_PASSWORD || "furvino",
     appToken: process.env.STACK_APP_TOKEN || "furvino",
-    shareHost: process.env.STACK_SHARE_HOST || "stack.furvino.org",
+    shareHost: process.env.STACK_SHARE_HOST || "https://stack.furvino.org",
   },
   clerk: {
     webhookSecret: process.env.CLERK_WEBHOOK_SECRET || "",
