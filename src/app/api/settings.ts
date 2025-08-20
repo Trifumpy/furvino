@@ -12,6 +12,6 @@ export const SETTINGS = {
   },
   clerk: {
     webhookSecret: process.env.CLERK_WEBHOOK_SECRET || "",
-    apiKey: process.env.CLERK_API_KEY || "",
+    secret: process.env.CLERK_SECRET_KEY || "",
   }
 };
