@@ -4,7 +4,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - dummy-branch
+      - main
 
 jobs:
   deploy:
@@ -24,7 +24,10 @@ jobs:
             # Navigate to your project directory on the VPS
             # IMPORTANT: Change this path to your actual project path!
             cd /home/github/furvino
-            
+
+            #Mounting of STACK
+            sudo mount /home/github/STACK
+
             # Pull the latest changes from the main branch
             git pull origin main
 
