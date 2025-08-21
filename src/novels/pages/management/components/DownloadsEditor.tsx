@@ -12,6 +12,7 @@ import { DownloadIcon } from "lucide-react";
 import { useUploadNovelFile } from "@/novels/hooks";
 import { ValueFieldProps } from "@/generic/input/KeyMapField";
 import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
 
 export const keys: KeyMapKey<Platform>[] = PLATFORMS.map((platform) => ({
   label: PLATFORM_NAMES[platform],
@@ -31,6 +32,19 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     value ?? {},
     onChange
   );
+  const { uploadFile, isUploading, progress } = useUploadNovelFile();
+  const [currentPlatform, setCurrentPlatform] = useState<Platform | null>(null);
+
+  // Prevent navigating away while an upload is in progress
+  useEffect(() => {
+    if (!isUploading) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isUploading]);
 
   const ValueField = ({
     itemKey,
@@ -39,7 +53,8 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     error,
     disabled,
   }: ValueFieldProps<Platform, string>) => {
-    const { uploadFile, isUploading, progress } = useUploadNovelFile();
+    const isThisUploading = isUploading && currentPlatform === itemKey;
+    const isOtherUploading = isUploading && currentPlatform !== itemKey;
     return (
       <FileOrUrlInput<Platform>
         itemKey={itemKey}
@@ -47,17 +62,26 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         value={value}
         onChange={onChange}
         error={error}
-        disabled={disabled}
-        loading={isUploading}
-        progressPercent={progress?.percent}
-        etaSeconds={progress?.etaSeconds}
+        disabled={disabled || isOtherUploading}
+        loading={isThisUploading}
+        progressPercent={isThisUploading ? progress?.percent : undefined}
+        etaSeconds={isThisUploading ? progress?.etaSeconds : undefined}
         maxSize={MAX_NOVEL_FILE_SIZE}
         onUpload={async (file) => {
           if (!novelId) return;
-          const novel = await uploadFile({ novelId, platform: itemKey, file });
-          const url = novel.magnetUrls?.[itemKey] ?? "";
-          onChange(url);
-          toast.success("Upload successful");
+          if (isUploading && currentPlatform && currentPlatform !== itemKey) {
+            toast.info("Another upload is in progress. Please wait until it finishes.");
+            return;
+          }
+          try {
+            setCurrentPlatform(itemKey);
+            const novel = await uploadFile({ novelId, platform: itemKey, file });
+            const url = novel.magnetUrls?.[itemKey] ?? "";
+            onChange(url);
+            toast.success("Upload successful");
+          } finally {
+            setCurrentPlatform(null);
+          }
         }}
       />
     );
