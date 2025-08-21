@@ -25,6 +25,12 @@ export function NovelDownloads({ novel }: Props) {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+  const alternativePlatforms = useMemo(
+    () => platformOptions.filter((p) => p !== selectedPlatform),
+    [platformOptions, selectedPlatform]
+  );
+  const hasAlternatives = alternativePlatforms.length > 0;
+
   useEffect(() => {
     const detected = detectPlatform();
     if (platformOptions.includes(detected)) {
@@ -65,9 +71,16 @@ export function NovelDownloads({ novel }: Props) {
       </Button>
       <Button
         variant="contained"
-        aria-controls="platform-menu"
+        aria-controls={hasAlternatives ? "platform-menu" : undefined}
         aria-haspopup="true"
-        onClick={(e) => setAnchorEl(e.currentTarget)}
+        disabled={!hasAlternatives}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (hasAlternatives) {
+            setAnchorEl(e.currentTarget);
+          }
+        }}
         sx={{
           borderTopLeftRadius: 0,
           borderBottomLeftRadius: 0,
@@ -80,12 +93,10 @@ export function NovelDownloads({ novel }: Props) {
       <Menu
         id="platform-menu"
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        open={Boolean(anchorEl) && hasAlternatives}
         onClose={() => setAnchorEl(null)}
       >
-        {platformOptions
-          .filter((p) => p !== selectedPlatform)
-          .map((platform) => {
+        {alternativePlatforms.map((platform) => {
             const Icon = PLATFORM_ICONS[platform];
             return (
               <MenuItem
