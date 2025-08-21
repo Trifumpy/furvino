@@ -131,6 +131,9 @@ export function NovelRatings() {
       <Modal isOpen={isOpen} close={() => setIsOpen(false)} onSubmit={() => upsert.mutate()} maxWidth="sm" fullWidth>
         <ModalTitle>Rate this novel</ModalTitle>
         <ModalContent>
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+            leave 0 stars if you have no opinion or doesn&apos;t apply to this novel (doesn&apos;t count towards the rating)
+          </Typography>
           <Stack gap={1.5}>
             {/* Overall category removed */}
             {CATEGORIES.map((c) => (

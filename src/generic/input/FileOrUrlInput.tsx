@@ -77,7 +77,7 @@ export function FileOrUrlInput<TKey extends string>({
     typeof error === "string" &&
     /Invalid input: expected string, received null/i.test(error);
   const helperMessage = isNullStringError
-    ? "file is uploading to the cloud from the server. Please wait a few moments, the link is being created"
+    ? "File is being uploaded to the cloud and link is being created. Please wait until uploading another file or saving changes."
     : error;
 
   const iconColor = disabled
