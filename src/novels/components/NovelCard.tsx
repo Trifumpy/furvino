@@ -13,7 +13,6 @@ import {
 import { DEFAULT_NOVEL_COVER_URL } from "./constants";
 import { Rating } from "@mui/material";
 import { HeartIcon } from "lucide-react";
-import { trimString } from "@/utils";
 import Link from "next/link";
 import { NovelTags } from "./NovelTags";
 import { ListedNovel } from "@/contracts/novels";
@@ -26,7 +25,6 @@ interface Props {
   disableLink?: boolean;
 }
 
-const AUTOMATIC_DESCRIPTION_SNIPPET_LENGTH = 200;
 const SHOW_FAVORITE_BUTTON = false;
 
 export function NovelCard({
@@ -41,11 +39,7 @@ export function NovelCard({
     : theme.palette.text.primary;
   const heartFill = isFavorited ? theme.palette.error.main : "none";
 
-  const snippet =
-    novel.snippet ??
-    (novel.description
-      ? trimString(novel.description, AUTOMATIC_DESCRIPTION_SNIPPET_LENGTH)
-      : undefined);
+  const snippet = novel.snippet;
 
   const detailsUrl = `/novels/${novel.id}`;
 

@@ -44,15 +44,21 @@ async function main() {
     )
   );
   await Promise.all(
-    novels.map(novel =>
-      prisma.novel.upsert({
-        create: novel,
-        update: novel,
+    novels.map(novel => {
+      // Transform galleryItems to Prisma nested create format if present
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { galleryItems, ...novelData } = novel as any;
+      const createData = galleryItems
+        ? { ...novelData, galleryItems: { create: galleryItems } }
+        : novelData;
+      return prisma.novel.upsert({
+        create: createData,
+        update: createData,
         where: { id: novel.id ? novel.id : undefined }, // Use id if available, otherwise create new
       })
       .then(() => console.log(`Novel ${novel.title} created`))
-      .catch(err => console.error(`Error creating novel ${novel.title}:`, err))
-    )
+      .catch(err => console.error(`Error creating novel ${novel.title}:`, err));
+    })
   );
 }
 
