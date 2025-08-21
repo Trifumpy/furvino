@@ -26,10 +26,17 @@ export const platformEnum = z.enum(PLATFORMS);
 export type ExternalSite = z.infer<typeof externalSiteEnum>;
 export type Platform = z.infer<typeof platformEnum>;
 
+export const MAX_GALLERY_FOOTER_LENGTH = 100;
+export const galleryItemSchema = z.object({
+  footer: z.string().max(MAX_GALLERY_FOOTER_LENGTH).optional(),
+  imageUrl: z.url(),
+});
+
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_SNIPPET_LENGTH = 250;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
+export const MAX_GALLERY_ITEMS = 5;
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
   title: z.string().min(1, "Title is required").max(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`),
@@ -37,14 +44,16 @@ export const novelSchema = z.object({
   description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
   thumbnailUrl: urlOrEmpty.optional(),
+  bannerUrl: urlOrEmpty.optional(),
+  galleryItems: z.array(galleryItemSchema).max(MAX_GALLERY_ITEMS, `Gallery cannot exceed ${MAX_GALLERY_ITEMS} items`).optional(),
   externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
-  magnetUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
+  downloadUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
   tags: z.array(z.string()).max(MAX_TAGS).optional(),
 });
 export type NovelSchema = z.infer<typeof novelSchema>;
 
 export type GetNovelParams = { novelId: string };
-export type GetNovelResponse = ListedNovel;
+export type GetNovelResponse = FullNovel;
 
 export const getNovelsQParamsSchema = z.object({
   authorId: z.string(),
@@ -65,6 +74,7 @@ export const getNovelsQParamsSchema = z.object({
   ]),
 }).partial();
 export type GetNovelsQParams = z.infer<typeof getNovelsQParamsSchema>;
+export type GetNovelsResponse = ListedNovel[];
 
 export const createNovelSchema = novelSchema.omit({ id: true });
 export type CreateNovelBody = z.infer<typeof createNovelSchema>;
@@ -88,14 +98,26 @@ export type ListedNovel = {
   title: string;
   author: Author;
   externalUrls?: Partial<Record<ExternalSite, string>>;
-  magnetUrls?: Partial<Record<Platform, string>>;
-  description?: string | null;
+  downloadUrls?: Partial<Record<Platform, string>>;
   snippet?: string | null;
   thumbnailUrl?: string | null;
   tags: string[];
   comments: CommentsSummary;
   stats: Stats;
   ratingsSummary: RatingsSummary;
+  createdAt: string;
+  updatedAt: string;
+}
+export type GalleryItem = {
+  id: string;
+  footer?: string | null;
+  imageUrl: string;
+  createdAt: string;
+}
+export type FullNovel = ListedNovel & {
+  description?: string | null;
+  bannerUrl?: string | null;
+  galleryItems: GalleryItem[];
 }
 
 export type CommentsSummary = {

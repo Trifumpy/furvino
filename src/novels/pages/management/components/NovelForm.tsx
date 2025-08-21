@@ -225,13 +225,13 @@ export function NovelForm({
             />
             {existingId && (
               <Controller
-                name="magnetUrls"
+                name="downloadUrls"
                 control={control}
                 render={({ field }) => (
                   <DownloadsEditor
                     value={field.value}
                     onChange={field.onChange}
-                    errors={fieldValidationToRecord(errors.magnetUrls)}
+                    errors={fieldValidationToRecord(errors.downloadUrls)}
                     novelId={existingId}
                   />
                 )}

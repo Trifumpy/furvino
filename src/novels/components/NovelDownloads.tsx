@@ -14,7 +14,7 @@ type Props = {
 const BUTTON_HEIGHT = 48;
 
 export function NovelDownloads({ novel }: Props) {
-  const downloads = novel.magnetUrls;
+  const downloads = novel.downloadUrls;
 
   const platformOptions = useMemo(() => {
     return Object.keys(downloads ?? {}).filter(
@@ -97,27 +97,27 @@ export function NovelDownloads({ novel }: Props) {
         onClose={() => setAnchorEl(null)}
       >
         {alternativePlatforms.map((platform) => {
-            const Icon = PLATFORM_ICONS[platform];
-            return (
-              <MenuItem
-                key={platform}
-                onClick={() => {
-                  setSelectedPlatform(platform);
-                  setAnchorEl(null);
-                }}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Icon size={24} />
-                <Typography variant="body2">
-                  {PLATFORM_NAMES[platform]}
-                </Typography>
-              </MenuItem>
-            );
-          })}
+          const Icon = PLATFORM_ICONS[platform];
+          return (
+            <MenuItem
+              key={platform}
+              onClick={() => {
+                setSelectedPlatform(platform);
+                setAnchorEl(null);
+              }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Icon size={24} />
+              <Typography variant="body2">
+                {PLATFORM_NAMES[platform]}
+              </Typography>
+            </MenuItem>
+          );
+        })}
       </Menu>
     </Stack>
   );

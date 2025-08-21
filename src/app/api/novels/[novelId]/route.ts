@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteNovel, enrichNovel, ensureCanUpdateNovel, ensureCanUpdateNovelById, ensureGetNovel, validateNovelData } from "../utils";
+import { deleteNovel, enrichToFullNovel, enrichToListedNovel, ensureCanUpdateNovel, ensureCanUpdateNovelById, ensureGetNovel, validateNovelData } from "../utils";
 import { evictTags, revalidateTags, wrapRoute } from "../../utils";
 import prisma from "@/utils/db";
 import { GetNovelParams, GetNovelResponse, UpdateNovelParams, UpdateNovelResponse } from "@/contracts/novels";
@@ -10,7 +10,7 @@ export const GET = wrapRoute<GetNovelParams>(async (request, { params }) => {
 
   const novel = await ensureGetNovel(novelId);
 
-  const enrichedNovel = await enrichNovel(novel) satisfies GetNovelResponse;
+  const enrichedNovel = await enrichToFullNovel(novel) satisfies GetNovelResponse;
   return NextResponse.json(enrichedNovel);
 })
 
@@ -29,14 +29,18 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
     return NextResponse.json({ error: "Novel ID mismatch" }, { status: 400 });
   }
 
+  // Destructure away unused fields
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { downloadUrls, externalUrls, galleryItems, ...data } = validatedNovel;
+
   const updatedNovel = await prisma.novel.update({
     where: { id: novelId },
-    data: validatedNovel,
+    data,
   });
   revalidateTags(novelTags.novel(novelId));
   revalidateTags(novelTags.list());
 
-  const novel = await enrichNovel(updatedNovel) satisfies UpdateNovelResponse;
+  const novel = await enrichToListedNovel(updatedNovel) satisfies UpdateNovelResponse;
 
   return NextResponse.json(novel, { status: 200 });
 });

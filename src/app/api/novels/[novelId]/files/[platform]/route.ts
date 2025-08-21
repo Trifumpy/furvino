@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { wrapRoute, revalidateTags } from "@/app/api/utils";
-import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
+import { enrichToListedNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
 import { MAX_NOVEL_FILE_SIZE, PLATFORMS, Platform } from "@/contracts/novels";
 import { BadRequestError } from "@/app/api/errors";
 import prisma from "@/utils/db";
@@ -35,8 +35,8 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
 
   // Patch DB field
   const existingFileUrls: Prisma.JsonObject =
-    typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
-      ? (novel.magnetUrls as Prisma.JsonObject)
+    typeof novel.downloadUrls === "object" && novel.downloadUrls !== null
+      ? (novel.downloadUrls as Prisma.JsonObject)
       : {};
   const nextFileUrls: Prisma.JsonObject = {
     ...existingFileUrls,
@@ -46,11 +46,11 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const patched = await prisma.novel.update({
     where: { id: novelId },
     data: {
-      magnetUrls: nextFileUrls,
+      downloadUrls: nextFileUrls,
     },
   });
 
-  const result = await enrichNovel(patched);
+  const result = await enrichToListedNovel(patched);
 
   revalidateTags(novelTags.novel(novelId));
   revalidateTags(novelTags.list());

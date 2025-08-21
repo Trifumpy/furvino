@@ -22,7 +22,7 @@ export function EditNovelPage() {
       description: novel.description || "",
       thumbnailUrl: novel.thumbnailUrl || undefined,
       externalUrls: pruneEmptyKeys(novel.externalUrls || {}),
-      magnetUrls: pruneEmptyKeys(novel.magnetUrls || {}),
+      downloadUrls: pruneEmptyKeys(novel.downloadUrls || {}),
       tags: novel.tags || [],
     };
   }, [novel]);

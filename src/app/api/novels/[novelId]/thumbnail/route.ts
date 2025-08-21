@@ -1,5 +1,5 @@
 import { revalidateTags, wrapRoute } from "@/app/api/utils";
-import { enrichNovel, ensureCanUpdateNovel, ensureGetNovel } from "../../utils";
+import { enrichToListedNovel, ensureCanUpdateNovel, ensureGetNovel } from "../../utils";
 import { NovelTarget, UpdateNovelThumbnailParams } from "@/contracts/novels";
 import {
   setNovelThumbnail,
@@ -25,7 +25,7 @@ export const PUT = wrapRoute<UpdateNovelThumbnailParams>(
       ...novel,
       thumbnailUrl,
     };
-    const result = await enrichNovel(patchedNovel);
+    const result = await enrichToListedNovel(patchedNovel);
 
     revalidateTags(novelTags.novel(novelId));
     revalidateTags(novelTags.list());

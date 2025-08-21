@@ -16,8 +16,8 @@ datasource db {
 }
 
 model Author {
-  id   String @id @default(uuid())
-  name String
+  id           String  @id @default(uuid())
+  name         String
   externalUrls Json?
   description  String?
 
@@ -26,24 +26,26 @@ model Author {
 }
 
 model Novel {
-  id           String       @id @default(uuid())
-  title        String
-  authorId     String
-  author       Author       @relation(fields: [authorId], references: [id])
-  externalUrls Json?
-  magnetUrls   Json?
-  description  String?
-  snippet      String?
-  thumbnailUrl String?
-  tags         String[]
-  downloads    Int          @default(0)
-  favorites    Int          @default(0)
-  views        Int          @default(0)
-  comments     Comment[]
-  ratings      UserRating[]
+  id              String           @id @default(uuid())
+  title           String
+  authorId        String
+  author          Author           @relation(fields: [authorId], references: [id])
+  externalUrls    Json?
+  downloadUrls    Json?
+  description     String?
+  snippet         String?
+  thumbnailUrl    String?
+  bannerUrl       String?
+  galleryItems    GalleryItem[]
+  tags            String[]
+  downloads       Int              @default(0)
+  favorites       Int              @default(0)
+  views           Int              @default(0)
+  comments        Comment[]
+  ratings         UserRating[]
   collectionItems CollectionItem[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @default(now()) @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
 
   @@index([authorId])
 }
@@ -57,8 +59,8 @@ model Comment {
   text    String
 
   parentId String?
-  parent   Comment?   @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies  Comment[]  @relation("CommentToReplies")
+  parent   Comment?  @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentToReplies")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -69,20 +71,20 @@ model Comment {
 }
 
 model UserRating {
-  id      String @id @default(uuid())
-  novel   Novel  @relation(fields: [novelId], references: [id], onDelete: Cascade)
-  novelId String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  String
-  value   Int
-  plot              Int @default(0)
-  characters        Int @default(0)
-  backgroundsUi     Int @default(0)
-  characterArt      Int @default(0)
-  music             Int @default(0)
-  soundEffects      Int @default(0)
-  emotionalImpact   Int @default(0)
-  reason            String?
+  id              String  @id @default(uuid())
+  novel           Novel   @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  novelId         String
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  value           Int
+  plot            Int     @default(0)
+  characters      Int     @default(0)
+  backgroundsUi   Int     @default(0)
+  characterArt    Int     @default(0)
+  music           Int     @default(0)
+  soundEffects    Int     @default(0)
+  emotionalImpact Int     @default(0)
+  reason          String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -90,6 +92,18 @@ model UserRating {
   @@unique([novelId, userId])
   @@index([novelId])
   @@index([userId])
+}
+
+model GalleryItem {
+  id        String   @id @default(uuid())
+  novelId   String
+  novel     Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  footer    String?
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  @@unique([novelId, imageUrl])
+  @@index([novelId])
 }
 
 model User {
@@ -104,11 +118,11 @@ model User {
   updatedAt DateTime  @default(now()) @updatedAt
   deletedAt DateTime?
 
-  comments Comment[]
-  ratings  UserRating[]
-  author   Author?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  authorId String?      @unique
-  collections Collection[]
+  comments            Comment[]
+  ratings             UserRating[]
+  author              Author?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId            String?            @unique
+  collections         Collection[]
   followedCollections CollectionFollow[]
 
   @@index([clerkId])
@@ -119,29 +133,29 @@ model User {
 // AuthorManager table removed (managers feature deferred)
 
 model Collection {
-  id          String   @id @default(uuid())
+  id          String             @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  isPublic    Boolean  @default(false)
+  isPublic    Boolean            @default(false)
   items       CollectionItem[]
   followers   CollectionFollow[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  @@index([userId])
   @@unique([userId, name])
+  @@index([userId])
 }
 
 model CollectionItem {
-  id           String      @id @default(uuid())
+  id           String     @id @default(uuid())
   collectionId String
-  collection   Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   novelId      String
-  novel        Novel       @relation(fields: [novelId], references: [id], onDelete: Cascade)
-  createdAt    DateTime    @default(now())
+  novel        Novel      @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 
   @@unique([collectionId, novelId])
   @@index([novelId])

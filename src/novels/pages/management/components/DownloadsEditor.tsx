@@ -20,8 +20,8 @@ export const keys: KeyMapKey<Platform>[] = PLATFORMS.map((platform) => ({
 }));
 
 type Props = {
-  value: CreateNovelBody["magnetUrls"];
-  onChange: (value: CreateNovelBody["magnetUrls"]) => void;
+  value: CreateNovelBody["downloadUrls"];
+  onChange: (value: CreateNovelBody["downloadUrls"]) => void;
   errors?: Record<Platform, string>;
   novelId?: string;
 };
@@ -55,7 +55,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         onUpload={async (file) => {
           if (!novelId) return;
           const novel = await uploadFile({ novelId, platform: itemKey, file });
-          const url = novel.magnetUrls?.[itemKey] ?? "";
+          const url = novel.downloadUrls?.[itemKey] ?? "";
           onChange(url);
           toast.success("Upload successful");
         }}

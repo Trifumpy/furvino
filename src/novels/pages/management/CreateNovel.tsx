@@ -14,7 +14,7 @@ const DEFAULT_NOVEL: CreateNovelBody = {
   description: "",
   thumbnailUrl: "",
   externalUrls: {},
-  magnetUrls: {},
+  downloadUrls: {},
   tags: [],
 };
 
@@ -23,7 +23,10 @@ export function CreateNovelPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const { user, isAdmin } = useUser();
-  const fixedAuthorId = useMemo(() => (!isAdmin ? user?.authorId ?? "" : undefined), [isAdmin, user]);
+  const fixedAuthorId = useMemo(
+    () => (!isAdmin ? (user?.authorId ?? "") : undefined),
+    [isAdmin, user]
+  );
 
   return (
     <Stack gap={2}>

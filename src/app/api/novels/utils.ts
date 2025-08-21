@@ -1,4 +1,8 @@
-import { Novel, Prisma } from "@/generated/prisma";
+import {
+  GalleryItem as PrismaGalleryItem,
+  Novel,
+  Prisma,
+} from "@/generated/prisma";
 import prisma from "@/utils/db";
 import { ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { checkIfUserIsAdmin, ensureClerkId, validateSchema } from "../utils";
@@ -9,17 +13,23 @@ import {
   ListedNovel,
   Platform,
   GetNovelsQParams,
+  FullNovel,
+  GalleryItem,
+  GetNovelsResponse,
+  MAX_SNIPPET_LENGTH,
 } from "@/contracts/novels";
 import { getUserByExternalId } from "../users";
 import { deleteStackFolder } from "../files";
+import { trimString } from "@/utils";
 
-type PrismaNovelWithAuthor = Prisma.PromiseReturnType<
-  typeof prisma.novel.findUnique
-> & {
+type PrismaNovelWithAuthor = Novel & {
   author?: { id: string; name: string } | null;
 };
+type PrismaNovelWithAuthorAndThumbnails = PrismaNovelWithAuthor & {
+  galleryItems: Omit<PrismaGalleryItem, "novelId">[];
+};
 
-export async function getAllNovels(options: GetNovelsQParams) {
+export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovelsResponse> {
   const { authorId, tags, search, sort } = options;
 
   const where: Prisma.NovelWhereInput = {
@@ -139,13 +149,13 @@ export async function getAllNovels(options: GetNovelsQParams) {
     });
   }
 
-  return novelsWithAuthors.map((n) => {
-    const listed = enrichNovelWithAuthor(n);
+  return await Promise.all(novelsWithAuthors.map(async (n) => {
+    const listed = await enrichNovelWithAuthor(n);
     listed.ratingsSummary.average = novelIdToAvg[n.id] ?? 0;
     listed.ratingsSummary.total =
       ratings.find((r) => r.novelId === n.id)?._count.novelId ?? 0;
     return listed;
-  });
+  }));
 }
 
 export async function getListedNovel(
@@ -166,6 +176,32 @@ export async function getListedNovel(
     return null;
   }
   return enrichNovelWithAuthor(novel);
+}
+
+export async function getFullNovel(novelId: string): Promise<FullNovel | null> {
+  const novel = await prisma.novel.findUnique({
+    where: { id: novelId },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      galleryItems: {
+        select: {
+          id: true,
+          imageUrl: true,
+          footer: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+  if (!novel) {
+    return null;
+  }
+  return enrichNovelWithAuthorAndThumbnails(novel);
 }
 
 export async function getNovel(novelId: string): Promise<Novel | null> {
@@ -195,7 +231,7 @@ export async function deleteNovel(novelId: string): Promise<void> {
 
 // ENRICHMENT
 
-export async function enrichNovel(data: Novel) {
+export async function enrichToListedNovel(data: Novel) {
   const author = await prisma.author.findUnique({
     where: { id: data.authorId },
   });
@@ -206,18 +242,87 @@ export async function enrichNovel(data: Novel) {
 
   return enrichNovelWithAuthor({
     ...data,
+    snippet: data.snippet || (data.description ? trimString(data.description, MAX_SNIPPET_LENGTH) : null),
     author,
   });
 }
 
-export function enrichNovelWithAuthor(
-  data: PrismaNovelWithAuthor
-): ListedNovel {
+export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
+  const listedNovel = await enrichToListedNovel(data);
+
+  const galleryItems = await prisma.galleryItem.findMany({
+    where: { novelId: data.id },
+  });
+
+  return {
+    ...listedNovel,
+    description: data.description || null,
+    bannerUrl: data.bannerUrl || null,
+    galleryItems: galleryItems?.map(enrichGalleryItem) || [],
+    createdAt: data.createdAt.toISOString(),
+    updatedAt: data.updatedAt.toISOString(),
+  };
+}
+
+export async function enrichNovelWithAuthor(
+  {
+    author,
+    externalUrls,
+    downloadUrls,
+    createdAt,
+    updatedAt,
+    ...data
+  }: PrismaNovelWithAuthor
+): Promise<ListedNovel> {
   return {
     ...data,
-    author: data.author || { id: data.authorId, name: "Unknown Author" },
-    externalUrls: enrichUrls<ExternalSite>(data.externalUrls),
-    magnetUrls: enrichUrls<Platform>(data.magnetUrls),
+    author: author || { id: data.authorId, name: "Unknown Author" },
+    externalUrls: enrichUrls<ExternalSite>(externalUrls),
+    downloadUrls: enrichUrls<Platform>(downloadUrls),
+    createdAt: createdAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
+    ...(await getEnrichedNovelStats(data.id)),
+  };
+}
+
+export async function enrichNovelWithAuthorAndThumbnails({
+  galleryItems,
+  ...data
+}: PrismaNovelWithAuthorAndThumbnails): Promise<FullNovel> {
+  return {
+    ...(await enrichNovelWithAuthor(data)),
+    galleryItems: galleryItems?.map(enrichGalleryItem) || [],
+  };
+}
+
+function enrichUrls<TKey extends string = string>(
+  raw: Prisma.JsonValue
+): Partial<Record<TKey, string>> {
+  if (typeof raw !== "object" || raw === null) {
+    return {};
+  }
+  const result: Partial<Record<TKey, string>> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    result[key as TKey] = String(value);
+  }
+  return result;
+}
+
+function enrichGalleryItem(
+  data: Omit<PrismaGalleryItem, "novelId">
+): GalleryItem {
+  return {
+    id: data.id,
+    footer: data.footer || null,
+    imageUrl: data.imageUrl,
+    createdAt: data.createdAt.toISOString(),
+  };
+}
+
+// Future: Fetch comments, stats, ratings summary
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getEnrichedNovelStats(novelId: string) {
+  return {
     comments: {
       total: 0,
       recent: [],
@@ -233,19 +338,6 @@ export function enrichNovelWithAuthor(
       recent: [],
     },
   };
-}
-
-function enrichUrls<TKey extends string = string>(
-  raw: Prisma.JsonValue
-): Partial<Record<TKey, string>> {
-  if (typeof raw !== "object" || raw === null) {
-    return {};
-  }
-  const result: Partial<Record<TKey, string>> = {};
-  for (const [key, value] of Object.entries(raw)) {
-    result[key as TKey] = String(value);
-  }
-  return result;
 }
 
 // VALIDATION
