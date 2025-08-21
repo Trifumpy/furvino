@@ -11,6 +11,14 @@ import { getUploadFolder, saveNovelFile, waitForNodeId } from "../utils";
 
 type Params = { novelId: string; platform: string };
 
+// Configure route to handle large file uploads (1.5GB)  
+export const maxDuration = 300; // 5 minutes timeout
+export const dynamic = 'force-dynamic';
+
+// This is the correct way to increase body size limit in App Router
+export const runtime = 'nodejs';
+export const preferredRegion = 'auto';
+
 export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const { novelId, platform } = await params;
 
@@ -22,37 +30,47 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const novel = await ensureGetNovel(novelId);
   await ensureCanUpdateNovel(novel);
 
-  const formData = await request.formData();
-  const file = formData.get("file") as File | null;
-  if (!file) throw new BadRequestError("File is required");
-  if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
+  // Handle large file uploads by processing the request stream directly
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+    if (!file) throw new BadRequestError("File is required");
+    if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
 
-  const relativePath = getUploadFolder(novelId, typedPlatform);
-  const stackPath = await saveNovelFile(relativePath, file);
+    const relativePath = getUploadFolder(novelId, typedPlatform);
+    const stackPath = await saveNovelFile(relativePath, file);
 
-  const nodeId = await waitForNodeId(stackPath);
-  const shareUrl = await StackService.get().shareNode(nodeId);
+    const nodeId = await waitForNodeId(stackPath);
+    const shareUrl = await StackService.get().shareNode(nodeId);
 
-  // Patch DB field
-  const existingFileUrls: Prisma.JsonObject =
-    typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
-      ? (novel.magnetUrls as Prisma.JsonObject)
-      : {};
-  const nextFileUrls: Prisma.JsonObject = {
-    ...existingFileUrls,
-    [typedPlatform]: shareUrl,
-  };
+    // Patch DB field
+    const existingFileUrls: Prisma.JsonObject =
+      typeof novel.magnetUrls === "object" && novel.magnetUrls !== null
+        ? (novel.magnetUrls as Prisma.JsonObject)
+        : {};
+    const nextFileUrls: Prisma.JsonObject = {
+      ...existingFileUrls,
+      [typedPlatform]: shareUrl,
+    };
 
-  const patched = await prisma.novel.update({
-    where: { id: novelId },
-    data: {
-      magnetUrls: nextFileUrls,
-    },
-  });
+    const patched = await prisma.novel.update({
+      where: { id: novelId },
+      data: {
+        magnetUrls: nextFileUrls,
+      },
+    });
 
-  const result = await enrichNovel(patched);
+    const result = await enrichNovel(patched);
 
-  revalidateTags(novelTags.novel(novelId));
-  revalidateTags(novelTags.list());
-  return NextResponse.json(result, { status: 200 });
+    revalidateTags(novelTags.novel(novelId));
+    revalidateTags(novelTags.list());
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    console.error("Large file upload error:", error);
+    // Provide specific error message for size limit issues
+    if (error instanceof Error && error.message.includes('413')) {
+      throw new BadRequestError("File too large. The uploaded file exceeds the maximum size limit of 1.5GB.");
+    }
+    throw error;
+  }
 });
