@@ -139,6 +139,31 @@ export function getQueryParams<T extends Record<string, unknown>>(
       }
     }
 
+    // Handle arrays (e.g., tags=a&tags=b or tags=a,b)
+    if (
+      valueSchema instanceof z.ZodArray ||
+      (valueSchema instanceof z.ZodOptional &&
+        valueSchema.def.innerType instanceof z.ZodArray)
+    ) {
+      const all = req.nextUrl.searchParams.getAll(key);
+      if (all.length === 0) {
+        continue;
+      }
+      const flattened = all
+        .flatMap((v) => (v.includes(",") ? v.split(",") : [v]))
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0);
+      const parsedArr = schema.shape[key].safeParse(flattened);
+      if (parsedArr.success) {
+        result[key] = parsedArr.data;
+      } else {
+        throw new ValidationError(
+          `Invalid value for query parameter "${key}": ${parsedArr.error.message}`
+        );
+      }
+      continue;
+    }
+
     const value = req.nextUrl.searchParams.get(key);
     if (!value) {
       continue;
