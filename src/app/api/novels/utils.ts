@@ -34,16 +34,26 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
   const page = Math.max(1, Number(options.page) || 1);
   const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 48));
 
+  // Tokenize search into words/tags (split by whitespace or commas) and require all tokens to match
+  const searchTokens = typeof search === "string"
+    ? search
+        .split(/[\s,]+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0)
+    : [];
+
   const where: Prisma.NovelWhereInput = {
     authorId: authorId || undefined,
     ...(tags ? { tags: { hasEvery: tags } } : {}),
-    ...(search
+    ...(searchTokens.length
       ? {
-          OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { author: { is: { name: { contains: search, mode: "insensitive" } } } },
-            { tags: { has: search } },
-          ],
+          AND: searchTokens.map((token) => ({
+            OR: [
+              { title: { contains: token, mode: "insensitive" } },
+              { author: { is: { name: { contains: token, mode: "insensitive" } } } },
+              { tags: { has: token } },
+            ],
+          })),
         }
       : {}),
   };

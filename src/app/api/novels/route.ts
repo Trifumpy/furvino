@@ -22,18 +22,29 @@ export const POST = wrapRoute(async (req) => {
 
   const validatedNovel = await validateNovelData(novelData);
 
-  // Destructure away unused fields
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, galleryItems, downloadUrls, externalUrls, ...data } =
-    validatedNovel;
+  const id = validatedNovel.id;
+  const data = {
+    title: validatedNovel.title,
+    authorId: validatedNovel.authorId,
+    description: validatedNovel.description,
+    snippet: validatedNovel.snippet,
+    thumbnailUrl: validatedNovel.thumbnailUrl,
+    bannerUrl: validatedNovel.bannerUrl,
+    tags: validatedNovel.tags,
+    externalUrls: validatedNovel.externalUrls,
+    downloadUrls: validatedNovel.downloadUrls,
+  };
 
-  const newNovel = await (id
-    ? prisma.novel.upsert({
-        where: { id },
-        create: data,
-        update: data,
-      })
-    : prisma.novel.create({ data }));
+  const newNovel = await (
+    id
+      ? prisma.novel.upsert({
+          where: { id },
+          create: data,
+          update: data,
+        })
+      : prisma.novel.create({ data })
+  );
+
 
   revalidateTags(novelTags.list());
 

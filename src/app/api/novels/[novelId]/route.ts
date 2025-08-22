@@ -43,13 +43,25 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
     return NextResponse.json({ error: "Novel ID mismatch" }, { status: 400 });
   }
 
-  // Destructure away unused fields
+  // Persist allowed fields. Keep galleryItems out of this handler.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { downloadUrls, externalUrls, galleryItems, ...data } = validatedNovel;
+  const { galleryItems, ...rest } = validatedNovel;
 
   const updatedNovel = await prisma.novel.update({
     where: { id: novelId },
-    data,
+    data: {
+      // scalar/simple fields
+      title: rest.title,
+      authorId: rest.authorId,
+      description: rest.description,
+      snippet: rest.snippet,
+      thumbnailUrl: rest.thumbnailUrl,
+      bannerUrl: rest.bannerUrl,
+      tags: rest.tags,
+      // JSON fields we want to persist
+      externalUrls: rest.externalUrls as unknown as object | undefined,
+      downloadUrls: rest.downloadUrls as unknown as object | undefined,
+    },
   });
   revalidateTags(novelTags.novel(novelId));
   revalidateTags(novelTags.list());
