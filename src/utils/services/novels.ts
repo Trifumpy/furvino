@@ -164,6 +164,12 @@ export class NovelsService extends HttpService {
     });
   }
 
+  deleteFile(novelId: string, platform: Platform) {
+    return this.delete<ListedNovel>(`/${novelId}/files/${platform}`, {
+      cache: "no-store",
+    });
+  }
+
   deleteNovel(novelId: string) {
     return this.delete<void>(`/${novelId}`);
   }

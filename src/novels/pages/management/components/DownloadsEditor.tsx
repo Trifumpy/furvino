@@ -9,7 +9,7 @@ import { FileOrUrlInput, KeyMapField, KeyMapKey } from "@/generic/input";
 import { useRecordArrayAdapter } from "@/generic/hooks";
 import { Stack, Typography } from "@mui/material";
 import { DownloadIcon } from "lucide-react";
-import { useUploadNovelFile } from "@/novels/hooks";
+import { useDeleteNovelFile, useUploadNovelFile } from "@/novels/hooks";
 import { ValueFieldProps } from "@/generic/input/KeyMapField";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
@@ -33,6 +33,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     onChange
   );
   const { uploadFile, isUploading, progress } = useUploadNovelFile();
+  const { deleteFile, isDeleting } = useDeleteNovelFile();
   const [currentPlatform, setCurrentPlatform] = useState<Platform | null>(null);
 
   // Prevent navigating away while an upload is in progress
@@ -111,6 +112,25 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         onChange={setMapping}
         errors={errors}
         ValueField={ValueField}
+        onDelete={async (platform) => {
+          if (!novelId) return false;
+          if (isUploading) {
+            toast.info("An upload is in progress. Please wait until it finishes.");
+            return false;
+          }
+          try {
+            setCurrentPlatform(platform);
+            await deleteFile({ novelId, platform });
+            // Do not optimistically update mapping; rely on parent data refresh
+            toast.success("File deleted");
+            return true;
+          } catch (e) {
+            toast.error("Failed to delete file");
+            return false;
+          } finally {
+            setCurrentPlatform(null);
+          }
+        }}
       />
     </Stack>
   );

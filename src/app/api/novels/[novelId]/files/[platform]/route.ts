@@ -8,6 +8,7 @@ import { novelTags } from "@/utils";
 import { StackService } from "@/app/api/stack/StackService";
 import { Prisma } from "@/generated/prisma";
 import { getUploadFolder, saveNovelFile, waitForNodeId } from "../utils";
+import { clearStackFolder } from "@/app/api/files";
 
 type Params = { novelId: string; platform: string };
 
@@ -42,6 +43,45 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
     ...existingFileUrls,
     [typedPlatform]: shareUrl,
   };
+
+  const patched = await prisma.novel.update({
+    where: { id: novelId },
+    data: {
+      downloadUrls: nextFileUrls,
+    },
+  });
+
+  const result = await enrichToListedNovel(patched);
+
+  revalidateTags(novelTags.novel(novelId));
+  revalidateTags(novelTags.list());
+  return NextResponse.json(result, { status: 200 });
+});
+
+export const DELETE = wrapRoute<Params>(async (_request, { params }) => {
+  const { novelId, platform } = await params;
+
+  if (!PLATFORMS.includes(platform as Platform)) {
+    throw new BadRequestError("Invalid platform");
+  }
+  const typedPlatform = platform as Platform;
+
+  const novel = await ensureGetNovel(novelId);
+  await ensureCanUpdateNovel(novel);
+
+  // Remove file(s) from STACK for this platform
+  const relativePath = getUploadFolder(novelId, typedPlatform);
+  await clearStackFolder(relativePath);
+
+  // Remove the platform entry from downloadUrls in the DB
+  const existingFileUrls: Prisma.JsonObject =
+    typeof novel.downloadUrls === "object" && novel.downloadUrls !== null
+      ? (novel.downloadUrls as Prisma.JsonObject)
+      : {};
+
+  const nextFileUrls: Prisma.JsonObject = { ...existingFileUrls };
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  delete (nextFileUrls as Record<string, unknown>)[typedPlatform];
 
   const patched = await prisma.novel.update({
     where: { id: novelId },

@@ -21,6 +21,7 @@ type Props<TKey extends string, TValue> = {
     fields?: FieldStyleProps;
     selector?: Partial<SingleSelectorProps<{ id: TKey }>>;
   };
+  onDelete?: (key: TKey) => boolean | Promise<boolean>;
 };
 
 const DEFAULT_MIN_KEY_WIDTH: FieldStyleProps["minKeyWidth"] = {
@@ -36,11 +37,22 @@ export function KeyMapField<TKey extends string, TValue>({
   getDefaultValue = () => null as TValue,
   ValueField,
   slotProps = {},
+  onDelete,
 }: Props<TKey, TValue>) {
   const [query, setQuery] = useState("");
-  const removeKey = (key: TKey) => {
+  const [deletingKey, setDeletingKey] = useState<TKey | null>(null);
+  const removeKey = async (key: TKey) => {
+    if (onDelete) {
+      setDeletingKey(key);
+      try {
+        const ok = await onDelete(key);
+        if (!ok) return;
+      } finally {
+        setDeletingKey(null);
+      }
+    }
     const newValue = value.filter(([k]) => k !== key);
-    onChange(newValue);
+    await onChange(newValue);
   };
 
   const addKey = (key: TKey) => {
@@ -96,6 +108,7 @@ export function KeyMapField<TKey extends string, TValue>({
           onChange={handleKeyChange(keyItem.value)}
           onDelete={() => removeKey(keyItem.value)}
           ValueField={ValueField}
+          deleting={deletingKey === keyItem.value}
           {...slotProps.fields}
         />
       ))}
@@ -145,6 +158,7 @@ type FieldProps<TKey extends string, TValue> = FieldStyleProps & {
   onChange: (newValue: TValue) => void | Promise<void>;
   onDelete: () => void;
   ValueField: FC<ValueFieldProps<TKey, TValue>>;
+  deleting?: boolean;
 };
 
 export function KeyValueField<TKey extends string, TValue>({
@@ -154,6 +168,7 @@ export function KeyValueField<TKey extends string, TValue>({
   ValueField,
   onChange,
   onDelete,
+  deleting = false,
   minKeyWidth = DEFAULT_MIN_KEY_WIDTH,
 }: FieldProps<TKey, TValue>) {
   return (
@@ -164,6 +179,7 @@ export function KeyValueField<TKey extends string, TValue>({
       onChange={onChange}
       onDelete={onDelete}
       ValueField={ValueField}
+      disabled={deleting}
       label={
         <Stack
           direction="row"
