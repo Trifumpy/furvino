@@ -22,8 +22,12 @@ export default async function App({ searchParams }: { searchParams: Promise<{ [k
     typeof v === 'string' && (SORT_VALUES as readonly string[]).includes(v);
   const rawSort = typeof sp?.sort === 'string' ? sp.sort : undefined;
   const sortParam: SortValue | undefined = rawSort && isSortValue(rawSort) ? rawSort : undefined;
+  const pageParam = typeof sp?.page === 'string' ? Number(sp.page) : undefined;
+  const pageSizeParam = typeof sp?.pageSize === 'string' ? Number(sp.pageSize) : undefined;
+  const searchParam = typeof sp?.q === 'string' ? (sp.q as string) : undefined;
+
   return (
-    <NovelsProvider sort={sortParam}>
+    <NovelsProvider sort={sortParam} search={searchParam} page={pageParam} pageSize={pageSizeParam}>
       <SearchProvider>
         <BrowsePage />
       </SearchProvider>

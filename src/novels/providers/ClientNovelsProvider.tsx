@@ -17,6 +17,12 @@ type TContext = {
   addFavorite: (id: string) => void;
   removeFavorite: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  pagination: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
 };
 const NovelsContext = createContext<TContext>({
   novels: [],
@@ -25,13 +31,18 @@ const NovelsContext = createContext<TContext>({
   addFavorite: () => {},
   removeFavorite: () => {},
   toggleFavorite: () => {},
+  pagination: { total: 0, page: 1, pageSize: 48, totalPages: 1 },
 });
 
 type Props = PropsWithChildren<{
   novels: ListedNovel[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }>;
 
-export function ClientNovelsProvider({ novels, children }: Props) {
+export function ClientNovelsProvider({ novels, total, page, pageSize, totalPages, children }: Props) {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   const favoriteNovels = useMemo(() => {
@@ -73,6 +84,7 @@ export function ClientNovelsProvider({ novels, children }: Props) {
         addFavorite,
         removeFavorite,
         toggleFavorite,
+        pagination: { total, page, pageSize, totalPages },
       }}
     >
       {children}

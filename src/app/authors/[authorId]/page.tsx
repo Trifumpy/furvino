@@ -31,8 +31,12 @@ export default async function AuthorPage({
   const sortParam: SortValue | undefined =
     rawSort && isSortValue(rawSort) ? rawSort : undefined;
 
+  const pageParam = typeof sp?.page === "string" ? Number(sp.page) : undefined;
+  const pageSizeParam = typeof sp?.pageSize === "string" ? Number(sp.pageSize) : undefined;
+  const searchParam = typeof sp?.q === "string" ? (sp.q as string) : undefined;
+
   return (
-    <NovelsProvider authorId={authorId} sort={sortParam}>
+    <NovelsProvider authorId={authorId} sort={sortParam} search={searchParam} page={pageParam} pageSize={pageSizeParam}>
       <AuthorPageClient />
     </NovelsProvider>
   );

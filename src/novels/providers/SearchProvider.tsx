@@ -9,6 +9,7 @@ import {
 } from "react";
 import { ListedNovel } from "@/contracts/novels";
 import { useNovels } from "./ClientNovelsProvider";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type TContext = {
   searchQuery: string | undefined;
@@ -22,20 +23,30 @@ const SearchContext = createContext<TContext>({
 });
 
 export function SearchProvider({ children }: PropsWithChildren) {
-  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const sp = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [searchQuery, _setSearchQuery] = useState<string | undefined>(
+    typeof sp?.get("q") === "string" && sp.get("q") !== "" ? (sp.get("q") as string) : undefined
+  );
   const { novels } = useNovels();
 
-  const filteredNovels = useMemo(() => {
-    if (!searchQuery) return novels;
-    return novels.filter(
-      (novel) =>
-        novel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        novel.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        novel.tags.some((tag) =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-  }, [searchQuery, novels]);
+  const setSearchQuery = (query: string | undefined) => {
+    _setSearchQuery(query);
+    const params = new URLSearchParams(sp?.toString() || "");
+    if (!query) {
+      params.delete("q");
+    } else {
+      params.set("q", query);
+    }
+    // reset to page 1 when search changes
+    params.delete("page");
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `/?${qs}` : "/"}`);
+  };
+
+  // With server-side search, filteredNovels is just novels
+  const filteredNovels = novels;
 
   return (
     <SearchContext.Provider

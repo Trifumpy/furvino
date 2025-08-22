@@ -31,11 +31,21 @@ type PrismaNovelWithAuthorAndThumbnails = PrismaNovelWithAuthor & {
 
 export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovelsResponse> {
   const { authorId, tags, search, sort } = options;
+  const page = Math.max(1, Number(options.page) || 1);
+  const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 48));
 
   const where: Prisma.NovelWhereInput = {
     authorId: authorId || undefined,
-    tags: tags ? { hasEvery: tags } : undefined,
-    title: search ? { contains: search, mode: "insensitive" } : undefined,
+    ...(tags ? { tags: { hasEvery: tags } } : {}),
+    ...(search
+      ? {
+          OR: [
+            { title: { contains: search, mode: "insensitive" } },
+            { author: { is: { name: { contains: search, mode: "insensitive" } } } },
+            { tags: { has: search } },
+          ],
+        }
+      : {}),
   };
 
   // Determine ordering
@@ -85,19 +95,42 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
       break;
   }
 
-  let novelsWithAuthors = await prisma.novel.findMany({
-    where,
-    orderBy,
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
+  // Count for pagination
+  const total = await prisma.novel.count({ where });
+
+  // For sorts that Prisma can handle natively, use skip/take.
+  // For computed sorts (e.g., by average rating), fetch then sort in memory and slice.
+  const requiresComputedSort = sort === "highestRating" || sort === "lowestRating" || sort === "mostRatings" || sort === "mostDiscussed";
+
+  let novelsWithAuthors = requiresComputedSort
+    ? await prisma.novel.findMany({
+        where,
+        orderBy: orderBy.length ? orderBy : undefined,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          _count: { select: { ratings: true } },
         },
-      },
-      _count: { select: { ratings: true } },
-    },
-  });
+      })
+    : await prisma.novel.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          _count: { select: { ratings: true } },
+        },
+      });
 
   const novelIds = novelsWithAuthors.map((n) => n.id);
   const ratings = await prisma.userRating.groupBy({
@@ -149,13 +182,32 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
     });
   }
 
-  return await Promise.all(novelsWithAuthors.map(async (n) => {
-    const listed = await enrichNovelWithAuthor(n);
-    listed.ratingsSummary.average = novelIdToAvg[n.id] ?? 0;
-    listed.ratingsSummary.total =
-      ratings.find((r) => r.novelId === n.id)?._count.novelId ?? 0;
-    return listed;
-  }));
+  // If we fetched the full set (computed sort case), slice after sorting
+  if (requiresComputedSort) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    novelsWithAuthors = novelsWithAuthors.slice(start, end);
+  }
+
+  const items = await Promise.all(
+    novelsWithAuthors.map(async (n) => {
+      const listed = await enrichNovelWithAuthor(n);
+      listed.ratingsSummary.average = novelIdToAvg[n.id] ?? 0;
+      listed.ratingsSummary.total =
+        ratings.find((r) => r.novelId === n.id)?._count.novelId ?? 0;
+      return listed;
+    })
+  );
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages,
+  };
 }
 
 export async function getListedNovel(

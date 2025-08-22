@@ -72,9 +72,17 @@ export const getNovelsQParamsSchema = z.object({
     "titleAsc",
     "titleDesc",
   ]),
+  page: z.coerce.number().int().min(1),
+  pageSize: z.coerce.number().int().min(1).max(100),
 }).partial();
 export type GetNovelsQParams = z.infer<typeof getNovelsQParamsSchema>;
-export type GetNovelsResponse = ListedNovel[];
+export type GetNovelsResponse = {
+  items: ListedNovel[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
 
 export const createNovelSchema = novelSchema.omit({ id: true });
 export type CreateNovelBody = z.infer<typeof createNovelSchema>;
