@@ -36,7 +36,7 @@ export const MAX_TITLE_LENGTH = 100;
 export const MAX_SNIPPET_LENGTH = 250;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
-export const MAX_GALLERY_ITEMS = 5;
+export const MAX_GALLERY_ITEMS = 6;
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
   title: z.string().min(1, "Title is required").max(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`),
@@ -104,7 +104,7 @@ export type UpdateNovelBannerParams = NovelTarget;
 export type UpdateNovelBannerBody = FormData;
 export type UpdateNovelBannerResponse = FullNovel;
 
-export const MAX_GALLERY_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+export const MAX_GALLERY_FILE_SIZE = 12 * 1024 * 1024; // 12MB
 export type CreateNovelGalleryItemParams = NovelTarget;
 export type CreateNovelGalleryItemBody = FormData;
 export type CreateNovelGalleryItemResponse = GalleryItem;

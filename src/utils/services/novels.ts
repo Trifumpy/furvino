@@ -138,9 +138,13 @@ export class NovelsService extends HttpService {
     );
   }
 
-  uploadGalleryItem(novelId: string, file: File) {
+  uploadGalleryItem(novelId: string, file: File, options?: { slot?: number }) {
     const formData = new FormData();
-    formData.append("galleryItem", file);
+    // API expects the field name to be "image"
+    formData.append("image", file);
+    if (options?.slot && Number.isFinite(options.slot)) {
+      formData.append("slot", String(options.slot));
+    }
 
     return this.post<CreateNovelGalleryItemResponse, CreateNovelGalleryItemBody>(
       `/${novelId}/gallery`,

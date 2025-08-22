@@ -32,6 +32,8 @@ type Props = {
   disabled?: boolean;
   action?: string;
   minimal?: boolean;
+  formId?: string;
+  hideAction?: boolean;
 };
 
 export function NovelForm({
@@ -43,6 +45,8 @@ export function NovelForm({
   disabled,
   action = "Save",
   minimal = false,
+  formId = "novel-form",
+  hideAction = false,
 }: Props) {
   const {
     register,
@@ -89,7 +93,7 @@ export function NovelForm({
   const textSnippet = watch("snippet");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} id={formId}>
       <Stack gap={1}>
         {!minimal && existingId && (
           <Controller
@@ -239,15 +243,17 @@ export function NovelForm({
             )}
           </>
         )}
-        <Button
-          type="submit"
-          loading={loading}
-          disabled={disabled}
-          variant="contained"
-          sx={{ alignSelf: "center", py: 1, px: 3, my: 2 }}
-        >
-          {action}
-        </Button>
+        {!hideAction && (
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={disabled}
+            variant="contained"
+            sx={{ alignSelf: "center", py: 1, px: 3, my: 2 }}
+          >
+            {action}
+          </Button>
+        )}
       </Stack>
     </form>
   );

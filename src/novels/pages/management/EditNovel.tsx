@@ -5,9 +5,9 @@ import { useUpdateNovel } from "@/novels/hooks";
 import { useRouter } from "next/navigation";
 import { startTransition, useMemo, useState } from "react";
 import { useNovel } from "@/novels/providers";
-import { NovelDangerZone, NovelForm } from "./components";
+import { NovelDangerZone, NovelForm, NovelGalleryEditor } from "./components";
 import { pruneEmptyKeys } from "@/utils/lib/collections";
-import { Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 
 export function EditNovelPage() {
   const { novel } = useNovel();
@@ -51,6 +51,8 @@ function EditFormInternal({
         loading={isUpdating}
         disabled={isRedirecting}
         action={isRedirecting ? "Redirecting..." : "Save Changes"}
+        hideAction
+        formId="edit-novel-form"
         onSubmit={async (data) => {
           await updateNovel(data);
           setIsRedirecting(true);
@@ -60,6 +62,18 @@ function EditFormInternal({
           });
         }}
       />
+      <NovelGalleryEditor />
+      <Stack alignItems="center" mt={2}>
+        <Button
+          form="edit-novel-form"
+          type="submit"
+          variant="contained"
+          disabled={isRedirecting || isUpdating}
+          sx={{ py: 1, px: 3 }}
+        >
+          {isRedirecting ? "Redirecting..." : "Save Changes"}
+        </Button>
+      </Stack>
       <NovelDangerZone />
     </Stack>
   );

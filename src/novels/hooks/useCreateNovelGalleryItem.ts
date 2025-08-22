@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 export type CreateGalleryItemArgs = {
   novelId: string;
   galleryItemFile: File;
+  slot?: number;
 };
 
 export function useCreateNovelGalleryItem() {
@@ -11,8 +12,8 @@ export function useCreateNovelGalleryItem() {
 
   const mutation = useMutation({
     mutationKey: ["createNovelGalleryItem"],
-    mutationFn: ({ novelId, galleryItemFile }: CreateGalleryItemArgs) => {
-      return novels.uploadGalleryItem(novelId, galleryItemFile);
+    mutationFn: ({ novelId, galleryItemFile, slot }: CreateGalleryItemArgs) => {
+      return novels.uploadGalleryItem(novelId, galleryItemFile, { slot });
     },
   });
 
