@@ -15,6 +15,11 @@ import {
   CreateNovelResponse,
   UpdateNovelResponse,
   UpdateNovelThumbnailResponse,
+  UpdateNovelBannerResponse,
+  UpdateNovelBannerBody,
+  CreateNovelGalleryItemResponse,
+  CreateNovelGalleryItemBody,
+  DeleteNovelGalleryItemResponse,
 } from "@/contracts/novels";
 import { HttpService } from "./core";
 import { novelTags } from "../cacheTags";
@@ -123,6 +128,26 @@ export class NovelsService extends HttpService {
     );
   }
 
+  uploadBanner(novelId: string, bannerFile: File) {
+    const formData = new FormData();
+    formData.append("banner", bannerFile);
+
+    return this.put<UpdateNovelBannerResponse, UpdateNovelBannerBody>(
+      `/${novelId}/banner`,
+      formData
+    );
+  }
+
+  uploadGalleryItem(novelId: string, file: File) {
+    const formData = new FormData();
+    formData.append("galleryItem", file);
+
+    return this.post<CreateNovelGalleryItemResponse, CreateNovelGalleryItemBody>(
+      `/${novelId}/gallery`,
+      formData
+    );
+  }
+
   uploadFile(
     novelId: string,
     platform: Platform,
@@ -166,6 +191,12 @@ export class NovelsService extends HttpService {
 
   deleteFile(novelId: string, platform: Platform) {
     return this.delete<ListedNovel>(`/${novelId}/files/${platform}`, {
+      cache: "no-store",
+    });
+  }
+
+  deleteGalleryItem(novelId: string, galleryItemId: string) {
+    return this.delete<DeleteNovelGalleryItemResponse>(`/${novelId}/gallery/${galleryItemId}`, {
       cache: "no-store",
     });
   }
