@@ -55,53 +55,56 @@ export function NovelDetailsPage() {
 
   return (
     <>
-      <Box pt={2}>
-        <SafeImage
-          src={thumbnailUrl}
-          alt={`Cover for ${novel.title}`}
-          height={300}
-          width={600}
-          priority
-          style={{
-            width: "100%",
-            height: 300,
-            objectFit: "cover",
-          }}
-        />
-      </Box>
       <Stack sx={{ py: 4 }} gap={2}>
         <Stack
-          direction={{ xs: "column", sm: "row" }}
+          direction={{ xs: "column", md: "row" }}
           gap={4}
-          alignItems="center"
-          justifyContent="space-between"
+          alignItems={{ xs: "stretch", md: "flex-start" }}
         >
-          <Typography variant="h4" component="h1">
-            {novel.title}{" "}
-            {canEdit && (
-              <IconButton
-                LinkComponent={Link}
-                href={`/novels/${novel.id}/edit`}
-                aria-label="Edit Novel"
-              >
-                <PencilIcon />
-              </IconButton>
+          <Stack gap={2} sx={{ flex: 1, order: { xs: 1, md: 0 } }}>
+            <Typography variant="h4" component="h1">
+              {novel.title}{" "}
+              {canEdit && (
+                <IconButton
+                  LinkComponent={Link}
+                  href={`/novels/${novel.id}/edit`}
+                  aria-label="Edit Novel"
+                >
+                  <PencilIcon />
+                </IconButton>
+              )}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              by {" "}
+              <Link href={`/authors/${novel.author.id}`}>{novel.author.name}</Link>
+            </Typography>
+            <NovelDownloads novel={novel} />
+            <Links novel={novel} />
+            {user && (
+              <Stack direction="row" gap={2}>
+                <Button variant="outlined" onClick={() => setIsOpen(true)}>
+                  Add to collection
+                </Button>
+              </Stack>
             )}
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            by {" "}
-            <Link href={`/authors/${novel.author.id}`}>{novel.author.name}</Link>
-          </Typography>
-          <Links novel={novel} />
+          </Stack>
+          <Box sx={{ width: { xs: "100%", md: 400 }, ml: { md: "auto" }, order: { xs: 0, md: 1 } }}>
+            <SafeImage
+              src={thumbnailUrl}
+              alt={`Cover for ${novel.title}`}
+              width={400}
+              height={300}
+              priority
+              style={{
+                width: "100%",
+                height: "auto",
+                aspectRatio: "4 / 3",
+                objectFit: "cover",
+              }}
+            />
+          </Box>
         </Stack>
         <NovelTags tags={novel.tags} chipSize="medium" />
-        {user && (
-          <Stack direction="row" gap={2}>
-            <Button variant="outlined" onClick={() => setIsOpen(true)}>
-              Add to collection
-            </Button>
-          </Stack>
-        )}
       </Stack>
       {description ? (
         description.split("\n").map((paragraph) => (
@@ -119,9 +122,7 @@ export function NovelDetailsPage() {
           No description available.
         </Typography>
       )}
-      <Stack direction="row" justifyContent="center" my={4}>
-        <NovelDownloads novel={novel} />
-      </Stack>
+      
       <Box my={4}>
         <NovelRatings />
       </Box>

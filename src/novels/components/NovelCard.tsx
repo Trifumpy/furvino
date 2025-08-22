@@ -47,11 +47,11 @@ export function NovelCard({
     <>
       <CardMedia
         component="img"
-        height="160"
         image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
         alt={`Cover for ${novel.title}`}
+        sx={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }}
         onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-          e.currentTarget.src = `https://placehold.co/300x160/1e1e1e/ffffff?text=Image+Error`;
+          e.currentTarget.src = `https://placehold.co/400x300/1e1e1e/ffffff?text=Image+Error`;
         }}
       />
       <CardContent>
