@@ -80,7 +80,7 @@ export const DELETE = wrapRoute<Params>(async (_request, { params }) => {
       : {};
 
   const nextFileUrls: Prisma.JsonObject = { ...existingFileUrls };
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
   delete (nextFileUrls as Record<string, unknown>)[typedPlatform];
 
   const patched = await prisma.novel.update({

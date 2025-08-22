@@ -360,7 +360,7 @@ function enrichUrls<TKey extends string = string>(
   return result;
 }
 
-function enrichGalleryItem(
+export function enrichGalleryItem(
   data: Omit<PrismaGalleryItem, "novelId">
 ): GalleryItem {
   return {

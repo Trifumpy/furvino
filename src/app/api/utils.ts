@@ -3,6 +3,7 @@ import { getOrCreateUserByExternalId } from "./users";
 import { auth } from "@clerk/nextjs/server";
 import {
   BadRequestError,
+  ConflictError,
   ForbiddenError,
   NotFoundError,
   RoleRequiredError,
@@ -74,6 +75,9 @@ export function handleError(error: unknown) {
   }
   if (error instanceof ValidationError) {
     return NextResponse.json({ error: error.message }, { status: 422 });
+  }
+  if (error instanceof ConflictError) {
+    return NextResponse.json({ error: error.message }, { status: 409 });
   }
 
   const internalError =

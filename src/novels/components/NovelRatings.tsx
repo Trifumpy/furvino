@@ -6,7 +6,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
 import { Button, Rating, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input/Modal";
+import {
+  Modal,
+  ModalActions,
+  ModalContent,
+  ModalTitle,
+} from "@/generic/input/Modal";
 import { toast } from "react-toastify";
 import { ListedUserRating } from "@/contracts/novels";
 
@@ -20,7 +25,7 @@ const CATEGORIES = [
   { key: "emotionalImpact", label: "Personal Emotional Impact" },
 ] as const;
 
-type CategoryKey = typeof CATEGORIES[number]["key"];
+type CategoryKey = (typeof CATEGORIES)[number]["key"];
 const LABEL_MIN_WIDTH = 260;
 
 export function NovelRatings() {
@@ -35,7 +40,9 @@ export function NovelRatings() {
     enabled: !!novel,
   });
 
-  const [categories, setCategories] = useState<Record<CategoryKey, number | null>>({
+  const [categories, setCategories] = useState<
+    Record<CategoryKey, number | null>
+  >({
     plot: null,
     characters: null,
     backgroundsUi: null,
@@ -59,14 +66,16 @@ export function NovelRatings() {
       emotionalImpact: mine.emotionalImpact > 0 ? mine.emotionalImpact : null,
     });
     setReason(mine.reason || "");
-  }, [mine?.id]);
+  }, [mine]);
 
   const upsert = useMutation({
     mutationFn: async () => {
       if (!novel) return;
       await novels.upsertRating(novel.id, {
         categories: Object.fromEntries(
-          Object.entries(categories).filter(([, v]) => typeof v === "number" && (v as number) > 0)
+          Object.entries(categories).filter(
+            ([, v]) => typeof v === "number" && (v as number) > 0
+          )
         ) as Record<CategoryKey, number>,
         reason: reason || undefined,
       });
@@ -101,21 +110,37 @@ export function NovelRatings() {
 
   return (
     <Stack gap={2}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        gap={1}
+      >
         <Typography variant="h6">Ratings</Typography>
         <Stack direction="row" gap={1} alignItems="center">
           <Typography variant="caption" color="text.secondary">
-            Avg: {(summary.data?.average ?? 0).toFixed(2)} ({summary.data?.total ?? 0})
+            Avg: {(summary.data?.average ?? 0).toFixed(2)} (
+            {summary.data?.total ?? 0})
           </Typography>
           {(() => {
             const avg = summary.data?.average ?? 0;
             const roundedTenth = Math.round(avg * 10) / 10;
             return (
-              <Rating size="small" readOnly value={roundedTenth} precision={0.1} max={5} />
+              <Rating
+                size="small"
+                readOnly
+                value={roundedTenth}
+                precision={0.1}
+                max={5}
+              />
             );
           })()}
           {user && (
-            <Button variant="contained" size="small" onClick={() => setIsOpen(true)}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setIsOpen(true)}
+            >
               {summary.data?.mine ? "Edit rating" : "Rate this novel"}
             </Button>
           )}
@@ -128,11 +153,18 @@ export function NovelRatings() {
         </Typography>
       )}
 
-      <Modal isOpen={isOpen} close={() => setIsOpen(false)} onSubmit={() => upsert.mutate()} maxWidth="sm" fullWidth>
+      <Modal
+        isOpen={isOpen}
+        close={() => setIsOpen(false)}
+        onSubmit={() => upsert.mutate()}
+        maxWidth="sm"
+        fullWidth
+      >
         <ModalTitle>Rate this novel</ModalTitle>
         <ModalContent>
           <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
-            leave 0 stars if you have no opinion or doesn&apos;t apply to this novel (doesn&apos;t count towards the rating)
+            leave 0 stars if you have no opinion or doesn&apos;t apply to this
+            novel (doesn&apos;t count towards the rating)
           </Typography>
           <Stack gap={1.5}>
             {/* Overall category removed */}
@@ -143,11 +175,21 @@ export function NovelRatings() {
                 alignItems={{ xs: "flex-start", sm: "center" }}
                 gap={{ xs: 0, sm: 1 }}
               >
-                <Typography variant="body2" sx={{ width: { xs: "auto", sm: LABEL_MIN_WIDTH }, flexShrink: 0 }}>{c.label}</Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    width: { xs: "auto", sm: LABEL_MIN_WIDTH },
+                    flexShrink: 0,
+                  }}
+                >
+                  {c.label}
+                </Typography>
                 <Rating
                   size="small"
                   value={categories[c.key]}
-                  onChange={(_, v) => setCategories((prev) => ({ ...prev, [c.key]: v }))}
+                  onChange={(_, v) =>
+                    setCategories((prev) => ({ ...prev, [c.key]: v }))
+                  }
                   max={5}
                   sx={{ mt: { xs: 0, sm: 0 } }}
                 />
@@ -171,7 +213,12 @@ export function NovelRatings() {
           submitColor="primary"
           placeCancelAfterSubmit
         >
-          <Button color="error" variant="outlined" disabled={onDelete.isPending} onClick={() => onDelete.mutate()}>
+          <Button
+            color="error"
+            variant="outlined"
+            disabled={onDelete.isPending}
+            onClick={() => onDelete.mutate()}
+          >
             Delete my rating
           </Button>
         </ModalActions>
@@ -179,5 +226,3 @@ export function NovelRatings() {
     </Stack>
   );
 }
-
-

@@ -86,18 +86,30 @@ export type GetNovelsResponse = {
 
 export const createNovelSchema = novelSchema.omit({ id: true });
 export type CreateNovelBody = z.infer<typeof createNovelSchema>;
-export type CreateNovelResponse = ListedNovel;
+export type CreateNovelResponse = FullNovel;
 
 export const novelTargetSchema = z.object({ novelId: z.string().min(1) });
 export type NovelTarget = z.infer<typeof novelTargetSchema>;
 export type UpdateNovelParams = NovelTarget;
 export type UpdateNovelBody = z.infer<typeof novelSchema>;
-export type UpdateNovelResponse = ListedNovel;
+export type UpdateNovelResponse = FullNovel;
 
 export const MAX_THUMBNAIL_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export type UpdateNovelThumbnailParams = NovelTarget;
 export type UpdateNovelThumbnailBody = FormData;
-export type UpdateNovelThumbnailResponse = ListedNovel;
+export type UpdateNovelThumbnailResponse = FullNovel;
+
+export const MAX_BANNER_FILE_SIZE = 30 * 1024 * 1024; // 30MB
+export type UpdateNovelBannerParams = NovelTarget;
+export type UpdateNovelBannerBody = FormData;
+export type UpdateNovelBannerResponse = FullNovel;
+
+export const MAX_GALLERY_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+export type CreateNovelGalleryItemParams = NovelTarget;
+export type CreateNovelGalleryItemBody = FormData;
+export type CreateNovelGalleryItemResponse = GalleryItem;
+export type DeleteNovelGalleryItemParams = { novelId: string; galleryItemId: string };
+export type DeleteNovelGalleryItemResponse = void;
 
 export const MAX_NOVEL_FILE_SIZE = Math.floor(1.5 * 1024 * 1024 * 1024); // 1.5 GB
 

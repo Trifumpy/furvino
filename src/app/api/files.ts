@@ -21,6 +21,7 @@ export async function uploadFileToStack(
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   await writeFile(fullPath, buffer);
+  console.log("Uploading file to:", fullPath);
 
   return stackPath;
 }
@@ -42,6 +43,7 @@ export async function streamFileFromStack(filePath: string): Promise<TypedFileSt
 
 export async function clearStackFolder(folderPath: string): Promise<void> {
   const fullPath = path.join(BASE_FOLDER, folderPath);
+  console.log("Clearing folder at path:", fullPath);
  
   // Ensure the folder exists
   await mkdir(fullPath, { recursive: true });
@@ -63,8 +65,14 @@ export async function clearStackFolder(folderPath: string): Promise<void> {
   );
 }
 
+export async function deleteStackFile(filePath: string): Promise<void> {
+  const fullPath = path.join(BASE_FOLDER, filePath);
+  console.log("Deleting file at path:", fullPath);
+  await rm(fullPath, { force: true });
+}
 export async function deleteStackFolder(folderPath: string): Promise<void> {
   const fullPath = path.join(BASE_FOLDER, folderPath);
+  console.log("Deleting folder at path:", fullPath);
   await rm(fullPath, { recursive: true, force: true });
 }
 

@@ -39,3 +39,10 @@ export class RoleRequiredError extends ForbiddenError {
     this.name = "RoleRequiredError";
   }
 }
+
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}

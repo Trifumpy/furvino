@@ -33,7 +33,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     onChange
   );
   const { uploadFile, isUploading, progress } = useUploadNovelFile();
-  const { deleteFile, isDeleting } = useDeleteNovelFile();
+  const { deleteFile } = useDeleteNovelFile();
   const [currentPlatform, setCurrentPlatform] = useState<Platform | null>(null);
 
   // Prevent navigating away while an upload is in progress
@@ -115,7 +115,9 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         onDelete={async (platform) => {
           if (!novelId) return false;
           if (isUploading) {
-            toast.info("An upload is in progress. Please wait until it finishes.");
+            toast.info(
+              "An upload is in progress. Please wait until it finishes."
+            );
             return false;
           }
           try {
@@ -124,7 +126,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
             // Do not optimistically update mapping; rely on parent data refresh
             toast.success("File deleted");
             return true;
-          } catch (e) {
+          } catch {
             toast.error("Failed to delete file");
             return false;
           } finally {

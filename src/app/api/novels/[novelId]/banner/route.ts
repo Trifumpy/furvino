@@ -1,14 +1,14 @@
 import { revalidateTags, wrapRoute } from "@/app/api/utils";
 import { enrichToFullNovel, ensureCanUpdateNovel, ensureGetNovel } from "../../utils";
-import { NovelTarget, UpdateNovelThumbnailParams } from "@/contracts/novels";
+import { NovelTarget, UpdateNovelBannerParams } from "@/contracts/novels";
 import {
-  setNovelThumbnail,
-  validateThumbnail,
+  setNovelBanner,
+  validateBanner,
 } from "./utils";
 import { NextResponse } from "next/server";
 import { novelTags } from "@/utils";
 
-export const PUT = wrapRoute<UpdateNovelThumbnailParams>(
+export const PUT = wrapRoute<UpdateNovelBannerParams>(
   async (request, { params }) => {
     const { novelId } = await params;
 
@@ -16,14 +16,14 @@ export const PUT = wrapRoute<UpdateNovelThumbnailParams>(
     await ensureCanUpdateNovel(novel);
 
     const formData = await request.formData();
-    const thumbnailData = formData.get("thumbnail") as File;
+    const imageData = formData.get("banner") as File;
 
-    const thumbnailFile = validateThumbnail(thumbnailData);
-    const thumbnailUrl = await setNovelThumbnail(novelId, thumbnailFile);
+    const bannerFile = validateBanner(imageData);
+    const bannerUrl = await setNovelBanner(novelId, bannerFile);
 
     const patchedNovel = {
       ...novel,
-      thumbnailUrl,
+      bannerUrl,
     };
     const result = await enrichToFullNovel(patchedNovel);
 
@@ -40,7 +40,7 @@ export const GET = wrapRoute<NovelTarget>(async (request, { params }) => {
   const novel = await ensureGetNovel(novelId);
 
   return NextResponse.json(
-    { thumbnailUrl: novel.thumbnailUrl },
+    { bannerUrl: novel.bannerUrl },
     { status: 200 }
   );
 });

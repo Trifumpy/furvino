@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
-import { deleteNovel, enrichToFullNovel, enrichToListedNovel, ensureCanUpdateNovel, ensureCanUpdateNovelById, ensureGetNovel, validateNovelData } from "../utils";
+import {
+  deleteNovel,
+  enrichToFullNovel,
+  ensureCanUpdateNovel,
+  ensureCanUpdateNovelById,
+  ensureGetNovel,
+  validateNovelData,
+} from "../utils";
 import { evictTags, revalidateTags, wrapRoute } from "../../utils";
 import prisma from "@/utils/db";
-import { GetNovelParams, GetNovelResponse, UpdateNovelParams, UpdateNovelResponse } from "@/contracts/novels";
+import {
+  GetNovelParams,
+  GetNovelResponse,
+  UpdateNovelParams,
+  UpdateNovelResponse,
+} from "@/contracts/novels";
 import { novelTags } from "@/utils";
 
 export const GET = wrapRoute<GetNovelParams>(async (request, { params }) => {
@@ -10,9 +22,11 @@ export const GET = wrapRoute<GetNovelParams>(async (request, { params }) => {
 
   const novel = await ensureGetNovel(novelId);
 
-  const enrichedNovel = await enrichToFullNovel(novel) satisfies GetNovelResponse;
+  const enrichedNovel = (await enrichToFullNovel(
+    novel
+  )) satisfies GetNovelResponse;
   return NextResponse.json(enrichedNovel);
-})
+});
 
 export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
   const { novelId } = await params;
@@ -40,7 +54,9 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
   revalidateTags(novelTags.novel(novelId));
   revalidateTags(novelTags.list());
 
-  const novel = await enrichToListedNovel(updatedNovel) satisfies UpdateNovelResponse;
+  const novel = (await enrichToFullNovel(
+    updatedNovel
+  )) satisfies UpdateNovelResponse;
 
   return NextResponse.json(novel, { status: 200 });
 });
