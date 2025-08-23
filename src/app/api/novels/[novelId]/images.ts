@@ -42,9 +42,10 @@ export async function setNovelImage(novelId: string, imageFile: File, slot: Nove
   // still getting fresh content on updates.
   const versionParam = Date.now();
   const imageUrl = `${SETTINGS.apiUrl}/novels/${novelId}/${slot}/${sanitizedName}?v=${versionParam}`;
+  const fieldName = slot === "thumbnail" ? "thumbnailUrl" : "bannerUrl";
   const dbPromise = prisma.novel.update({
     where: { id: novelId },
-    data: { [slot]: imageUrl },
+    data: { [fieldName]: imageUrl },
   });
 
   // Clear the folder if necessary

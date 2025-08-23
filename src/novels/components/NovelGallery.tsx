@@ -1,7 +1,7 @@
 "use client";
 
-import { Box, IconButton, ImageList, ImageListItem, ImageListItemBar, Stack, Typography } from "@mui/material";
-import { Trash2Icon, UploadIcon, ImagePlusIcon } from "lucide-react";
+import { Box, IconButton, Stack, Typography } from "@mui/material";
+import { Trash2Icon, UploadIcon, ImagePlusIcon, XIcon } from "lucide-react";
 import { useNovel } from "../providers";
 import { MAX_GALLERY_FILE_SIZE, MAX_GALLERY_ITEMS } from "@/contracts/novels";
 import { useCreateNovelGalleryItem, useDeleteNovelGalleryItem } from "../hooks";
@@ -20,6 +20,15 @@ export function NovelGallery({ editable = false }: Props) {
   const { createGalleryItem } = useCreateNovelGalleryItem();
   const { deleteGalleryItem } = useDeleteNovelGalleryItem();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const getSlotIndex = (url: string): number => {
+    try {
+      const g = new URL(url).searchParams.get("g");
+      const m = g ? /^gallery(\d+)$/.exec(g) : null;
+      if (m) return parseInt(m[1]!, 10);
+    } catch {}
+    return 999; // Unknown → put at end
+  };
 
   if (!novel) return null;
 
@@ -60,6 +69,15 @@ export function NovelGallery({ editable = false }: Props) {
     }
   };
 
+  const sortedItems = [...(novel.galleryItems ?? [])]
+    .sort((a, b) => {
+      const sa = getSlotIndex(a.imageUrl);
+      const sb = getSlotIndex(b.imageUrl);
+      if (sa !== sb) return sa - sb;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  const cols = Math.min(3, Math.max(1, sortedItems.length));
+
   return (
     <Stack gap={1}>
       <Stack direction="row" alignItems="center" gap={1}>
@@ -83,10 +101,16 @@ export function NovelGallery({ editable = false }: Props) {
           {novel.galleryItems?.length ?? 0}/{MAX_GALLERY_ITEMS}
         </Typography>
       </Stack>
-      {novel.galleryItems?.length ? (
-        <ImageList variant="masonry" cols={3} gap={8}>
-          {novel.galleryItems.map((item) => (
-            <ImageListItem key={item.id}>
+      {sortedItems.length ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          {sortedItems.map((item, idx) => (
+            <Box
+              key={item.id}
+              sx={{
+                position: "relative",
+                width: { xs: "100%", sm: `calc(50% - 8px)`, md: `calc(${100 / cols}% - 8px)` },
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.imageUrl}
@@ -95,21 +119,23 @@ export function NovelGallery({ editable = false }: Props) {
                 style={{ width: "100%", height: "auto", borderRadius: 8, cursor: "zoom-in" }}
                 onClick={() => setPreviewUrl(item.imageUrl)}
               />
-              {(allowEdits || item.footer) && (
-                <ImageListItemBar
-                  title={item.footer ?? undefined}
-                  actionIcon={
-                    allowEdits ? (
-                      <IconButton aria-label="delete" color="inherit" onClick={() => onDelete(item.id)}>
-                        <Trash2Icon />
-                      </IconButton>
-                    ) : undefined
-                  }
-                />
+              {allowEdits && (
+                <IconButton
+                  aria-label="delete"
+                  onClick={() => onDelete(item.id)}
+                  sx={{ position: "absolute", top: 8, right: 8, bgcolor: "rgba(0,0,0,0.5)", color: "#fff" }}
+                >
+                  <Trash2Icon />
+                </IconButton>
               )}
-            </ImageListItem>
+              {item.footer && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                  {item.footer}
+                </Typography>
+              )}
+            </Box>
           ))}
-        </ImageList>
+        </Box>
       ) : (
         <Box>
           <Typography variant="body2" color="text.secondary">No gallery images yet.</Typography>
@@ -143,7 +169,17 @@ export function NovelGallery({ editable = false }: Props) {
           },
         }}
       >
-        <ModalContent sx={{ p: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", bgcolor: "transparent" }}>
+        <ModalContent
+          sx={{ p: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", bgcolor: "transparent", position: "relative" }}
+          onClick={() => setPreviewUrl(null)}
+        >
+          <IconButton
+            aria-label="Close"
+            onClick={(e) => { e.stopPropagation(); setPreviewUrl(null); }}
+            sx={{ position: "absolute", top: 8, right: 8, color: "#fff", bgcolor: "rgba(0,0,0,0.5)" }}
+          >
+            <XIcon />
+          </IconButton>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl ?? ""}
@@ -155,6 +191,7 @@ export function NovelGallery({ editable = false }: Props) {
               maxHeight: "100vh",
               objectFit: "contain",
             }}
+            onClick={(e) => e.stopPropagation()}
           />
         </ModalContent>
       </Modal>
