@@ -18,7 +18,7 @@ export async function NovelsProvider({
   let total = 0;
   let totalPages = 1;
   let effectivePage = page ?? 1;
-  let effectivePageSize = pageSize ?? 48;
+  let effectivePageSize = pageSize ?? 20;
   try {
     const result = await getAllNovels({ authorId, search, tags, sort, page, pageSize });
     allNovels = result.items;

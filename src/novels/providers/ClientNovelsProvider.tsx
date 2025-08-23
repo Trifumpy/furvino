@@ -31,7 +31,7 @@ const NovelsContext = createContext<TContext>({
   addFavorite: () => {},
   removeFavorite: () => {},
   toggleFavorite: () => {},
-  pagination: { total: 0, page: 1, pageSize: 48, totalPages: 1 },
+  pagination: { total: 0, page: 1, pageSize: 20, totalPages: 1 },
 });
 
 type Props = PropsWithChildren<{

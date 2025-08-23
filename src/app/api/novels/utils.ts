@@ -32,7 +32,7 @@ type PrismaNovelWithAuthorAndThumbnails = PrismaNovelWithAuthor & {
 export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovelsResponse> {
   const { authorId, tags, search, sort } = options;
   const page = Math.max(1, Number(options.page) || 1);
-  const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 48));
+  const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 20));
 
   // Tokenize search into words/tags (split by whitespace or commas) and require all tokens to match
   const searchTokens = typeof search === "string"
