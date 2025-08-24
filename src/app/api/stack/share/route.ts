@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json<ApiResponse>({ success: false, error: "No filePath provided" }, { status: 400 });
     }
 
-    const baseDir = process.env.STACK_WATCH_DIR || "/home/trifumpy/STACK/furvino/novels"; //CHANGE
+    const baseDir = process.env.STACK_WATCH_DIR || "/home/trifumpy/stack/furvino/novels"; //CHANGE
     console.log("[STACK] baseDir:", baseDir);
     if (!filePath.startsWith(baseDir)) {
       console.warn("[STACK] Rejecting file outside baseDir", { baseDir, filePath });
