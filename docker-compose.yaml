@@ -13,7 +13,7 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      - /home/github/STACK:/STACK:ro
+      - /home/github/STACK:/STACK
     depends_on:
       - db
     networks:
