@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadEnv } from "@/utils/loadEnvConfig";
 import fs from "fs/promises";
 import path from "path";
-import { ensureCanUpdateNovelById } from "@/app/api/novels/utils";
 
 export const runtime = "nodejs";
 
@@ -39,41 +38,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json<ApiResponse>({ success: false, error: "No filePath provided" }, { status: 400 });
     }
 
-    const baseDir = (process.env.WATCH_ROOT || "/STACK/furvino").replace(/\/$/, "");
+    const baseDir = process.env.STACK_WATCH_DIR || "/home/trifumpy/STACK/furvino/novels"; //CHANGE
     console.log("[STACK] baseDir:", baseDir);
-
-    // Normalize and jail under baseDir
-    const resolved = path.resolve(filePath);
-    const relativeFromBase = path.relative(baseDir, resolved);
-    if (relativeFromBase.startsWith("..") || path.isAbsolute(relativeFromBase)) {
-      console.warn("[STACK] Rejecting file outside baseDir", { baseDir, filePath, resolved });
+    if (!filePath.startsWith(baseDir)) {
+      console.warn("[STACK] Rejecting file outside baseDir", { baseDir, filePath });
       return NextResponse.json<ApiResponse>(
-        { success: false, error: "File is outside allowed directory" },
+        { success: false, error: "File not in novels directory or subfolders" },
         { status: 400 }
       );
     }
-    // Reject symlinks
-    const lst = await fs.lstat(resolved);
-    if (lst.isSymbolicLink()) {
-      console.warn("[STACK] Rejecting symlink path", { filePath, resolved });
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: "Symlinks are not allowed" },
-        { status: 400 }
-      );
-    }
-
-    // Expect path like novels/{novelId}/...
-    const parts = relativeFromBase.split(path.sep).filter(Boolean);
-    const idx = parts.indexOf("novels");
-    if (idx < 0 || !parts[idx + 1]) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Invalid path: missing novels/{novelId}" }, { status: 400 });
-    }
-    const novelId = parts[idx + 1];
-    await ensureCanUpdateNovelById(novelId);
 
     let fileContent: Buffer;
     try {
-      fileContent = await fs.readFile(resolved);
+      fileContent = await fs.readFile(filePath);
     } catch (err) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: `Failed to read file: ${(err as Error).message}` },
@@ -81,7 +58,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const relativePath = relativeFromBase;
+    const relativePath = filePath.slice(baseDir.length + 1);
     const filename = path.basename(relativePath);
     const dirname = path.dirname(relativePath);
 
@@ -183,7 +160,7 @@ export async function POST(req: NextRequest) {
         "x-filebytesize": fileSize.toString(),
         "x-parentid": currentParentId.toString(),
         "x-filename": base64Filename,
-        "x-overwrite": "true",
+        "x-overwrite": "false",
       },
       body: fileContent,
     });
