@@ -1,7 +1,7 @@
 import { User } from "@/generated/prisma";
 import { ClerkEvent } from "./types";
 import { syncUser } from "@/utils/clerk";
-import { markUserAsDeleted } from "../../users";
+import { markUserAsDeletedByClerkId } from "../../users";
 
 export async function processEvent(event: ClerkEvent) {
   if (event.type === "user.created" || event.type === "user.updated") {
@@ -19,7 +19,7 @@ export async function processEvent(event: ClerkEvent) {
     const data = event.data;
 
     if (data.id) {
-      await markUserAsDeleted(data.id);
+      await markUserAsDeletedByClerkId(data.id);
     }
   }
 }

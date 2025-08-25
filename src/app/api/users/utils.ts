@@ -40,6 +40,14 @@ export function markUserAsDeleted(userId: string) {
   });
 }
 
+export function markUserAsDeletedByClerkId(clerkId: string) {
+  // Use updateMany to be idempotent even if the record was already removed/missing
+  return prisma.user.updateMany({
+    where: { clerkId },
+    data: { deletedAt: new Date() },
+  });
+}
+
 export function getAllUsers(options?: GetUserOptions) {
   return prisma.user.findMany({
     where: {
