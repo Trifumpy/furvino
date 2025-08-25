@@ -20,10 +20,9 @@ services:
       - services
   db:
     image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: furvino
+    env_file:
+      - .env.production.local
+      - .env.local
     ports:
       - "5432:5432"
     volumes:
