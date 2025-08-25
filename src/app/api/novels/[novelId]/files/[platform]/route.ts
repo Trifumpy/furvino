@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { wrapRoute, revalidateTags } from "@/app/api/utils";
-import { enrichToListedNovel, ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
+import {
+  enrichToListedNovel,
+  ensureCanUpdateNovel,
+  ensureGetNovel,
+} from "@/app/api/novels/utils";
 import { MAX_NOVEL_FILE_SIZE, PLATFORMS, Platform } from "@/contracts/novels";
 import { BadRequestError } from "@/app/api/errors";
 import prisma from "@/utils/db";
 import { novelTags } from "@/utils";
-import { StackService } from "@/app/api/stack/StackService";
 import { Prisma } from "@/generated/prisma";
 import { getUploadFolder, saveNovelFile, waitForNodeId } from "../utils";
 import { clearStackFolder } from "@/app/api/files";
+import { StackService } from "@/app/api/stack";
 
 type Params = { novelId: string; platform: string };
 
@@ -26,7 +30,8 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   if (!file) throw new BadRequestError("File is required");
-  if (file.size > MAX_NOVEL_FILE_SIZE) throw new BadRequestError("File too large");
+  if (file.size > MAX_NOVEL_FILE_SIZE)
+    throw new BadRequestError("File too large");
 
   const relativePath = getUploadFolder(novelId, typedPlatform);
   const stackPath = await saveNovelFile(relativePath, file);

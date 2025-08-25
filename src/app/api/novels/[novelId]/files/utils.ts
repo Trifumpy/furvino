@@ -1,5 +1,5 @@
 import { clearStackFolder, sanitizeFilename, uploadFileToStack } from "@/app/api/files";
-import { StackService } from "@/app/api/stack/StackService";
+import { StackService } from "@/app/api/stack";
 import { Platform } from "@/contracts/novels";
 import path from "path";
 

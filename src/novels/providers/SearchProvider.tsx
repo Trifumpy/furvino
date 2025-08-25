@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  PropsWithChildren,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { ListedNovel } from "@/contracts/novels";
 import { useNovels } from "./ClientNovelsProvider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -27,7 +21,9 @@ export function SearchProvider({ children }: PropsWithChildren) {
   const router = useRouter();
   const pathname = usePathname();
   const [searchQuery, _setSearchQuery] = useState<string | undefined>(
-    typeof sp?.get("q") === "string" && sp.get("q") !== "" ? (sp.get("q") as string) : undefined
+    typeof sp?.get("q") === "string" && sp.get("q") !== ""
+      ? (sp.get("q") as string)
+      : undefined
   );
   const { novels } = useNovels();
 
