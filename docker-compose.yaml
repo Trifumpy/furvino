@@ -6,10 +6,10 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env.production.local
-      - .env.local
-      - .env.production
       - .env
+      - .env.production
+      - .env.local
+      - .env.production.local
     environment:
       - NODE_ENV=production
     volumes:
@@ -21,8 +21,10 @@ services:
   db:
     image: postgres:15-alpine
     env_file:
-      - .env.production.local
+      - .env
+      - .env.production
       - .env.local
+      - .env.production.local
     ports:
       - "5432:5432"
     volumes:
