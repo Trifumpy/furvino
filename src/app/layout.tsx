@@ -5,12 +5,24 @@ import { Header, BaseLayout } from "@/layout";
 
 export const metadata: Metadata = {
   title: "Furvino",
-  description: "Furry Visual Novels",
+  description: "Discover your next story",
+  openGraph: {
+    title: "Furvino",
+    description: "Furry Visual Novels- Discover your next story",
+    type: "website",
+    siteName: "Furvino",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Furvino",
+    description: "Furry Visual Novels- Discover your next story",
+  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/icon.svg" },
     ],
+    shortcut: ["/icon.svg"],
   },
 };
 
