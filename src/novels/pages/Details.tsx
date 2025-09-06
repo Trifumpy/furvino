@@ -7,6 +7,14 @@ import { Links } from "../components/Links";
 import { NovelComments, NovelDownloads, NovelRatings, NovelRatingsList, NovelGallery } from "../components";
 import { NovelTags } from "../components/NovelTags";
 import { SafeImage } from "@/generic/display";
+import { SanitizedHtml } from "@/generic/display";
+import { generateHTML } from "@tiptap/html";
+import StarterKit from "@tiptap/starter-kit";
+import TiptapLink from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
+import { FontSize } from "@/generic/input/extensions/FontSize";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import Link from "next/link";
 import { PencilIcon } from "lucide-react";
 import { useState } from "react";
@@ -50,7 +58,9 @@ export function NovelDetailsPage() {
     return;
   }
 
-  const description = novel.description ?? novel.snippet;
+  const description = novel.snippet;
+  const rich = (novel as unknown as { descriptionRich?: unknown | null }).descriptionRich;
+  const hasRich = !!rich;
   const thumbnailUrl = novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL;
 
   return (
@@ -106,7 +116,9 @@ export function NovelDetailsPage() {
         </Stack>
         <NovelTags tags={novel.tags} chipSize="medium" />
       </Stack>
-      {description ? (
+      {hasRich ? (
+        <SanitizedHtml html={JSONToHtml(rich)} />
+      ) : description ? (
         description.split("\n").map((paragraph) => (
           <Typography
             key={paragraph}
@@ -208,4 +220,22 @@ export function NovelDetailsPage() {
       )}
     </>
   );
+}
+
+function JSONToHtml(json: unknown): string {
+  try {
+    if (!json) return "";
+    // Use TipTap server-side HTML generator to render a safe subset
+    const html = generateHTML(json as never, [
+      StarterKit.configure({ heading: { levels: [2,3,4] } }),
+      TextStyle,
+      FontSize,
+      Color.configure({ types: ["textStyle"] }),
+      Underline,
+      TiptapLink.configure({ protocols: ["http", "https"], HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
+    ]);
+    return html;
+  } catch {
+    return "";
+  }
 }

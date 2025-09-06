@@ -32,7 +32,7 @@ model Novel {
   author          Author           @relation(fields: [authorId], references: [id])
   externalUrls    Json?
   downloadUrls    Json?
-  description     String?
+  descriptionRich Json?
   snippet         String?
   thumbnailUrl    String?
   bannerUrl       String?

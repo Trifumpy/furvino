@@ -41,7 +41,8 @@ export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
   title: z.string().min(1, "Title is required").max(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`),
   authorId: z.string().min(1, "Author ID is required"),
-  description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
+  // TipTap/ProseMirror JSON document
+  descriptionRich: z.unknown().optional(),
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
   thumbnailUrl: urlOrEmpty.optional(),
   bannerUrl: urlOrEmpty.optional(),
@@ -135,7 +136,7 @@ export type GalleryItem = {
   createdAt: string;
 }
 export type FullNovel = ListedNovel & {
-  description?: string | null;
+  descriptionRich?: unknown | null;
   bannerUrl?: string | null;
   galleryItems: GalleryItem[];
 }

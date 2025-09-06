@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma";
 import { enrichToFullNovel, getAllNovels, validateNovelData } from "./utils";
 import { getQueryParams, revalidateTags, wrapRoute } from "../utils";
 import prisma from "@/utils/db";
@@ -26,7 +27,7 @@ export const POST = wrapRoute(async (req) => {
   const data = {
     title: validatedNovel.title,
     authorId: validatedNovel.authorId,
-    description: validatedNovel.description,
+    descriptionRich: validatedNovel.descriptionRich as unknown as object | undefined,
     snippet: validatedNovel.snippet,
     thumbnailUrl: validatedNovel.thumbnailUrl,
     bannerUrl: validatedNovel.bannerUrl,
@@ -39,10 +40,10 @@ export const POST = wrapRoute(async (req) => {
     id
       ? prisma.novel.upsert({
           where: { id },
-          create: data,
-          update: data,
+          create: data as unknown as Prisma.NovelCreateInput,
+          update: data as unknown as Prisma.NovelUpdateInput,
         })
-      : prisma.novel.create({ data })
+      : prisma.novel.create({ data: data as unknown as Prisma.NovelCreateInput })
   );
 
 

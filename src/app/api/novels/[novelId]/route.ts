@@ -53,7 +53,7 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
       // scalar/simple fields
       title: rest.title,
       authorId: rest.authorId,
-      description: rest.description,
+      descriptionRich: rest.descriptionRich as unknown as object | undefined,
       snippet: rest.snippet,
       thumbnailUrl: rest.thumbnailUrl,
       bannerUrl: rest.bannerUrl,

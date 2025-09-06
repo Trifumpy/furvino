@@ -3,19 +3,19 @@
 import {
   CreateNovelBody,
   createNovelSchema,
-  MAX_DESCRIPTION_LENGTH,
   MAX_SNIPPET_LENGTH,
   MAX_THUMBNAIL_FILE_SIZE,
   MAX_TITLE_LENGTH,
 } from "@/contracts/novels";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, IconButton, Stack, TextField } from "@mui/material";
+import { Button, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { ExternalSitesEditor } from "./ExternalSitesEditor";
 import { ImageInput } from "@/generic/input";
 import { DownloadsEditor } from "./DownloadsEditor";
 import { AuthorInputById } from "./AuthorInput";
 import { TagsInput } from "./TagsInput";
+import { RichTextEditor } from "@/generic/input";
 import { useEffect } from "react";
 import { fieldValidationToRecord } from "@/utils/lib/validation";
 import { ClipboardCopyIcon } from "lucide-react";
@@ -89,7 +89,7 @@ export function NovelForm({
   };
 
   const textTitle = watch("title");
-  const textDescription = watch("description");
+  const descriptionRich = watch("descriptionRich");
   const textSnippet = watch("snippet");
 
   return (
@@ -186,24 +186,19 @@ export function NovelForm({
                 },
               }}
             />
-            <TextField
-              {...register("description")}
-              label="Description"
-              multiline
-              rows={5}
-              error={!!errors.description}
-              helperText={errors.description?.message}
-              slotProps={{
-                htmlInput: { maxLength: MAX_DESCRIPTION_LENGTH },
-                input: {
-                  endAdornment: (
-                    <TextLengthCounterAdornment
-                      value={textDescription ?? ""}
-                      maxLength={MAX_DESCRIPTION_LENGTH}
-                    />
-                  ),
-                },
-              }}
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+              Description
+            </Typography>
+            <Controller
+              name="descriptionRich"
+              control={control}
+              render={({ field }) => (
+                <RichTextEditor
+                  value={field.value}
+                  onChange={(doc) => field.onChange(doc)}
+                  placeholder="Rich description (supports basic formatting, headings, lists, links)"
+                />
+              )}
             />
             <Controller
               name="tags"

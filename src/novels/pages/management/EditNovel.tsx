@@ -19,7 +19,7 @@ export function EditNovelPage() {
       title: novel.title || "",
       authorId: novel.author.id || "",
       snippet: novel.snippet || "",
-      description: novel.description || "",
+      descriptionRich: (novel as unknown as { descriptionRich?: unknown | null }).descriptionRich || ({ type: "doc", content: [{ type: "paragraph" }] } as unknown),
       thumbnailUrl: novel.thumbnailUrl || undefined,
       externalUrls: pruneEmptyKeys(novel.externalUrls || {}),
       downloadUrls: pruneEmptyKeys(novel.downloadUrls || {}),

@@ -17,6 +17,7 @@ import {
   GalleryItem,
   GetNovelsResponse,
   MAX_SNIPPET_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
 } from "@/contracts/novels";
 import { getUserByExternalId } from "../users";
 import { deleteStackFolder } from "../files";
@@ -302,9 +303,20 @@ export async function enrichToListedNovel(data: Novel) {
     throw new NotFoundError("Author not found");
   }
 
+  const snippetFromRich = (() => {
+    try {
+      const raw = (data as unknown as { descriptionRich?: unknown }).descriptionRich;
+      if (!raw) return null;
+      const text = extractTextFromRich(raw);
+      return text ? trimString(text, MAX_SNIPPET_LENGTH) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   return enrichNovelWithAuthor({
     ...data,
-    snippet: data.snippet || (data.description ? trimString(data.description, MAX_SNIPPET_LENGTH) : null),
+    snippet: data.snippet || snippetFromRich,
     author,
   });
 }
@@ -318,7 +330,7 @@ export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
 
   return {
     ...listedNovel,
-    description: data.description || null,
+    descriptionRich: (data as unknown as { descriptionRich?: unknown })?.descriptionRich ?? null,
     bannerUrl: data.bannerUrl || null,
     galleryItems: galleryItems?.map(enrichGalleryItem) || [],
     createdAt: data.createdAt.toISOString(),
@@ -430,7 +442,35 @@ export async function validateNovelData(data: unknown): Promise<NovelSchema> {
     // allow server contexts that don't have auth (e.g., seed) to proceed
   }
 
+  // Enforce max length for descriptionRich (by extracted text content)
+  try {
+    const content = (result as unknown as { descriptionRich?: unknown }).descriptionRich;
+    if (content) {
+      const text = extractTextFromRich(content);
+      if (text.length > MAX_DESCRIPTION_LENGTH) {
+        throw new ValidationError(`Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`);
+      }
+    }
+  } catch (e) {
+    if (e instanceof ValidationError) throw e;
+  }
+
   return result;
+}
+
+function extractTextFromRich(json: unknown): string {
+  try {
+    if (!json || typeof json !== 'object') return '';
+    const node = json as { type?: string; text?: string; content?: unknown[] };
+    let acc = '';
+    if (typeof node.text === 'string') acc += node.text;
+    if (Array.isArray(node.content)) {
+      for (const child of node.content) acc += extractTextFromRich(child);
+    }
+    return acc;
+  } catch {
+    return '';
+  }
 }
 
 // PERMISSIONS

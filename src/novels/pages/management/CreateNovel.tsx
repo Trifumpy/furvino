@@ -11,7 +11,7 @@ import { useUser } from "@/users/providers";
 const DEFAULT_NOVEL: CreateNovelBody = {
   title: "",
   authorId: "",
-  description: "",
+  descriptionRich: { type: "doc", content: [{ type: "paragraph" }] } as unknown,
   thumbnailUrl: "",
   externalUrls: {},
   downloadUrls: {},
