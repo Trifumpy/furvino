@@ -11,7 +11,8 @@ export default function AboutPage() {
         For quick Author verification DM me your Furvino username from you novel Twitter / BSKY account. <br />
         Twitter / X:
         {" "}
-        <Link href= "https://x.com/Trifumpy" target="_blank" rel="noopener">@Trifumpy</Link> <br />        Telegram:
+        <Link href= "https://x.com/Trifumpy" target="_blank" rel="noopener">@Trifumpy</Link> <br />        
+        BlueSky:
         {" "}
         <Link href= "https://bsky.app/profile/trifumpy.bsky.social" target="_blank" rel="noopener">@Trifumpy</Link> <br />
       </Typography>
