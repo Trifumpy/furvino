@@ -16,6 +16,7 @@ export function SearchBar() {
       label="Search for a visual novel by title, author, or tag..."
       variant="outlined"
       defaultValue={defaultValue}
+      FormHelperTextProps={{ sx: { display: { xs: "none", sm: "block" } } }}
       helperText={
         <>
           Do you want to add your own? Check &quot;

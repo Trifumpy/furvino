@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert, Box, CircularProgress, Grid, Pagination, Stack, Typography } from "@mui/material";
+import Link from "next/link";
 import { NovelCard } from "../components/NovelCard";
 import { useNovels, useSearch } from "../providers";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,11 +29,15 @@ export function BrowsePage() {
         <Typography variant="h4" component="h1" gutterBottom>
           Discover Your Next Story
         </Typography>
-        <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "center" }}>
+        <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "flex-start" }}>
           <Box sx={{ flex: 1 }}>
             <SearchBar />
           </Box>
           <SortSelect />
+          {/* Mobile-only helper text under sort menu */}
+          <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "block", sm: "none" } }}>
+            Do you want to add your own? Check &quot;<Link href="/about">about</Link>&quot; for more information
+          </Typography>
         </Stack>
       </Box>
       {novels.length === 0 ? (
