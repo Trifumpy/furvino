@@ -8,16 +8,28 @@ export default function AboutPage() {
     <Stack spacing={2}>
       <Typography variant="h4">Contact</Typography>
       <Typography>
-        If you want to get an Author account, please contact me on any of these options below.
-        Or do you have any questions, suggestions, want novels to be added or anything else? Below are a few different ways you can contact me. <br />
+        For quick Author verification DM me your Furvino username from you novel Twitter / BSKY account. <br />
+        Twitter / X:
+        {" "}
+        <Link href= "https://x.com/Trifumpy" target="_blank" rel="noopener">@Trifumpy</Link> <br />        Telegram:
+        {" "}
+        <Link href= "https://bsky.app/profile/trifumpy.bsky.social" target="_blank" rel="noopener">@Trifumpy</Link> <br />
+      </Typography>
+      <Box mt={4} />
+      <Typography>
+        If you want to get an Author account, you have any questions, suggestions, want novels to be added or anything else? Below are a few different ways you can contact me: <br />
+        Discord server: 
+        {" "}
+        <Link href= "https://discord.gg/HJhHDXbeqn" target="_blank" rel="noopener">Furvino</Link> <br />
         Telegram:
         {" "}
         <Link href= "https://t.me/Trifumpy" target="_blank" rel="noopener">@Trifumpy</Link> <br />
       Discord:
       {" "}
-      <Link href= "https://discord.com/users/216949212540174336" target="_blank" rel="noopener">@Trifumpy</Link>     
+      <Link href= "https://discord.com/users/216949212540174336" target="_blank" rel="noopener">@Trifumpy</Link><br /> 
       </Typography>
       <Box mt={4} />
+      
       <Typography>
         If you want to contact me on more serious matters like takedown requests, cooperation and more, please use the email below: <br />
         Email:
