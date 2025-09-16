@@ -220,7 +220,7 @@ export function NovelForm({
                   value={field.value ?? []}
                   onChange={field.onChange}
                   error={errors.indexingTags?.message as string | undefined}
-                  label="Indexing tags not shown on browse, add things like species"
+                  label="Indexing tags not shown on browse, add things like species. Press enter to confirm tag"
                   noSuggestions
                 />
               )}
