@@ -36,6 +36,7 @@ export const MAX_TITLE_LENGTH = 100;
 export const MAX_SNIPPET_LENGTH = 250;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
+export const MAX_INDEXING_TAGS = 30;
 export const MAX_GALLERY_ITEMS = 6;
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
@@ -50,6 +51,7 @@ export const novelSchema = z.object({
   externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
   downloadUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
   tags: z.array(z.string()).max(MAX_TAGS).optional(),
+  indexingTags: z.array(z.string()).max(MAX_INDEXING_TAGS).optional(),
 });
 export type NovelSchema = z.infer<typeof novelSchema>;
 
@@ -123,6 +125,7 @@ export type ListedNovel = {
   snippet?: string | null;
   thumbnailUrl?: string | null;
   tags: string[];
+  indexingTags: string[];
   comments: CommentsSummary;
   stats: Stats;
   ratingsSummary: RatingsSummary;

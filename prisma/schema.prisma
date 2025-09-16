@@ -38,6 +38,7 @@ model Novel {
   bannerUrl       String?
   galleryItems    GalleryItem[]
   tags            String[]
+  indexingTags    String[]         @default([])
   downloads       Int              @default(0)
   favorites       Int              @default(0)
   views           Int              @default(0)

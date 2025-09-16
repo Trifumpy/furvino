@@ -32,6 +32,7 @@ export const POST = wrapRoute(async (req) => {
     thumbnailUrl: validatedNovel.thumbnailUrl,
     bannerUrl: validatedNovel.bannerUrl,
     tags: validatedNovel.tags,
+    indexingTags: validatedNovel.indexingTags,
     externalUrls: validatedNovel.externalUrls,
     downloadUrls: validatedNovel.downloadUrls,
   };

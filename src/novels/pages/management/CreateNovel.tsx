@@ -16,6 +16,7 @@ const DEFAULT_NOVEL: CreateNovelBody = {
   externalUrls: {},
   downloadUrls: {},
   tags: [],
+  indexingTags: [],
 };
 
 export function CreateNovelPage() {

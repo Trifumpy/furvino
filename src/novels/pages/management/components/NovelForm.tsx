@@ -208,6 +208,20 @@ export function NovelForm({
                   value={field.value ?? []}
                   onChange={field.onChange}
                   error={errors.tags?.message}
+                  label="Tags visible on browse page, you can add custom tags too"
+                />
+              )}
+            />
+            <Controller
+              name="indexingTags"
+              control={control}
+              render={({ field }) => (
+                <TagsInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  error={errors.indexingTags?.message as string | undefined}
+                  label="Indexing tags not shown on browse, add things like species"
+                  noSuggestions
                 />
               )}
             />

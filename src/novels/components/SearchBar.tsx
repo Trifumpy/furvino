@@ -13,7 +13,7 @@ export function SearchBar() {
   return (
     <TextField
       fullWidth
-      label="Search for a visual novel by title, author, or tag..."
+      label="Search for a visual novels by title, author or tags "
       variant="outlined"
       defaultValue={defaultValue}
       FormHelperTextProps={{ sx: { display: { xs: "none", sm: "block" } } }}

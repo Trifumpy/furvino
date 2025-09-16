@@ -28,11 +28,20 @@ export const TAGS = {
   sequel: "Sequel",
   dating: "Dating",
   comedy: "Comedy",
+  sfw: "SFW",
+  nsfw: "NSFW",
+  bara: "Bara",
+  thriller: "Thriller",
+  adult: "Adult",
+  nudity: "Nudity",
+  datingsim: "DatingSim",
+  anime: "Anime",
+  storyRich: "Story Rich"
 } as const;
-
+  
 export type Tag = keyof typeof TAGS;
 export const TAG_COLORS = {
-  horror: "red",
+  horror: "black",
   mystery: "purple",
   supernatural: "cyan",
   sciFi: "blue",
@@ -59,4 +68,13 @@ export const TAG_COLORS = {
   sequel: "white",
   dating: "red",
   comedy: "orange",
+  sfw: "green",
+  nsfw: "red",
+  bara: "brown",
+  thriller: "black",
+  adult: "pink",
+  nudity: "pink",
+  datingsim: "orange",
+  anime: "brown",
+  storyRich: "green"
 } as const satisfies Record<Tag, ColorKey>;

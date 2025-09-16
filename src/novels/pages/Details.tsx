@@ -134,7 +134,12 @@ export function NovelDetailsPage() {
           No description available.
         </Typography>
       )}
-      
+      {Array.isArray((novel as unknown as { indexingTags?: string[] }).indexingTags) &&
+        (novel as unknown as { indexingTags?: string[] }).indexingTags!.length > 0 && (
+        <Box my={2}>
+          <NovelTags tags={(novel as unknown as { indexingTags: string[] }).indexingTags} chipSize="small" />
+        </Box>
+      )}
       <Box my={4}>
         <NovelGallery />
       </Box>

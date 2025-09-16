@@ -53,6 +53,7 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
               { title: { contains: token, mode: "insensitive" } },
               { author: { is: { name: { contains: token, mode: "insensitive" } } } },
               { tags: { has: token } },
+              { indexingTags: { has: token } },
             ],
           })),
         }
@@ -350,6 +351,13 @@ export async function enrichNovelWithAuthor(
 ): Promise<ListedNovel> {
   return {
     ...data,
+    // Ensure non-null arrays for API contracts
+    tags: Array.isArray((data as unknown as { tags?: string[] }).tags)
+      ? ((data as unknown as { tags?: string[] }).tags as string[])
+      : [],
+    indexingTags: Array.isArray((data as unknown as { indexingTags?: string[] }).indexingTags)
+      ? ((data as unknown as { indexingTags?: string[] }).indexingTags as string[])
+      : [],
     author: author || { id: data.authorId, name: "Unknown Author" },
     externalUrls: enrichUrls<ExternalSite>(externalUrls),
     downloadUrls: enrichUrls<Platform>(downloadUrls),

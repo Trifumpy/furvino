@@ -24,6 +24,7 @@ export function EditNovelPage() {
       externalUrls: pruneEmptyKeys(novel.externalUrls || {}),
       downloadUrls: pruneEmptyKeys(novel.downloadUrls || {}),
       tags: novel.tags || [],
+      indexingTags: (novel as unknown as { indexingTags?: string[] | null }).indexingTags || [],
     };
   }, [novel]);
 
