@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { metadataBaseUrl } from "@/utils/site";
 import "./globals.css";
 import { Box, Container, Stack, Typography } from "@mui/material";
 import { Header, BaseLayout } from "@/layout";
@@ -6,6 +7,11 @@ import { Header, BaseLayout } from "@/layout";
 export const metadata: Metadata = {
   title: "Furvino",
   description: "Discover your next story",
+  metadataBase: metadataBaseUrl,
+  alternates: { canonical: "/" },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
+  },
   openGraph: {
     title: "Furvino",
     description: "Furry Visual Novels- Discover your next story",

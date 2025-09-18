@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { CoreProvider } from "./CoreProvider";
 import { PropsWithChildren } from "react";
 import { Toasts } from "./components";
+import { submitSitemapOnce } from "@/utils/sitemapSubmit";
 
 // Font variables should be defined in theme.ts
 // However, Next.js font optimization requires literals
@@ -18,6 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export function BaseLayout({ children }: PropsWithChildren) {
+  // Trigger non-blocking sitemap submission once in production
+  submitSitemapOnce();
   return (
     <CoreProvider>
       <html lang="en">
