@@ -49,6 +49,8 @@ export function NovelCard({
         component="img"
         image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
         alt={`Cover for ${novel.title}`}
+        loading="lazy"
+        decoding="async"
         sx={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }}
         onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
           e.currentTarget.src = `https://placehold.co/400x300/1e1e1e/ffffff?text=Image+Error`;
@@ -100,6 +102,7 @@ export function NovelCard({
       ) : (
         <Link
           href={detailsUrl}
+          prefetch={false}
           style={{ textDecoration: "none", color: "inherit", flexGrow: 1 }}
         >
           {MediaAndContent}
