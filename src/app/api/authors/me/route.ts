@@ -9,7 +9,7 @@ import { Author } from "@/generated/prisma";
 import { NotFoundError } from "../../errors";
 import { authorTags } from "@/utils";
 
-export const GET = wrapRoute(async () => {
+export const GET = wrapRoute<{}>(async (_req, _ctx) => {
   const { clerkId } = await ensureClerkId();
   const user = await getOrCreateUserByExternalId(clerkId);
 
@@ -23,7 +23,7 @@ export const GET = wrapRoute(async () => {
   return NextResponse.json(sanitizeAuthor(enrichedAuthor), { status: 200 });
 });
 
-export const PUT = wrapRoute(async (request) => {
+export const PUT = wrapRoute<{}>(async (request, _ctx) => {
   const { clerkId } = await ensureClerkId();
   const user = await getOrCreateUserByExternalId(clerkId);
 
