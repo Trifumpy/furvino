@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { PropsWithChildren } from "react";
 import { SETTINGS } from "@/app/api/settings";
 import { NextParams } from "@/app/types";
@@ -11,8 +11,7 @@ type Props = PropsWithChildren<
 >;
 
 export async function generateMetadata(
-  { params }: { params: Promise<{ novelId: string }> },
-  _parent: ResolvingMetadata
+  { params }: { params: Promise<{ novelId: string }> }
 ): Promise<Metadata> {
   const { novelId } = await params;
   try {

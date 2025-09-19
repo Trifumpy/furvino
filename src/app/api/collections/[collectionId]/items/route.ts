@@ -5,8 +5,6 @@ import { getOrCreateUserByExternalId } from "@/app/api/users";
 import { NotFoundError } from "@/app/api/errors";
 import { AddCollectionItemBody, AddCollectionItemResponse, addCollectionItemSchema } from "@/contracts/collections";
 import { NextParams } from "@/app/types";
-import { enrichNovelWithAuthor } from "@/app/api/novels/utils";
-import { ListedNovel } from "@/contracts/novels";
 
 type Params = { collectionId: string };
 

@@ -3,7 +3,7 @@ import { revalidateTags, wrapRoute } from "@/app/api/utils";
 import prisma from "@/utils/db";
 import { ensureClerkId } from "@/app/api/utils";
 import { getUserByExternalId } from "@/app/api/users";
-import { ForbiddenError, ValidationError } from "@/app/api/errors";
+import { ForbiddenError } from "@/app/api/errors";
 import { z } from "zod";
 import { MAX_GALLERY_ITEMS, MAX_TAGS, MAX_SNIPPET_LENGTH } from "@/contracts/novels";
 import { novelTags } from "@/utils";
@@ -275,7 +275,7 @@ function mapToSiteTags(rawTags: string[]): string[] {
     .filter((t) => (seen.has(t) ? false : (seen.add(t), true)));
 }
 
-export const POST = wrapRoute(async (req) => {
+export const POST = wrapRoute(async (req, _ctx) => {
   const { clerkId } = await ensureClerkId();
   const me = await getUserByExternalId(clerkId);
   if (!me?.authorId) throw new ForbiddenError("Only authors can import and create novels");

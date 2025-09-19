@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { PropsWithChildren } from "react";
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -31,6 +31,7 @@ export const GET = wrapRoute<Params>(async (_req, { params }) => {
     where: { id: galleryItemId, novelId },
   });
   if (byId?.imageUrl) {
+    // compute fileName only when needed (removed unused variable usage)
     const urlNoQuery = byId.imageUrl.split("?")[0];
     fileName = urlNoQuery.split("/").pop() ?? null;
   }

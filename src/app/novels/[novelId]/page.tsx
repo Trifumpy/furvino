@@ -1,13 +1,11 @@
-import { SETTINGS } from "@/app/api/settings";
 import { NextParams } from "@/app/types";
 import { NovelDetailsPage } from "@/novels/pages";
 import type { Metadata } from "next";
 import prisma from "@/utils/db";
-import { JsonLd } from "@/app/components/JsonLd";
 import { absoluteUrl } from "@/utils/site";
 
 export default async function Page({ params }: NextParams<{ novelId: string }>) {
-  const { novelId } = await params;
+  await params;
   // Data fetching is handled in NovelProvider/layout
   return <NovelDetailsPage />;
 }

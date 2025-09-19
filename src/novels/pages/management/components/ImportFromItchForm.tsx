@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function ImportFromItchForm({ fixedAuthorId }: Props) {
-  const { isAdmin } = useUser();
+  useUser();
   const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       authorId: fixedAuthorId ?? "",
@@ -42,10 +42,8 @@ export function ImportFromItchForm({ fixedAuthorId }: Props) {
     try {
       setSubmitting(true);
       if (fixedAuthorId) {
-        const created = await service.createFromItch(values.itchUrl);
+        await service.createFromItch(values.itchUrl);
         toast.success("Created and imported from Itch.io");
-        // Optionally redirect to edit page
-        // location.assign(`/novels/${created.id}/edit`);
       } else {
         await service.importFromItch(values.novelId, values.itchUrl);
         toast.success("Imported from Itch.io");

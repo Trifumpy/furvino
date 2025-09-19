@@ -18,7 +18,7 @@ export default function AdminCreateAuthorPage() {
       await authors.createAuthor({ name });
       toast.success("Author created");
       setName("");
-    } catch (e) {
+    } catch {
       toast.error("Failed to create author");
     } finally {
       setSaving(false);
@@ -39,9 +39,9 @@ export default function AdminCreateAuthorPage() {
             label="Author name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={async (e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
+            onKeyDown={async (ev) => {
+              if (ev.key === 'Enter') {
+                ev.preventDefault();
                 await handleCreate();
               }
             }}

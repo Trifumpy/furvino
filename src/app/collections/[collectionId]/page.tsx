@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useRegistry } from "@/utils/client";
 import { NovelCard } from "@/novels/components/NovelCard";
 import { useEffect, useMemo, useState } from "react";
-import { PencilIcon, Trash2Icon, XIcon, CheckIcon } from "lucide-react";
+import { Trash2Icon, XIcon, CheckIcon } from "lucide-react";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input";
 import { toast } from "react-toastify";
 

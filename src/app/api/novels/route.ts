@@ -10,7 +10,7 @@ import {
 } from "@/contracts/novels";
 import { novelTags } from "@/utils";
 
-export const GET = wrapRoute(async (req) => {
+export const GET = wrapRoute(async (req, _ctx) => {
   const options = getQueryParams(req, getNovelsQParamsSchema);
 
   const novels = (await getAllNovels(options)) satisfies GetNovelsResponse;
@@ -18,7 +18,7 @@ export const GET = wrapRoute(async (req) => {
   return NextResponse.json(novels);
 });
 
-export const POST = wrapRoute(async (req) => {
+export const POST = wrapRoute(async (req, _ctx) => {
   const novelData = await req.json();
 
   const validatedNovel = await validateNovelData(novelData);

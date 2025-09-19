@@ -88,15 +88,15 @@ export function handleError(error: unknown) {
 }
 
 export function wrapRoute<
-  TParams extends Record<string, string> | never = never,
+  TParams extends object = object,
 >(
   handler: (
     req: NextRequest,
-    context: TParams extends never ? never : NextParams<TParams>
+    context: NextParams<TParams>
   ) => Promise<Response>
 ): (
   req: NextRequest,
-  context: TParams extends never ? never : NextParams<TParams>
+  context: NextParams<TParams>
 ) => Promise<Response> {
   return async (req, context) => {
     try {

@@ -40,7 +40,7 @@ export default function ManageAuthorsPage() {
     try {
       await authors.updateAuthor(selected.id, { name });
       toast.success("Author updated");
-    } catch (e) {
+    } catch {
       toast.error("Failed to update author");
     } finally {
       setSaving(false);
@@ -58,7 +58,7 @@ export default function ManageAuthorsPage() {
       setSelected(null);
       setName("");
       onSearch("");
-    } catch (e) {
+    } catch {
       toast.error("Failed to delete author");
     } finally {
       setDeleting(false);
