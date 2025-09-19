@@ -5,7 +5,7 @@ type Props = {
   statusCode?: number;
 };
 
-export function ErrorPage({ message, statusCode = 500 }: Props) {
+export function ErrorPage({ message }: Props) {
   return (
     <Stack
       gap={2}
