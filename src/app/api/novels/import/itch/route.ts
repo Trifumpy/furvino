@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { revalidateTags, wrapRoute } from "@/app/api/utils";
+import { ensureAdmin, ensureClerkId, revalidateTags, wrapRoute } from "@/app/api/utils";
 import prisma from "@/utils/db";
-import { ensureClerkId } from "@/app/api/utils";
 import { getUserByExternalId } from "@/app/api/users";
-import { ForbiddenError } from "@/app/api/errors";
+import { createHash } from "crypto";
 import { z } from "zod";
 import { MAX_GALLERY_ITEMS, MAX_TAGS, MAX_SNIPPET_LENGTH } from "@/contracts/novels";
 import { novelTags } from "@/utils";
@@ -40,6 +39,22 @@ type ItchJsonLd = {
   keywords?: string[] | string;
 } | null;
 
+function decodeHtmlEntities(input: string): string {
+  if (!input) return input;
+  return input
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_m, d) => {
+      try { return String.fromCodePoint(parseInt(d, 10)); } catch { return _m; }
+    })
+    .replace(/&#x([0-9a-fA-F]+);/g, (_m, h) => {
+      try { return String.fromCodePoint(parseInt(h, 16)); } catch { return _m; }
+    });
+}
+
 function extractJsonLd(html: string): ItchJsonLd {
   const match = html.match(/<script[^>]*type=["']application\/(ld\+json)["'][^>]*>([\s\S]*?)<\/script>/i);
   if (!match) return null;
@@ -54,7 +69,8 @@ function extractJsonLd(html: string): ItchJsonLd {
 
 function sanitizeText(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
-  return text.replace(/\s+/g, " ").trim();
+  const decoded = decodeHtmlEntities(text);
+  return decoded.replace(/\s+/g, " ").trim();
 }
 function sanitizeTitle(raw: string | undefined | null): string | undefined {
   const t = sanitizeText(raw);
@@ -110,6 +126,80 @@ function extractHtmlTitle(html: string): string | undefined {
   return undefined;
 }
 
+function resolveAuthorProfileUrls(html: string, baseUrl: string): string[] {
+  const results = new Set<string>();
+  // Prefer <link rel="author" href="...">
+  const linkMatch = html.match(/<link\s+[^>]*rel=["']author["'][^>]*href=["']([^"']+)["'][^>]*>/i)?.[1];
+  if (linkMatch) {
+    try { results.add(new URL(linkMatch, baseUrl).toString()); } catch {}
+  }
+  // Also look for profile link like https://itch.io/profile/<handle>
+  const profileMatch = html.match(/href=["'](https?:\/\/itch\.io\/profile\/[A-Za-z0-9_-]+)["']/i)?.[1];
+  if (profileMatch) {
+    try { results.add(new URL(profileMatch, baseUrl).toString()); } catch {}
+  }
+  // Always include origin of the game URL (https://<creator>.itch.io/)
+  try {
+    const u = new URL(baseUrl);
+    results.add(`${u.origin}/`);
+  } catch {}
+  return Array.from(results);
+}
+
+function extractExternalUrls(html: string, baseUrl: string): Record<string, string> {
+  const found: Record<string, string> = {};
+  const setIfEmpty = (key: string, value: string) => {
+    if (!found[key]) found[key] = value;
+  };
+  const classify = (u: URL): string | undefined => {
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "discord.com" || host === "discordapp.com" || host.endsWith("discord.gg")) return "discord";
+    if (host === "patreon.com") return "patreon";
+    if (host === "x.com" || host === "twitter.com") return "x";
+    if (host === "bsky.app" || host.endsWith(".bsky.app")) return "bluesky";
+    if (host === "linktr.ee") return "linktree";
+    if (host === "carrd.co" || host.endsWith(".carrd.co")) return "carrd";
+    if (host === "furaffinity.net") return "furaffinity";
+    if (host === "youtube.com" || host === "youtu.be") return "youtube";
+    if (host === "t.me" || host === "telegram.me" || host === "telegram.org") return "telegram";
+    if (host === "itch.io") return "itch";
+    return undefined;
+  };
+  const normalize = (raw: string): string | undefined => {
+    try {
+      const u = new URL(raw, baseUrl);
+      if (u.protocol !== "http:" && u.protocol !== "https:") return undefined;
+      // Strip obvious tracking params
+      ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","ref","ref_","source"].forEach((p) => u.searchParams.delete(p));
+      return u.toString();
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Scan anchor hrefs
+  // First, prioritize the user_links widget if present
+  const widgetMatch = html.match(/<div[^>]*class=["'][^"']*user_links_widget[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  const anchorSource = widgetMatch || html;
+  const aRe = /<a\s+([^>]*?)>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = aRe.exec(anchorSource))) {
+    const attrs = m[1];
+    const href = attrs.match(/href=["']([^"']+)["']/i)?.[1];
+    if (!href) continue;
+    const abs = normalize(href);
+    if (!abs) continue;
+    try {
+      const u = new URL(abs);
+      const site = classify(u);
+      if (!site || site === "itch") continue; // itch stored separately
+      setIfEmpty(site, abs);
+    } catch {}
+  }
+
+  return found;
+}
+
 function extractDescriptionHtml(html: string): string | null {
   const candidates = [
     /<div[^>]*class=["'][^"']*formatted_description[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
@@ -121,6 +211,47 @@ function extractDescriptionHtml(html: string): string | null {
     if (m && m[1]) return m[1];
   }
   return null;
+}
+
+function extractAuthorName(html: string, jsonLd: ItchJsonLd): string | undefined {
+  // 1) JSON-LD author
+  try {
+    const anyJson = jsonLd as unknown as { author?: unknown } | null;
+    const a = anyJson?.author;
+    if (typeof a === "string" && a.trim()) return a.trim();
+    if (a && typeof a === "object") {
+      const name = (a as { name?: string }).name;
+      if (typeof name === "string" && name.trim()) return name.trim();
+    }
+  } catch {}
+
+  // 2) Title-like meta: pull text after " by " from og/twitter title
+  const meta = parseMetaTags(html);
+  const titleCandidates = [meta["og:title"], meta["twitter:title"], extractHtmlTitle(html)].filter(
+    (v): v is string => typeof v === "string" && v.length > 0
+  );
+  for (const t of titleCandidates) {
+    const cleaned = t.replace(/["'“”]/g, "").trim();
+    const parts = cleaned.split(/\s+by\s+/i);
+    if (parts.length >= 2) {
+      const author = parts[parts.length - 1]
+        .replace(/\s*[|–—-].*$/, "")
+        .trim();
+      if (author) return author;
+    }
+  }
+
+  // 3) Visible text fallback: strip tags, then look for "by <name>"
+  const textOnly = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  const m = /\bby\s+([^\n\r|–—-]{1,80})/i.exec(textOnly);
+  if (m && m[1]) {
+    const candidate = m[1].replace(/["'“”]+/g, "").trim();
+    if (candidate) return candidate;
+  }
+  return undefined;
 }
 
 function htmlToRichDoc(html: string): unknown {
@@ -137,84 +268,138 @@ function htmlToRichDoc(html: string): unknown {
   ]);
 }
 
-function extractGalleryImageUrls(html: string, baseUrl: string, extra: string[] = []): string[] {
-  const urls = new Set<string>();
+function extractGalleryImageUrls(html: string, baseUrl: string): string[] {
+  // Map normalized URLs to their highest resolution version
+  const imageGroups = new Map<string, { url: string; size: number }>();
+  
+  const normalizeImageUrl = (url: string): string => {
+    try {
+      const u = new URL(url);
+      // Remove ALL size/quality variations to identify the same base image
+      const normalized = u.pathname
+        .replace(/\/(\d+x\d+)(?:%23c)?\//g, "/") // Remove size folders like /315x250/
+        .replace(/\/(small|medium|large|thumb|original|preview|full)\//gi, "/") // Remove ALL quality indicators
+        .replace(/\.(png|jpg|jpeg|webp)$/i, "") // Remove extension to catch same image in different formats
+        .toLowerCase();
+      
+      // For itch.zone URLs, extract the base64 image ID
+      const itchMatch = normalized.match(/\/([a-zA-Z0-9+\/=]+)\//);
+      if (itchMatch && u.hostname.includes('itch')) {
+        // Use just the base64 ID as the normalized form
+        return itchMatch[1].toLowerCase();
+      }
+      
+      return normalized;
+    } catch {
+      return url.toLowerCase();
+    }
+  };
+  
+  const extractImageSize = (url: string): number => {
+    try {
+      // Highest priority: original images
+      if (/\/original\//i.test(url)) return 10000000;
+      
+      // Try to extract size from URL patterns like /315x250/ or filename
+      const sizeMatch = url.match(/\/(\d+)x(\d+)/);
+      if (sizeMatch) {
+        return parseInt(sizeMatch[1]) * parseInt(sizeMatch[2]);
+      }
+      
+      // Check for size indicators in the URL
+      if (/\/(large|xlarge|full|hd|high)[\/.]/i.test(url)) return 1000000;
+      if (/\/(medium|med|regular)[\/.]/i.test(url)) return 500000;
+      if (/\/(small|thumb|thumbnail|preview)[\/.]/i.test(url)) return 100000;
+      
+      // Default medium priority for unknown sizes
+      return 750000;
+    } catch {
+      return 500000;
+    }
+  };
+  
+  const isLikelyScreenshot = (absoluteUrl: string, isFromScreenshotSource: boolean = false): boolean => {
+    const lower = absoluteUrl.toLowerCase();
+    const name = (() => {
+      try {
+        const u = new URL(lower);
+        return (u.pathname.split("/").pop() || "").split("?")[0];
+      } catch {
+        return lower.split("/").pop() || lower;
+      }
+    })();
+    if (!name) return isFromScreenshotSource; // Only accept if from screenshot source
+    
+    // Always exclude these
+    if (/(icon|logo|title|thumbnail|thumb|avatar|profile)/i.test(name)) return false;
+    
+    // If not from a screenshot source, also exclude banners/headers/covers
+    if (!isFromScreenshotSource && /(banner|header|cover|hero|capsule|feature)/i.test(name)) return false;
+    
+    return true;
+  };
+  
+  const addUrl = (url: string, isFromScreenshotSource: boolean = false) => {
+    if (!url) return;
+    try {
+      const absolute = new URL(url, baseUrl).toString();
+      if (!isLikelyScreenshot(absolute, isFromScreenshotSource)) return;
+      
+      const normalized = normalizeImageUrl(absolute);
+      const size = extractImageSize(absolute);
+      
+      const existing = imageGroups.get(normalized);
+      if (!existing || size > existing.size) {
+        imageGroups.set(normalized, { url: absolute, size });
+      }
+    } catch {}
+  };
+
+  // <img class="screenshot"> or <img class="lb_screenshot"> anywhere on the page
   const imgRe = /<img\s+([^>]*?)>/gi;
   let m: RegExpExecArray | null;
   while ((m = imgRe.exec(html))) {
     const attrs = m[1];
-    const hasScreenshotClass = /class=["'][^"']*\bscreenshot\b[^"']*["']/i.test(attrs);
+    const hasScreenshotClass = /class=["'][^"']*\b(screenshot|lb_screenshot)\b[^"']*["']/i.test(attrs);
+    if (!hasScreenshotClass) continue;
     const srcMatch = attrs.match(/src=["']([^"']+)["']/i);
     const dataSrcMatch = attrs.match(/data-src=["']([^"']+)["']/i);
     const srcsetMatch = attrs.match(/srcset=["']([^"']+)["']/i);
-    const candidates: string[] = [];
     if (srcsetMatch) {
       const entries = srcsetMatch[1].split(",").map((p) => p.trim()).filter(Boolean);
       if (entries.length > 0) {
         const last = entries[entries.length - 1];
         const bestUrl = last.split(/\s+/)[0];
-        if (bestUrl) candidates.push(bestUrl);
+        if (bestUrl) addUrl(bestUrl, true); // true = from screenshot source
       }
     }
-    if (srcMatch) candidates.push(srcMatch[1]);
-    if (dataSrcMatch) candidates.push(dataSrcMatch[1]);
-    for (const c of candidates) {
-      try {
-        const u = new URL(c, baseUrl).toString();
-        const looksLikeCdn = /img\.(itch|ugc)\.zone/i.test(u) || /\/(\d+x\d+)\//.test(u);
-        if (looksLikeCdn && (hasScreenshotClass || /\.(png|jpe?g|webp)(\?.*)?$/i.test(u))) {
-          urls.add(u);
-        }
-      } catch {}
-    }
+    if (dataSrcMatch) addUrl(dataSrcMatch[1], true);
+    if (srcMatch) addUrl(srcMatch[1], true);
   }
-  // Also catch <a ... data-image|href> pointing to images (used by Itch galleries)
-  const aRe = /<a\s+([^>]*?)>/gi;
-  while ((m = aRe.exec(html))) {
-    const attrs = m[1];
-    const hrefMatch = attrs.match(/href=["']([^"']+)["']/i);
-    const dataImageMatch = attrs.match(/data-image=["']([^"']+)["']/i);
-    const candidates: string[] = [];
-    if (hrefMatch) candidates.push(hrefMatch[1]);
-    if (dataImageMatch) candidates.push(dataImageMatch[1]);
-    for (const c of candidates) {
-      try {
-        const u = new URL(c, baseUrl).toString();
-        if (/img\.(itch|ugc)\.zone/i.test(u) || /\.(png|jpe?g|webp)(\?.*)?$/i.test(u)) urls.add(u);
-      } catch {}
-    }
-  }
-  // background-image styles
-  const styleRe = /background-image\s*:\s*url\(([^\)]+)\)/gi;
-  while ((m = styleRe.exec(html))) {
-    const raw = m[1].replace(/^["']|["']$/g, "");
-    try {
-      const u = new URL(raw, baseUrl).toString();
-      if (/img\.(itch|ugc)\.zone/i.test(u) || /\.(png|jpe?g|webp)(\?.*)?$/i.test(u)) urls.add(u);
-    } catch {}
-  }
-  // Screenshot list container anchors
+
+  // Only screenshot container anchors
   const shotListRe = /<div[^>]*class=["'][^"']*(?:screenshot|screenshots|screenshot_list)[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi;
   let s: RegExpExecArray | null;
   while ((s = shotListRe.exec(html))) {
     const block = s[1];
-    const blockAnchorRe = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+    const blockAnchorRe = /<a\s+([^>]*?)>/gi;
     let a: RegExpExecArray | null;
     while ((a = blockAnchorRe.exec(block))) {
-      try {
-        const u = new URL(a[1], baseUrl).toString();
-        if (/img\.(itch|ugc)\.zone/i.test(u) || /\.(png|jpe?g|webp)(\?.*)?$/i.test(u)) urls.add(u);
-      } catch {}
+      const attrs = a[1];
+      const hrefMatch = attrs.match(/href=["']([^"']+)["']/i);
+      const dataImageMatch = attrs.match(/data-image=["']([^"']+)["']/i);
+      if (dataImageMatch) addUrl(dataImageMatch[1], true); // true = from screenshot source
+      if (hrefMatch && /\.(png|jpe?g|webp)(\?.*)?$/i.test(hrefMatch[1])) addUrl(hrefMatch[1], true);
     }
   }
-  // Add any extra candidates provided by caller (e.g., og:image)
-  for (const e of extra) {
-    try {
-      const u = new URL(e, baseUrl).toString();
-      urls.add(u);
-    } catch {}
-  }
-  return Array.from(urls);
+
+  // Don't include CSS background-images or extras as they're not true screenshots
+  // Only include images explicitly marked as screenshots
+  
+  // Return only the highest resolution version of each image, sorted by size (highest first)
+  return Array.from(imageGroups.values())
+    .sort((a, b) => b.size - a.size)
+    .map(item => item.url);
 }
 
 function extractTagsFromDom(html: string): string[] {
@@ -263,6 +448,7 @@ function mapToSiteTags(rawTags: string[]): string[] {
   const normalized = rawTags.map((t) => t.trim().toLowerCase());
   const mapped = normalized.map((t) => {
     if (t === "lgbt" || t === "lgbtq" || t === "lgbtq+" || t === "lgbt+") return "lgbt";
+    if (t === "lgbtqia" || t === "lgbtqia+") return "lgbt";
     if (t === "sci-fi" || t === "scifi" || t === "science fiction") return "sci-fi";
     if (t === "slice of life") return "slice of life";
     if (t === "story rich" || t === "story-rich") return "story rich";
@@ -275,10 +461,10 @@ function mapToSiteTags(rawTags: string[]): string[] {
     .filter((t) => (seen.has(t) ? false : (seen.add(t), true)));
 }
 
-export const POST = wrapRoute(async (req, _ctx) => {
+export const POST = wrapRoute(async (req) => {
+  await ensureAdmin();
   const { clerkId } = await ensureClerkId();
-  const me = await getUserByExternalId(clerkId);
-  if (!me?.authorId) throw new ForbiddenError("Only authors can import and create novels");
+  await getUserByExternalId(clerkId);
 
   const { url } = bodySchema.parse(await req.json());
   const html = await fetchHtml(url);
@@ -296,7 +482,7 @@ export const POST = wrapRoute(async (req, _ctx) => {
     : (typeof jsonLd?.keywords === 'string'
       ? String(jsonLd?.keywords).split(/[\,\n]/).map((x) => x.trim()).filter(Boolean).slice(0, 10)
       : []);
-  const domTags = extractTagsFromDom(html);
+  const domTags = extractTagsFromDom(html).map(decodeHtmlEntities);
   const mergedTags = mapToSiteTags(Array.from(new Set([...(tags || []), ...domTags]))).slice(0, MAX_TAGS);
 
   // Resolve primary image (thumbnail)
@@ -315,13 +501,52 @@ export const POST = wrapRoute(async (req, _ctx) => {
   let thumbnailUrl = jsonImage || ogImage || extractPrimaryImageFromDom(html, url);
   try { if (thumbnailUrl) thumbnailUrl = new URL(thumbnailUrl, url).toString(); } catch {}
 
+  // Resolve or create author by name extracted from Itch page
+  const authorName = extractAuthorName(html, jsonLd) || "Unknown";
+  let authorId: string;
+  const existingAuthor = await prisma.author.findFirst({ where: { name: authorName } });
+  if (existingAuthor) authorId = existingAuthor.id;
+  else {
+    const createdAuthor = await prisma.author.create({ data: { name: authorName } });
+    authorId = createdAuthor.id;
+  }
+
+  // Attempt to fetch creator page and capture their external links
+  try {
+    const authorProfileUrls = resolveAuthorProfileUrls(html, url);
+    for (const authorProfileUrl of authorProfileUrls) {
+      const authorHtml = await fetchHtml(authorProfileUrl);
+      const authorLinks = extractExternalUrls(authorHtml, authorProfileUrl);
+      if (Object.keys(authorLinks).length === 0) continue;
+      // Merge with any existing author.externalUrls without overwriting existing keys
+      const current = await prisma.author.findUnique({ where: { id: authorId }, select: { externalUrls: true } });
+      const currentObj = (current?.externalUrls as Record<string, string> | null | undefined) || {};
+      const additions = Object.fromEntries(Object.entries(authorLinks).filter(([k]) => !(k in currentObj)));
+      if (Object.keys(additions).length === 0) continue;
+      const merged = { ...currentObj, ...additions } as unknown as object;
+      await prisma.author.update({ where: { id: authorId }, data: { externalUrls: merged } });
+    }
+  } catch {}
+
+  // Collect external links from game page and creator profile(s)
+  const pageLinks = extractExternalUrls(html, url);
+  let profileLinks: Record<string, string> = {};
+  try {
+    const authorProfileUrls = resolveAuthorProfileUrls(html, url);
+    for (const authorProfileUrl of authorProfileUrls) {
+      const authorHtml = await fetchHtml(authorProfileUrl);
+      const links = extractExternalUrls(authorHtml, authorProfileUrl);
+      profileLinks = { ...profileLinks, ...links };
+    }
+  } catch {}
+
   // Create novel minimal record
   const created = await prisma.novel.create({
     data: {
       title,
-      authorId: me.authorId,
+      authorId,
       descriptionRich: descriptionRich as unknown as object | undefined,
-      externalUrls: { itch: url } as unknown as object,
+      externalUrls: { itch: url, ...pageLinks, ...profileLinks } as unknown as object,
       // thumbnail will be downloaded and set below
       snippet,
       tags: mergedTags,
@@ -345,22 +570,72 @@ export const POST = wrapRoute(async (req, _ctx) => {
     }
   } catch {}
 
-  // Try to import gallery
+  // Try to import gallery: upload up to first 6 unique not-already-present images in order
   try {
-    const remaining = MAX_GALLERY_ITEMS;
-    const images = extractGalleryImageUrls(html, url, [thumbnailUrl || ""]).slice(0, remaining);
-    for (const imgUrl of images) {
+    const existing = await prisma.galleryItem.findMany({ where: { novelId: created.id }, select: { imageUrl: true } });
+    const existingNames = new Set<string>();
+    const addNameVariants = (name: string) => {
+      const lower = name.toLowerCase();
+      existingNames.add(lower);
+      const baseNoExt = lower.replace(/\.[a-z0-9]+$/, "");
+      existingNames.add(baseNoExt);
+    };
+    for (const { imageUrl } of existing) {
+      try {
+        const u = new URL(imageUrl);
+        const f = u.searchParams.get("f");
+        if (f) addNameVariants(f);
+        const pathName = u.pathname.split("/").pop();
+        if (pathName) addNameVariants(pathName);
+      } catch {}
+    }
+    const raw = extractGalleryImageUrls(html, url);
+    // Only upload the exact number of screenshots found, don't fill empty slots
+    const actualScreenshotsCount = raw.length;
+    const remainingSlots = MAX_GALLERY_ITEMS - existing.length;
+    const maxToUpload = Math.min(actualScreenshotsCount, remainingSlots);
+    const selected: string[] = [];
+    const seenKeys = new Set<string>();
+    const toKey = (inputUrl: string): string => {
+      try {
+        const u = new URL(inputUrl, url);
+        const normPath = u.pathname.replace(/\/(\d+x\d+)(?:%23c)?\//g, "/");
+        const name = (normPath.split("/").pop() || "").toLowerCase();
+        return name.replace(/\.[a-z0-9]+$/, "");
+      } catch {
+        return inputUrl;
+      }
+    };
+    for (const u of raw) {
+      const abs = (() => { try { return new URL(u, url).toString(); } catch { return u; } })();
+      const key = toKey(abs);
+      if (!key) continue;
+      if (existingNames.has(key) || seenKeys.has(key)) continue;
+      seenKeys.add(key);
+      if (selected.length < maxToUpload) selected.push(abs);
+      if (selected.length >= maxToUpload) break;
+    }
+    const seenHashes = new Set<string>();
+    for (const imgUrl of selected) {
       try {
         await ensureCanUploadToGallery(created.id);
         const res = await fetch(imgUrl, { headers: { Referer: url, Accept: "image/*;q=0.9", "User-Agent": "Mozilla/5.0 (compatible; FurvinoBot/1.0; +https://furvino.org)" } });
         if (!res.ok) continue;
         const ct = res.headers.get("content-type") || "image/jpeg";
         const ab = await res.arrayBuffer();
+        // Deduplicate by content hash within this run
+        const hash = createHash("sha1").update(Buffer.from(ab)).digest("hex");
+        if (seenHashes.has(hash)) continue;
         const pathname = (() => { try { return new URL(imgUrl).pathname; } catch { return "/img.jpg"; } })();
         const baseName = pathname.split("/").pop() || "image";
-        const fileName = baseName.includes(".") ? baseName : `${baseName}.${ct.split("/")[1] || "jpg"}`;
+        const fileName = (baseName.includes(".") ? baseName : `${baseName}.${ct.split("/")[1] || "jpg"}`).toLowerCase();
+        const baseNoExt = fileName.replace(/\.[a-z0-9]+$/, "");
+        if (existingNames.has(fileName) || existingNames.has(baseNoExt)) continue;
         const file = createFileLike(ab, fileName, ct);
         await uploadGalleryFile(created.id, file);
+        seenHashes.add(hash);
+        existingNames.add(fileName);
+        existingNames.add(baseNoExt);
       } catch {}
     }
   } catch {}

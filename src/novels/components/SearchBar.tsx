@@ -19,7 +19,7 @@ export function SearchBar() {
       FormHelperTextProps={{ sx: { display: { xs: "none", sm: "block" } } }}
       helperText={
         <>
-          Do you want to add your own? Check &quot;
+          Do you want to upload files to your novel? Check &quot;
           <Link href="/about">about</Link>
           &quot; for more information
         </>
