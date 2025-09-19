@@ -7,7 +7,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     prisma.novel.findMany({ select: { id: true, updatedAt: true } }),
     prisma.author.findMany({ select: { id: true } }),
     prisma.collection.findMany({ select: { id: true, isPublic: true, updatedAt: true } }),
-  ]);
+  ]).catch((error) => {
+    console.warn("Failed to fetch database resources to populate sitemap", error);
+    return [[], [], []];
+  });
 
   const pages: MetadataRoute.Sitemap = [
     {
@@ -46,5 +49,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return pages;
 }
-
-
