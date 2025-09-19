@@ -515,3 +515,34 @@ export async function ensureCanUpdateNovelById(
   await ensureCanUpdateNovel(novel);
   return novel;
 }
+
+export async function updateNovelAndEnrich(
+  novelId: string,
+  data: {
+    title?: string;
+    descriptionRich?: unknown | null;
+    snippet?: string | null;
+    thumbnailUrl?: string | null;
+    bannerUrl?: string | null;
+    tags?: string[];
+    indexingTags?: string[];
+    externalUrls?: Record<string, string>;
+    downloadUrls?: Record<string, string>;
+  }
+) {
+  const updated = await prisma.novel.update({
+    where: { id: novelId },
+    data: {
+      title: data.title,
+      descriptionRich: (data as unknown as { descriptionRich?: unknown | null }).descriptionRich as unknown as Prisma.NullableJsonNullValueInput,
+      snippet: data.snippet,
+      thumbnailUrl: data.thumbnailUrl,
+      bannerUrl: data.bannerUrl,
+      tags: (data as unknown as { tags?: string[] }).tags,
+      indexingTags: (data as unknown as { indexingTags?: string[] }).indexingTags,
+      externalUrls: (data as unknown as { externalUrls?: object }).externalUrls as unknown as Prisma.InputJsonValue,
+      downloadUrls: (data as unknown as { downloadUrls?: object }).downloadUrls as unknown as Prisma.InputJsonValue,
+    },
+  });
+  return enrichToFullNovel(updated);
+}

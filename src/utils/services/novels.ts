@@ -118,6 +118,22 @@ export class NovelsService extends HttpService {
     return this.put<UpdateNovelResponse, UpdateNovelBody>(`/${id}`, novel);
   }
 
+  importFromItch(novelId: string, itchUrl: string) {
+    return this.post<GetNovelResponse, { url: string }>(
+      `/${novelId}/import/itch`,
+      { url: itchUrl },
+      { cache: "no-store" }
+    );
+  }
+
+  createFromItch(itchUrl: string) {
+    return this.post<CreateNovelResponse, { url: string }>(
+      `/import/itch`,
+      { url: itchUrl },
+      { cache: "no-store" }
+    );
+  }
+
   uploadThumbnail(novelId: string, thumbnailFile: File) {
     const formData = new FormData();
     formData.append("thumbnail", thumbnailFile);

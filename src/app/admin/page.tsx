@@ -12,6 +12,9 @@ export default function AdminPanel() {
           <Button LinkComponent={Link} href="/admin/novels/new" variant="outlined">
             Create Novel
           </Button>
+          <Button LinkComponent={Link} href="/admin/novels/import-itch" variant="outlined">
+            Import from Itch.io
+          </Button>
           <Button LinkComponent={Link} href="/admin/authors/manage" variant="outlined">
             Manage Authors
           </Button>

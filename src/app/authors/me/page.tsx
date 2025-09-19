@@ -16,6 +16,9 @@ export default function MyAuthorPanel() {
           <Button LinkComponent={Link} href="/authors/novels/new" variant="outlined" startIcon={<PlusIcon /> }>
             Create Novel
           </Button>
+          <Button LinkComponent={Link} href="/authors/novels/import-itch" variant="outlined">
+            Import from Itch.io
+          </Button>
           <Button
             LinkComponent={Link}
             href={authorId ? `/authors/${authorId}` : "#"}

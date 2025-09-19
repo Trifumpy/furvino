@@ -7,7 +7,8 @@ import { startTransition, useMemo, useState } from "react";
 import { useNovel } from "@/novels/providers";
 import { NovelDangerZone, NovelForm, NovelGalleryEditor } from "./components";
 import { pruneEmptyKeys } from "@/utils/lib/collections";
-import { Button, Stack } from "@mui/material";
+import { Button, Stack, TextField } from "@mui/material";
+import { toast } from "react-toastify";
 
 export function EditNovelPage() {
   const { novel } = useNovel();
@@ -44,8 +45,50 @@ function EditFormInternal({
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
 
+  const [itchUrl, setItchUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+
+  const handleImport = async () => {
+    if (!itchUrl) return;
+    try {
+      setImporting(true);
+      const res = await fetch(`/api/novels/${novel.id}/import/itch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: itchUrl }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        toast.error(txt || `Import failed (HTTP ${res.status})`);
+        return;
+      }
+      toast.success("Imported from Itch.io");
+      // Refresh the page data to show imported fields
+      startTransition(() => {
+        router.refresh();
+      });
+      setItchUrl("");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <Stack>
+      <Stack direction={{ xs: "column", md: "row" }} gap={1} alignItems={{ xs: "stretch", md: "center" }} sx={{ mb: 2 }}>
+        <TextField
+          value={itchUrl}
+          onChange={(e) => setItchUrl(e.target.value)}
+          label="Itch.io project URL"
+          placeholder="https://<user>.itch.io/<project>"
+          sx={{ flexGrow: 1 }}
+        />
+        <Button variant="outlined" disabled={!itchUrl || importing} onClick={handleImport}>
+          {importing ? "Importing..." : "Import from Itch.io"}
+        </Button>
+      </Stack>
       <NovelForm
         existingId={novel.id}
         defaultData={novel}
