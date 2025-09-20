@@ -54,6 +54,10 @@ export default function AboutPage() {
       {" "}
       <Link href= "https://discord.com/users/234625299625672704" target="_blank" rel="noopener">@enderfloof</Link>     
       </Typography>
+
+      <Typography>
+      This project is open-source. Check the code here: <Link href= "https://github.com/Trifumpy/furvino" target="_blank" rel="noopener">Github</Link>
+      </Typography>
       
       <Box mt={4} />
       <Divider sx={{ my: 3 }} />
