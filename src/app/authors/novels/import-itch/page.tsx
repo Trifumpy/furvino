@@ -1,13 +1,14 @@
 "use client";
 
 import { AuthorGuardClient } from "@/users/providers";
-import { Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
+import { ImportFromItchForm } from "@/novels/pages/management/components";
 
 export default function Page() {
   return (
     <AuthorGuardClient>
       <Stack gap={2}>
-        <Typography variant="body1">Itch.io import is managed by admins.</Typography>
+        <ImportFromItchForm />
       </Stack>
     </AuthorGuardClient>
   );

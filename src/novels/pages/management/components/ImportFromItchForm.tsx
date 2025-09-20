@@ -16,7 +16,7 @@ type FormValues = {
 type Props = { fixedAuthorId?: string };
 
 export function ImportFromItchForm({ fixedAuthorId }: Props) {
-  useUser();
+  const { user } = useUser();
   const { control, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
     defaultValues: { authorId: fixedAuthorId ?? "", novelId: "", itchUrl: "" },
   });
@@ -27,7 +27,8 @@ export function ImportFromItchForm({ fixedAuthorId }: Props) {
   const onSubmit = async (values: FormValues) => {
     try {
       setSubmitting(true);
-      await service.createFromItch(values.itchUrl);
+      const authorId = fixedAuthorId || user?.authorId || undefined;
+      await service.createFromItch(values.itchUrl, { authorId });
       toast.success("Created and imported from Itch.io");
       reset({ authorId: fixedAuthorId ?? "", novelId: "", itchUrl: "" });
     } catch (err) {

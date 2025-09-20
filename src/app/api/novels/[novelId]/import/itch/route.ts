@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ensureAdmin, revalidateTags, wrapRoute } from "@/app/api/utils";
+import { ensureClerkId, revalidateTags, wrapRoute } from "@/app/api/utils";
 import { ensureCanUpdateNovel, ensureGetNovel, updateNovelAndEnrich } from "@/app/api/novels/utils";
 import { z } from "zod";
 import sanitizeHtml from "sanitize-html";
@@ -428,7 +428,8 @@ function mapToSiteTags(rawTags: string[]): string[] {
 }
 
 export const POST = wrapRoute(async (request, { params }) => {
-  await ensureAdmin();
+  // Allow if the caller can update this novel (admin or owning author)
+  await ensureClerkId();
   const { novelId } = (await params) as { novelId: string };
   const body = await request.json();
   const { url } = bodySchema.parse(body);

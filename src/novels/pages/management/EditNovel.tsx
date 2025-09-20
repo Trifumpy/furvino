@@ -9,7 +9,6 @@ import { NovelDangerZone, NovelForm, NovelGalleryEditor } from "./components";
 import { pruneEmptyKeys } from "@/utils/lib/collections";
 import { Button, Stack, TextField } from "@mui/material";
 import { toast } from "react-toastify";
-import { useUser } from "@/users/providers";
 
 export function EditNovelPage() {
   const { novel } = useNovel();
@@ -45,7 +44,6 @@ function EditFormInternal({
   const { updateNovel, isUpdating } = useUpdateNovel(novel.id);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
-  const { isAdmin } = useUser();
 
   const [itchUrl, setItchUrl] = useState("");
   const [importing, setImporting] = useState(false);
@@ -79,20 +77,18 @@ function EditFormInternal({
 
   return (
     <Stack>
-      {isAdmin && (
-        <Stack direction={{ xs: "column", md: "row" }} gap={1} alignItems={{ xs: "stretch", md: "center" }} sx={{ mb: 2 }}>
-          <TextField
-            value={itchUrl}
-            onChange={(e) => setItchUrl(e.target.value)}
-            label="Itch.io project URL"
-            placeholder="https://<user>.itch.io/<project>"
-            sx={{ flexGrow: 1 }}
-          />
-          <Button variant="outlined" disabled={!itchUrl || importing} onClick={handleImport}>
-            {importing ? "Importing..." : "Import from Itch.io"}
-          </Button>
-        </Stack>
-      )}
+      <Stack direction={{ xs: "column", md: "row" }} gap={1} alignItems={{ xs: "stretch", md: "center" }} sx={{ mb: 2 }}>
+        <TextField
+          value={itchUrl}
+          onChange={(e) => setItchUrl(e.target.value)}
+          label="Itch.io project URL"
+          placeholder="https://<user>.itch.io/<project>"
+          sx={{ flexGrow: 1 }}
+        />
+        <Button variant="outlined" disabled={!itchUrl || importing} onClick={handleImport}>
+          {importing ? "Importing..." : "Import from Itch.io"}
+        </Button>
+      </Stack>
       <NovelForm
         existingId={novel.id}
         defaultData={novel}

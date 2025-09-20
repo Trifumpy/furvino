@@ -126,10 +126,10 @@ export class NovelsService extends HttpService {
     );
   }
 
-  createFromItch(itchUrl: string) {
-    return this.post<CreateNovelResponse, { url: string }>(
+  createFromItch(itchUrl: string, options?: { authorId?: string }) {
+    return this.post<CreateNovelResponse, { url: string; authorId?: string }>(
       `/import/itch`,
-      { url: itchUrl },
+      { url: itchUrl, authorId: options?.authorId },
       { cache: "no-store" }
     );
   }

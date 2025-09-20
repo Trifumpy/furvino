@@ -10,7 +10,7 @@ export function Header() {
         <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
           <Link href="/" aria-label="Furvino home" style={{ textDecoration: "none", color: "inherit" }}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <Box component="img" src="/icon.svg" alt="Furvino" sx={{ width: 28, height: 28, filter: "brightness(0) invert(0.85)" }} />
+              <Box component="img" src="/icon.svg" alt="Furvino" sx={{ width: 28, height: 28 }} />
               <Typography
                 variant="h6"
                 sx={{ display: { xs: "none", sm: "block" }, cursor: "pointer" }}

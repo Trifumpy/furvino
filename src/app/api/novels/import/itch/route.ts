@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ensureAdmin, ensureClerkId, revalidateTags, wrapRoute } from "@/app/api/utils";
+import { ensureClerkId, revalidateTags, wrapRoute } from "@/app/api/utils";
 import prisma from "@/utils/db";
 import { getUserByExternalId } from "@/app/api/users";
 import { createHash } from "crypto";
@@ -16,6 +16,7 @@ import { enrichToFullNovel, ensureGetNovel } from "../../utils";
 
 const bodySchema = z.object({
   url: z.string().url(),
+  authorId: z.string().optional(),
 });
 
 async function fetchHtml(url: string): Promise<string> {
@@ -462,11 +463,13 @@ function mapToSiteTags(rawTags: string[]): string[] {
 }
 
 export const POST = wrapRoute(async (req) => {
-  await ensureAdmin();
   const { clerkId } = await ensureClerkId();
-  await getUserByExternalId(clerkId);
+  const me = await getUserByExternalId(clerkId);
+  if (!me) {
+    return NextResponse.json({ error: "User not found" }, { status: 401 });
+  }
 
-  const { url } = bodySchema.parse(await req.json());
+  const { url, authorId: requestedAuthorId } = bodySchema.parse(await req.json());
   const html = await fetchHtml(url);
   const jsonLd = extractJsonLd(html);
   const meta = parseMetaTags(html);
@@ -501,14 +504,28 @@ export const POST = wrapRoute(async (req) => {
   let thumbnailUrl = jsonImage || ogImage || extractPrimaryImageFromDom(html, url);
   try { if (thumbnailUrl) thumbnailUrl = new URL(thumbnailUrl, url).toString(); } catch {}
 
-  // Resolve or create author by name extracted from Itch page
-  const authorName = extractAuthorName(html, jsonLd) || "Unknown";
-  let authorId: string;
-  const existingAuthor = await prisma.author.findFirst({ where: { name: authorName } });
-  if (existingAuthor) authorId = existingAuthor.id;
-  else {
-    const createdAuthor = await prisma.author.create({ data: { name: authorName } });
-    authorId = createdAuthor.id;
+  // Resolve or create author: prefer explicit authorId if caller is that author or admin
+  let authorId: string | undefined = undefined;
+  const isAdmin = Array.isArray(me.roles) && me.roles.includes("admin");
+  if (requestedAuthorId) {
+    if (isAdmin || me.authorId === requestedAuthorId) {
+      authorId = requestedAuthorId;
+    } else {
+      return NextResponse.json({ error: "Forbidden: cannot import for another author" }, { status: 403 });
+    }
+  }
+  if (!authorId) {
+    const authorName = extractAuthorName(html, jsonLd) || "Unknown";
+    const existingAuthor = await prisma.author.findFirst({ where: { name: authorName } });
+    if (existingAuthor) authorId = existingAuthor.id;
+    else {
+      // If user has an author profile, default to it, else create by name
+      if (me.authorId) authorId = me.authorId;
+      if (!authorId) {
+        const createdAuthor = await prisma.author.create({ data: { name: authorName } });
+        authorId = createdAuthor.id;
+      }
+    }
   }
 
   // Attempt to fetch creator page and capture their external links
