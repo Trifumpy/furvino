@@ -57,8 +57,8 @@ export function NovelForm({
     control,
     formState: { errors },
   } = useForm<CreateNovelBody>({
-    resolver: zodResolver(createNovelSchema),
-    values: defaultData,
+    resolver: zodResolver(createNovelSchema) as never,
+    defaultValues: defaultData,
   });
 
   useEffect(() => {
@@ -206,6 +206,39 @@ export function NovelForm({
         </Stack>
         {!minimal && (
           <>
+            <Stack direction={{ xs: "column", md: "row" }} gap={1} alignItems="center">
+              <Controller
+                name="foregroundOpacityPercent"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField
+                    label="Foreground opacity (%)"
+                    type="number"
+                    value={field.value ?? 95}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    inputProps={{ min: 0, max: 100, step: 1 }}
+                    error={!!fieldState?.error?.message}
+                    helperText={fieldState?.error?.message}
+                    sx={{ width: 220 }}
+                  />
+                )}
+              />
+              <Controller
+                name="foregroundColorHex"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField
+                    label="Foreground color"
+                    type="color"
+                    value={field.value ?? "#121212"}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    error={!!fieldState?.error?.message}
+                    helperText={fieldState?.error?.message}
+                    sx={{ width: 160 }}
+                  />
+                )}
+              />
+            </Stack>
             <TextField
               {...register("snippet")}
               label="Snippet"
@@ -261,6 +294,21 @@ export function NovelForm({
                   error={errors.indexingTags?.message as string | undefined}
                   label="Indexing tags not shown on browse, add things like species. Press enter to confirm tag"
                   noSuggestions
+                />
+              )}
+            />
+            <Controller
+              name="foregroundColorHex"
+              control={control}
+              render={({ field, fieldState }) => (
+                <TextField
+                  label="Foreground color"
+                  type="color"
+                  value={field.value ?? "#121212"}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  error={!!fieldState?.error?.message}
+                  helperText={fieldState?.error?.message}
+                  sx={{ width: 160 }}
                 />
               )}
             />

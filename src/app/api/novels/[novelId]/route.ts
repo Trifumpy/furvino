@@ -57,6 +57,8 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
       snippet: rest.snippet,
       thumbnailUrl: rest.thumbnailUrl,
       pageBackgroundUrl: (rest as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl,
+      foregroundOpacityPercent: (rest as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95,
+      foregroundColorHex: (rest as unknown as { foregroundColorHex?: string | null }).foregroundColorHex,
       tags: rest.tags,
       indexingTags: rest.indexingTags,
       // JSON fields we want to persist

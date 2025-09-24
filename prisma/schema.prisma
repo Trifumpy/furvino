@@ -36,6 +36,8 @@ model Novel {
   snippet         String?
   thumbnailUrl        String?
   pageBackgroundUrl   String?
+  foregroundColorHex  String? @default("#121212")
+  foregroundOpacityPercent Int @default(95)
   galleryItems    GalleryItem[]
   tags            String[]
   indexingTags    String[]         @default([])
