@@ -56,7 +56,7 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
       descriptionRich: rest.descriptionRich as unknown as object | undefined,
       snippet: rest.snippet,
       thumbnailUrl: rest.thumbnailUrl,
-      bannerUrl: rest.bannerUrl,
+      pageBackgroundUrl: (rest as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl,
       tags: rest.tags,
       indexingTags: rest.indexingTags,
       // JSON fields we want to persist

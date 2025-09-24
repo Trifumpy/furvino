@@ -15,8 +15,8 @@ import {
   CreateNovelResponse,
   UpdateNovelResponse,
   UpdateNovelThumbnailResponse,
-  UpdateNovelBannerResponse,
-  UpdateNovelBannerBody,
+  UpdateNovelPageBackgroundResponse,
+  UpdateNovelPageBackgroundBody,
   CreateNovelGalleryItemResponse,
   CreateNovelGalleryItemBody,
   DeleteNovelGalleryItemResponse,
@@ -148,7 +148,7 @@ export class NovelsService extends HttpService {
     const formData = new FormData();
     formData.append("banner", bannerFile);
 
-    return this.put<UpdateNovelBannerResponse, UpdateNovelBannerBody>(
+    return this.put<UpdateNovelPageBackgroundResponse, UpdateNovelPageBackgroundBody>(
       `/${novelId}/banner`,
       formData
     );

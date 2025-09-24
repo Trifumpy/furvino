@@ -332,7 +332,7 @@ export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
   return {
     ...listedNovel,
     descriptionRich: (data as unknown as { descriptionRich?: unknown })?.descriptionRich ?? null,
-    bannerUrl: data.bannerUrl || null,
+    pageBackgroundUrl: (data as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || null,
     galleryItems: galleryItems?.map(enrichGalleryItem) || [],
     createdAt: data.createdAt.toISOString(),
     updatedAt: data.updatedAt.toISOString(),
@@ -523,7 +523,7 @@ export async function updateNovelAndEnrich(
     descriptionRich?: unknown | null;
     snippet?: string | null;
     thumbnailUrl?: string | null;
-    bannerUrl?: string | null;
+    pageBackgroundUrl?: string | null;
     tags?: string[];
     indexingTags?: string[];
     externalUrls?: Record<string, string>;
@@ -537,7 +537,7 @@ export async function updateNovelAndEnrich(
       descriptionRich: (data as unknown as { descriptionRich?: unknown | null }).descriptionRich as unknown as Prisma.NullableJsonNullValueInput,
       snippet: data.snippet,
       thumbnailUrl: data.thumbnailUrl,
-      bannerUrl: data.bannerUrl,
+      pageBackgroundUrl: (data as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl,
       tags: (data as unknown as { tags?: string[] }).tags,
       indexingTags: (data as unknown as { indexingTags?: string[] }).indexingTags,
       externalUrls: (data as unknown as { externalUrls?: object }).externalUrls as unknown as Prisma.InputJsonValue,

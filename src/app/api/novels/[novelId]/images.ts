@@ -42,7 +42,7 @@ export async function setNovelImage(novelId: string, imageFile: File, slot: Nove
   // still getting fresh content on updates.
   const versionParam = Date.now();
   const imageUrl = `${SETTINGS.apiUrl}/novels/${novelId}/${slot}/${sanitizedName}?v=${versionParam}`;
-  const fieldName = slot === "thumbnail" ? "thumbnailUrl" : "bannerUrl";
+  const fieldName = slot === "thumbnail" ? "thumbnailUrl" : "pageBackgroundUrl";
   const dbPromise = prisma.novel.update({
     where: { id: novelId },
     data: { [fieldName]: imageUrl },
@@ -66,7 +66,7 @@ export async function getNovelImageStream(
 ): Promise<TypedFileStream> {
   const novel = await ensureGetNovel(novelId);
 
-  const imageUrl = slot === "thumbnail" ? novel.thumbnailUrl : novel.bannerUrl;
+  const imageUrl = slot === "thumbnail" ? novel.thumbnailUrl : (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl;
   if (!imageUrl) {
     throw new NotFoundError(`Novel ${novelId} has no ${slot} set`);
   }

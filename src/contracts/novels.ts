@@ -46,7 +46,7 @@ export const novelSchema = z.object({
   descriptionRich: z.unknown().optional(),
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
   thumbnailUrl: urlOrEmpty.optional(),
-  bannerUrl: urlOrEmpty.optional(),
+  pageBackgroundUrl: urlOrEmpty.optional(),
   galleryItems: z.array(galleryItemSchema).max(MAX_GALLERY_ITEMS, `Gallery cannot exceed ${MAX_GALLERY_ITEMS} items`).optional(),
   externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
   downloadUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
@@ -102,10 +102,10 @@ export type UpdateNovelThumbnailParams = NovelTarget;
 export type UpdateNovelThumbnailBody = FormData;
 export type UpdateNovelThumbnailResponse = FullNovel;
 
-export const MAX_BANNER_FILE_SIZE = 30 * 1024 * 1024; // 30MB
-export type UpdateNovelBannerParams = NovelTarget;
-export type UpdateNovelBannerBody = FormData;
-export type UpdateNovelBannerResponse = FullNovel;
+export const MAX_PAGE_BACKGROUND_FILE_SIZE = 30 * 1024 * 1024; // 30MB
+export type UpdateNovelPageBackgroundParams = NovelTarget;
+export type UpdateNovelPageBackgroundBody = FormData;
+export type UpdateNovelPageBackgroundResponse = FullNovel;
 
 export const MAX_GALLERY_FILE_SIZE = 12 * 1024 * 1024; // 12MB
 export type CreateNovelGalleryItemParams = NovelTarget;
@@ -140,7 +140,7 @@ export type GalleryItem = {
 }
 export type FullNovel = ListedNovel & {
   descriptionRich?: unknown | null;
-  bannerUrl?: string | null;
+  pageBackgroundUrl?: string | null;
   galleryItems: GalleryItem[];
 }
 

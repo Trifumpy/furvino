@@ -30,7 +30,7 @@ export const POST = wrapRoute(async (req, _ctx) => {
     descriptionRich: validatedNovel.descriptionRich as unknown as object | undefined,
     snippet: validatedNovel.snippet,
     thumbnailUrl: validatedNovel.thumbnailUrl,
-    bannerUrl: validatedNovel.bannerUrl,
+    pageBackgroundUrl: (validatedNovel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl,
     tags: validatedNovel.tags,
     indexingTags: validatedNovel.indexingTags,
     externalUrls: validatedNovel.externalUrls,

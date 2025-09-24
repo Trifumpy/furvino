@@ -34,8 +34,8 @@ model Novel {
   downloadUrls    Json?
   descriptionRich Json?
   snippet         String?
-  thumbnailUrl    String?
-  bannerUrl       String?
+  thumbnailUrl        String?
+  pageBackgroundUrl   String?
   galleryItems    GalleryItem[]
   tags            String[]
   indexingTags    String[]         @default([])

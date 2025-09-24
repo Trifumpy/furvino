@@ -20,7 +20,8 @@ import { useEffect } from "react";
 import { fieldValidationToRecord } from "@/utils/lib/validation";
 import { ClipboardCopyIcon } from "lucide-react";
 import { toast } from "react-toastify";
-import { useUpdateNovelThumbnail } from "@/novels/hooks";
+import { useUpdateNovelThumbnail, useUpdateNovelBanner } from "@/novels/hooks";
+import { MAX_PAGE_BACKGROUND_FILE_SIZE } from "@/contracts/novels";
 import { TextLengthCounterAdornment } from "@/generic/display";
 
 type Props = {
@@ -69,6 +70,9 @@ export function NovelForm({
   const { updateThumbnail, isUpdating: isUploadingThumbnail } =
     useUpdateNovelThumbnail();
 
+  const { updateBanner, isUpdating: isUploadingBanner } =
+    useUpdateNovelBanner();
+
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload a valid image file.");
@@ -88,6 +92,25 @@ export function NovelForm({
     }
   };
 
+  const handleBannerUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file.");
+      return;
+    }
+    if (!existingId) return;
+
+    try {
+      const novel = await updateBanner({
+        novelId: existingId,
+        bannerFile: file,
+      });
+      setValue("pageBackgroundUrl", (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl ?? undefined);
+      toast.success("Page background updated successfully!");
+    } catch (error) {
+      toast.error((error as Error).message || "Error uploading page background.");
+    }
+  };
+
   const textTitle = watch("title");
   const descriptionRich = watch("descriptionRich");
   const textSnippet = watch("snippet");
@@ -96,20 +119,36 @@ export function NovelForm({
     <form onSubmit={handleSubmit(onSubmit)} id={formId}>
       <Stack gap={1}>
         {!minimal && existingId && (
-          <Controller
-            name="thumbnailUrl"
-            control={control}
-            render={({ field, fieldState }) => (
-              <ImageInput
-                label="Cover Image"
-                valueUrl={field.value}
-                onUpload={handleUpload}
-                maxSize={MAX_THUMBNAIL_FILE_SIZE}
-                loading={isUploadingThumbnail}
-                error={fieldState?.error?.message}
-              />
-            )}
-          />
+          <Stack direction={{ xs: "column", md: "row" }} gap={1}>
+            <Controller
+              name="thumbnailUrl"
+              control={control}
+              render={({ field, fieldState }) => (
+                <ImageInput
+                  label="Cover Image"
+                  valueUrl={field.value}
+                  onUpload={handleUpload}
+                  maxSize={MAX_THUMBNAIL_FILE_SIZE}
+                  loading={isUploadingThumbnail}
+                  error={fieldState?.error?.message}
+                />
+              )}
+            />
+            <Controller
+              name="pageBackgroundUrl"
+              control={control}
+              render={({ field, fieldState }) => (
+                <ImageInput
+                  label="Page background"
+                  valueUrl={field.value}
+                  onUpload={handleBannerUpload}
+                  maxSize={MAX_PAGE_BACKGROUND_FILE_SIZE}
+                  loading={isUploadingBanner}
+                  error={fieldState?.error?.message}
+                />
+              )}
+            />
+          </Stack>
         )}
         {!minimal && existingId && (
           <Stack direction="row" alignItems="center" gap={1}>

@@ -1,6 +1,6 @@
 import { revalidateTags, wrapRoute } from "@/app/api/utils";
 import { enrichToFullNovel, ensureCanUpdateNovel, ensureGetNovel } from "../../utils";
-import { NovelTarget, UpdateNovelBannerParams } from "@/contracts/novels";
+import { NovelTarget, UpdateNovelPageBackgroundParams } from "@/contracts/novels";
 import {
   setNovelBanner,
   validateBanner,
@@ -8,7 +8,7 @@ import {
 import { NextResponse } from "next/server";
 import { novelTags } from "@/utils";
 
-export const PUT = wrapRoute<UpdateNovelBannerParams>(
+export const PUT = wrapRoute<UpdateNovelPageBackgroundParams>(
   async (request, { params }) => {
     const { novelId } = await params;
 
@@ -19,11 +19,11 @@ export const PUT = wrapRoute<UpdateNovelBannerParams>(
     const imageData = formData.get("banner") as File;
 
     const bannerFile = validateBanner(imageData);
-    const bannerUrl = await setNovelBanner(novelId, bannerFile);
+    const pageBackgroundUrl = await setNovelBanner(novelId, bannerFile);
 
     const patchedNovel = {
       ...novel,
-      bannerUrl,
+      pageBackgroundUrl,
     };
     const result = await enrichToFullNovel(patchedNovel);
 
@@ -40,7 +40,7 @@ export const GET = wrapRoute<NovelTarget>(async (request, { params }) => {
   const novel = await ensureGetNovel(novelId);
 
   return NextResponse.json(
-    { bannerUrl: novel.bannerUrl },
+    { pageBackgroundUrl: (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl },
     { status: 200 }
   );
 });
