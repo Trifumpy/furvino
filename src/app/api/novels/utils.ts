@@ -335,6 +335,7 @@ export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
     pageBackgroundUrl: (data as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || null,
     foregroundOpacityPercent: (data as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95,
     foregroundColorHex: (data as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || null,
+    foregroundTextColorHex: (data as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || null,
     galleryItems: galleryItems?.map(enrichGalleryItem) || [],
     createdAt: data.createdAt.toISOString(),
     updatedAt: data.updatedAt.toISOString(),
@@ -528,6 +529,7 @@ export async function updateNovelAndEnrich(
     pageBackgroundUrl?: string | null;
     foregroundOpacityPercent?: number | null;
     foregroundColorHex?: string | null;
+    foregroundTextColorHex?: string | null;
     tags?: string[];
     indexingTags?: string[];
     externalUrls?: Record<string, string>;

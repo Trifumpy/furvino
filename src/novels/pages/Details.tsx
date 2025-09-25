@@ -117,7 +117,9 @@ export function NovelDetailsPage() {
         <NovelTags tags={novel.tags} chipSize="medium" />
       </Stack>
       {hasRich ? (
-        <SanitizedHtml html={JSONToHtml(rich)} />
+        <Box sx={{ color: 'text.primary' }}>
+          <SanitizedHtml html={JSONToHtml(rich)} />
+        </Box>
       ) : description ? (
         description.split("\n").map((paragraph) => (
           <Typography

@@ -32,6 +32,7 @@ export default async function Layout({ children, params }: Props) {
   const pageBackgroundUrl = (raw as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || undefined;
   const foregroundOpacityPercent = (raw as unknown as { foregroundOpacityPercent?: number }).foregroundOpacityPercent ?? 95;
   const foregroundColorHex = (raw as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || "#121212";
+  const foregroundTextColorHex = (raw as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || "#ffffff";
 
   return (
     <NovelProvider novelId={novelId}>
@@ -62,7 +63,7 @@ export default async function Layout({ children, params }: Props) {
           }}
         />
       )}
-      <Box sx={{ minHeight: "100dvh" }}>
+      <Box sx={{ minHeight: "100dvh", color: foregroundTextColorHex }}>
         <Box
           sx={{
             position: "relative",

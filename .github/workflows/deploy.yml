@@ -14,16 +14,32 @@ jobs:
     steps:
       - name: Connect to VPS and run deployment commands
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          MOUNT_STACK_CMD: ${{ secrets.MOUNT_STACK_CMD }}
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          envs: MOUNT_STACK_CMD
 
           script: |
             # Navigate to your project directory on the VPS
             # IMPORTANT: Change this path to your actual project path!
             cd /home/github/furvino
+
+            # Ensure STACK mountpoint exists and mount only if not already mounted
+            mkdir -p /home/github/STACK
+            if mountpoint -q /home/github/STACK; then
+              echo "STACK already mounted at /home/github/STACK; skipping mount step."
+            else
+              if [ -n "${MOUNT_STACK_CMD:-}" ]; then
+                echo "STACK not mounted. Mounting using MOUNT_STACK_CMD..."
+                eval "$MOUNT_STACK_CMD"
+              else
+                echo "STACK not mounted and no MOUNT_STACK_CMD provided; continuing without mounting."
+              fi
+            fi
 
             # Pull the latest changes from the main branch
             git pull origin main

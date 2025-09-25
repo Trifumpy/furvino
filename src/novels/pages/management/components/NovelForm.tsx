@@ -238,6 +238,21 @@ export function NovelForm({
                   />
                 )}
               />
+              <Controller
+                name="foregroundTextColorHex"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField
+                    label="Text color"
+                    type="color"
+                    value={field.value ?? "#ffffff"}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    error={!!fieldState?.error?.message}
+                    helperText={fieldState?.error?.message}
+                    sx={{ width: 160 }}
+                  />
+                )}
+              />
             </Stack>
             <TextField
               {...register("snippet")}
