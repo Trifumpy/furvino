@@ -9,11 +9,13 @@ import { PLATFORM_ICONS, PLATFORM_NAMES } from "@/generic/data";
 
 type Props = {
   novel: ListedNovel;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
 };
 
 const BUTTON_HEIGHT = 48;
 
-export function NovelDownloads({ novel }: Props) {
+export function NovelDownloads({ novel, buttonBgColor, buttonTextColor }: Props) {
   const downloads = novel.downloadUrls;
 
   const platformOptions = useMemo(() => {
@@ -54,6 +56,9 @@ export function NovelDownloads({ novel }: Props) {
           borderBottomRightRadius: 0,
           height: BUTTON_HEIGHT,
           textTransform: "none",
+          bgcolor: buttonBgColor,
+          color: buttonTextColor,
+          '&:hover': { bgcolor: buttonBgColor },
         }}
       >
         <Stack direction="row" gap={1} alignItems="center">
@@ -86,6 +91,9 @@ export function NovelDownloads({ novel }: Props) {
           borderBottomLeftRadius: 0,
           height: BUTTON_HEIGHT,
           minWidth: 0,
+          bgcolor: buttonBgColor,
+          color: buttonTextColor,
+          '&:hover': { bgcolor: buttonBgColor },
         }}
       >
         {anchorEl ? <ChevronUpIcon size={24} /> : <ChevronDownIcon size={24} />}

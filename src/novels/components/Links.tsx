@@ -5,9 +5,11 @@ import { SERVICE_ICONS, SERVICE_NAMES } from "@/generic/data";
 
 type Props = StackProps & {
   novel: ListedNovel;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
 };
 
-export function Links({ novel, ...props }: Props) {
+export function Links({ novel, buttonBgColor, buttonTextColor, ...props }: Props) {
   const links = novel.externalUrls;
 
   if (!links) return null;
@@ -17,7 +19,13 @@ export function Links({ novel, ...props }: Props) {
       {EXTERNAL_SITES.map(
         (site) =>
           links[site] && (
-            <LinkButton key={site} href={links[site]} site={site} />
+            <LinkButton
+              key={site}
+              href={links[site]}
+              site={site}
+              buttonBgColor={buttonBgColor}
+              buttonTextColor={buttonTextColor}
+            />
           )
       )}
     </Stack>
@@ -27,9 +35,11 @@ export function Links({ novel, ...props }: Props) {
 type LinkProps = {
   href: string;
   site: ExternalSite;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
 };
 
-function LinkButton({ href, site }: LinkProps) {
+function LinkButton({ href, site, buttonBgColor, buttonTextColor }: LinkProps) {
   if (!href) return null;
 
   const serviceName = SERVICE_NAMES[site];
@@ -42,6 +52,10 @@ function LinkButton({ href, site }: LinkProps) {
         rel="noopener noreferrer"
         target="_blank"
         href={href}
+        sx={buttonBgColor
+          ? { bgcolor: buttonBgColor, color: buttonTextColor, borderRadius: 2, '&:hover': { bgcolor: buttonBgColor } }
+          : { color: 'inherit', borderRadius: 2 }
+        }
       >
         <Icon size={32} />
       </IconButton>

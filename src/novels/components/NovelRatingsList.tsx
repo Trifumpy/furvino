@@ -86,7 +86,9 @@ export function NovelRatingsList() {
                 max={5}
                 size="small"
                 precision={0.1}
-                sx={{ mt: { xs: 0, sm: 0 } }}
+                sx={{
+                  mt: { xs: 0, sm: 0 },
+                }}
               />
             </Stack>
           ))}
@@ -107,7 +109,7 @@ export function NovelRatingsList() {
           <Stack sx={{ flex: 1 }} gap={0.5}>
             <Stack direction="row" gap={1} alignItems="center">
               <Typography variant="subtitle2">{r.user.username}</Typography>
-              <Typography variant="caption" color="text.secondary">{new Date(r.updatedAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</Typography>
+              <Typography variant="caption">{new Date(r.updatedAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</Typography>
             </Stack>
             {/* Per-user overall value removed from display */}
             <Stack gap={0.25}>
@@ -127,7 +129,9 @@ export function NovelRatingsList() {
                     max={5}
                     size="small"
                     precision={0.1}
-                    sx={{ mt: { xs: 0, sm: 0 } }}
+                  sx={{
+                    mt: { xs: 0, sm: 0 },
+                  }}
                   />
                 </Stack>
               ))}
@@ -168,7 +172,7 @@ export function NovelRatingsList() {
                 <Stack sx={{ flex: 1 }} gap={0.5}>
                   <Stack direction="row" gap={1} alignItems="center">
                     <Typography variant="subtitle2">{r.user.username}</Typography>
-                    <Typography variant="caption" color="text.secondary">{new Date(r.updatedAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</Typography>
+                    <Typography variant="caption">{new Date(r.updatedAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</Typography>
                   </Stack>
                   {/* Per-user overall value removed in modal */}
                   <Stack gap={0.25}>
@@ -188,7 +192,9 @@ export function NovelRatingsList() {
                           max={5}
                           size="small"
                           precision={0.1}
-                          sx={{ mt: { xs: 0, sm: 0 } }}
+                          sx={{
+                            mt: { xs: 0, sm: 0 },
+                          }}
                         />
                       </Stack>
                     ))}

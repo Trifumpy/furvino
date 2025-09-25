@@ -59,13 +59,66 @@ export function NovelDetailsPage() {
   }
 
   const description = novel.snippet;
+  const pageBackgroundUrl = (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || undefined;
+  const foregroundOpacityPercent = (novel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95;
+  const foregroundColorHex = (novel as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || "#121212";
+  const foregroundTextColorHex = (novel as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || "#ffffff";
   const rich = (novel as unknown as { descriptionRich?: unknown | null }).descriptionRich;
   const hasRich = !!rich;
   const thumbnailUrl = novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL;
 
   return (
     <>
-      <Stack sx={{ py: 4 }} gap={2}>
+      {pageBackgroundUrl && (
+        <Box
+          aria-hidden
+          sx={{
+            position: "fixed",
+            inset: 0,
+            zIndex: -1,
+            backgroundImage: `url(${pageBackgroundUrl})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      )}
+      {pageBackgroundUrl && (
+        <Box
+          aria-hidden
+          sx={{
+            position: "fixed",
+            inset: 0,
+            zIndex: -1,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)",
+          }}
+        />
+      )}
+      <Box sx={{ minHeight: "100dvh", color: foregroundTextColorHex }}>
+        <Box
+          sx={{
+            position: "relative",
+            mx: { xs: 0, md: "auto" },
+            width: { xs: "100%", md: "auto" },
+            maxWidth: { xs: "100%", md: 1200 },
+            minHeight: "100dvh",
+            borderRadius: { xs: 2, md: 2 },
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            aria-hidden
+            sx={{
+              position: "absolute",
+              inset: 0,
+              bgcolor: foregroundColorHex,
+              opacity: Math.max(0, Math.min(100, foregroundOpacityPercent)) / 100,
+            }}
+          />
+          <Box sx={{ position: "relative", px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+            <Stack sx={{ py: 4 }} gap={2}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           gap={4}
@@ -84,15 +137,29 @@ export function NovelDetailsPage() {
                 </IconButton>
               )}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
+            <Typography variant="subtitle1">
               by {" "}
-              <Link href={`/authors/${novel.author.id}`}>{novel.author.name}</Link>
+              <Link href={`/authors/${novel.author.id}`} style={{ color: 'inherit' }}>
+                {novel.author.name}
+              </Link>
             </Typography>
-            <NovelDownloads novel={novel} />
-            <Links novel={novel} />
+            <NovelDownloads
+              novel={novel}
+              buttonBgColor={foregroundColorHex}
+              buttonTextColor={foregroundTextColorHex}
+            />
+            <Links
+              novel={novel}
+              buttonBgColor={foregroundColorHex}
+              buttonTextColor={foregroundTextColorHex}
+            />
             {user && (
               <Stack direction="row" gap={2}>
-                <Button variant="outlined" onClick={() => setIsOpen(true)}>
+                <Button
+                  variant="contained"
+                  onClick={() => setIsOpen(true)}
+                  sx={{ bgcolor: foregroundColorHex, color: foregroundTextColorHex, '&:hover': { bgcolor: foregroundColorHex } }}
+                >
                   Add to collection
                 </Button>
               </Stack>
@@ -113,118 +180,131 @@ export function NovelDetailsPage() {
               }}
             />
           </Box>
-        </Stack>
-        <NovelTags tags={novel.tags} chipSize="medium" />
-      </Stack>
-      {hasRich ? (
-        <Box sx={{ color: 'text.primary' }}>
-          <SanitizedHtml html={JSONToHtml(rich)} />
-        </Box>
-      ) : description ? (
-        description.split("\n").map((paragraph) => (
-          <Typography
-            key={paragraph}
-            variant="body1"
-            color="text.secondary"
-            sx={{ mb: 2 }}
-          >
-            {paragraph}
-          </Typography>
-        ))
-      ) : (
-        <Typography variant="body1" color="text.secondary" fontStyle="italic">
-          No description available.
-        </Typography>
-      )}
-      {Array.isArray((novel as unknown as { indexingTags?: string[] }).indexingTags) &&
-        (novel as unknown as { indexingTags?: string[] }).indexingTags!.length > 0 && (
-        <Box my={2}>
-          <NovelTags tags={(novel as unknown as { indexingTags: string[] }).indexingTags} chipSize="small" />
-        </Box>
-      )}
-      <Box my={4}>
-        <NovelGallery />
-      </Box>
-      <Box my={4}>
-        <NovelRatings />
-      </Box>
-      <Box my={2}>
-        <NovelRatingsList />
-      </Box>
-      <Box my={4}>
-        <NovelComments />
-      </Box>
-      {user && (
-        <Modal
-          isOpen={isOpen}
-          close={() => setIsOpen(false)}
-          onSubmit={async () => {
-            let collectionId = selectedCollection?.id;
-            if (!collectionId && newCollectionName) {
-              const created = await createCollection.mutateAsync({
-                name: newCollectionName,
-                description: newCollectionDescription || undefined,
-              });
-              collectionId = created.id;
-            }
-            if (collectionId) {
-              await addToCollection.mutateAsync({
-                collectionId,
-                novelId: novel.id,
-              });
-              setIsOpen(false);
-              setSelectedCollection(null);
-              setNewCollectionName("");
-              setNewCollectionDescription("");
-            }
-          }}
-        >
-          <ModalTitle>Add to your collection</ModalTitle>
-          <ModalContent>
-            <Stack gap={2}>
-              <Selector<ListedCollection>
-                label="Select a collection"
-                options={(collectionsQuery.data ?? [])
-                  .filter((c) => !c.isFollowing)
-                  .map((c) => ({
-                  label: `${c.name} (${c.itemsCount})`,
-                  value: c,
-                }))}
-                value={selectedCollection}
-                onChange={setSelectedCollection}
-                placeholder="Choose an existing collection"
-              />
-              <Typography variant="body2" color="text.secondary">
-                Or create a new collection
-              </Typography>
-              <Stack gap={1}>
-                <TextField
-                  label="New collection name"
-                  placeholder="e.g. My favorites"
-                  value={newCollectionName}
-                  onChange={(e) => setNewCollectionName(e.target.value)}
-                  size="small"
-                />
-                <TextField
-                  label="Description (optional)"
-                  placeholder="Short description"
-                  value={newCollectionDescription}
-                  onChange={(e) => setNewCollectionDescription(e.target.value)}
-                  size="small"
-                />
-              </Stack>
             </Stack>
-          </ModalContent>
-          <ModalActions
-            close={() => setIsOpen(false)}
-            submitAction={selectedCollection || newCollectionName ? "Add" : undefined}
-            loading={createCollection.isPending || addToCollection.isPending}
-            cancelColor="error"
-            submitColor="primary"
-            placeCancelAfterSubmit
-          />
-        </Modal>
-      )}
+            <NovelTags
+              tags={novel.tags}
+              chipSize="medium"
+              bgColor={foregroundColorHex}
+              textColor={foregroundTextColorHex}
+            />
+          </Stack>
+          {hasRich ? (
+            <Box sx={{ color: 'text.primary' }}>
+              <SanitizedHtml html={JSONToHtml(rich)} />
+            </Box>
+          ) : description ? (
+            description.split("\n").map((paragraph) => (
+              <Typography
+                key={paragraph}
+                variant="body1"
+                color="text.secondary"
+                sx={{ mb: 2 }}
+              >
+                {paragraph}
+              </Typography>
+            ))
+          ) : (
+            <Typography variant="body1" color="text.secondary" fontStyle="italic">
+              No description available.
+            </Typography>
+          )}
+          {Array.isArray((novel as unknown as { indexingTags?: string[] }).indexingTags) &&
+            (novel as unknown as { indexingTags?: string[] }).indexingTags!.length > 0 && (
+            <Box my={2}>
+              <NovelTags
+                tags={(novel as unknown as { indexingTags: string[] }).indexingTags}
+                chipSize="small"
+                bgColor={foregroundColorHex}
+                textColor={foregroundTextColorHex}
+              />
+            </Box>
+          )}
+          <Box my={4}>
+            <NovelGallery />
+          </Box>
+          <Box my={4}>
+            <NovelRatings buttonBgColor={foregroundColorHex} buttonTextColor={foregroundTextColorHex} />
+          </Box>
+          <Box my={2}>
+            <NovelRatingsList />
+          </Box>
+          <Box my={4}>
+            <NovelComments buttonBgColor={foregroundColorHex} buttonTextColor={foregroundTextColorHex} />
+          </Box>
+          {user && (
+            <Modal
+              isOpen={isOpen}
+              close={() => setIsOpen(false)}
+              onSubmit={async () => {
+                let collectionId = selectedCollection?.id;
+                if (!collectionId && newCollectionName) {
+                  const created = await createCollection.mutateAsync({
+                    name: newCollectionName,
+                    description: newCollectionDescription || undefined,
+                  });
+                  collectionId = created.id;
+                }
+                if (collectionId) {
+                  await addToCollection.mutateAsync({
+                    collectionId,
+                    novelId: novel.id,
+                  });
+                  setIsOpen(false);
+                  setSelectedCollection(null);
+                  setNewCollectionName("");
+                  setNewCollectionDescription("");
+                }
+              }}
+            >
+              <ModalTitle>Add to your collection</ModalTitle>
+              <ModalContent>
+                <Stack gap={2}>
+                  <Selector<ListedCollection>
+                    label="Select a collection"
+                    options={(collectionsQuery.data ?? [])
+                      .filter((c) => !c.isFollowing)
+                      .map((c) => ({
+                      label: `${c.name} (${c.itemsCount})`,
+                      value: c,
+                    }))}
+                    value={selectedCollection}
+                    onChange={setSelectedCollection}
+                    placeholder="Choose an existing collection"
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    Or create a new collection
+                  </Typography>
+                  <Stack gap={1}>
+                    <TextField
+                      label="New collection name"
+                      placeholder="e.g. My favorites"
+                      value={newCollectionName}
+                      onChange={(e) => setNewCollectionName(e.target.value)}
+                      size="small"
+                    />
+                    <TextField
+                      label="Description (optional)"
+                      placeholder="Short description"
+                      value={newCollectionDescription}
+                      onChange={(e) => setNewCollectionDescription(e.target.value)}
+                      size="small"
+                    />
+                  </Stack>
+                </Stack>
+              </ModalContent>
+              <ModalActions
+                close={() => setIsOpen(false)}
+                submitAction={selectedCollection || newCollectionName ? "Add" : undefined}
+                loading={createCollection.isPending || addToCollection.isPending}
+                cancelColor="error"
+                submitColor="primary"
+                placeCancelAfterSubmit
+              />
+            </Modal>
+          )}
+          </Box>
+        </Box>
+      </Box>
     </>
   );
 }

@@ -28,7 +28,7 @@ const CATEGORIES = [
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
 const LABEL_MIN_WIDTH = 260;
 
-export function NovelRatings() {
+export function NovelRatings({ buttonBgColor, buttonTextColor }: { buttonBgColor?: string; buttonTextColor?: string }) {
   const { novel } = useNovel();
   const { user } = useUser();
   const { novels } = useRegistry();
@@ -118,7 +118,7 @@ export function NovelRatings() {
       >
         <Typography variant="h6">Ratings</Typography>
         <Stack direction="row" gap={1} alignItems="center">
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption">
             Avg: {(summary.data?.average ?? 0).toFixed(2)} (
             {summary.data?.total ?? 0})
           </Typography>
@@ -132,6 +132,8 @@ export function NovelRatings() {
                 value={roundedTenth}
                 precision={0.1}
                 max={5}
+                sx={{
+                }}
               />
             );
           })()}
@@ -140,6 +142,7 @@ export function NovelRatings() {
               variant="contained"
               size="small"
               onClick={() => setIsOpen(true)}
+              sx={{ bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
             >
               {summary.data?.mine ? "Edit rating" : "Rate this novel"}
             </Button>
@@ -191,7 +194,9 @@ export function NovelRatings() {
                     setCategories((prev) => ({ ...prev, [c.key]: v }))
                   }
                   max={5}
-                  sx={{ mt: { xs: 0, sm: 0 } }}
+                  sx={{
+                    mt: { xs: 0, sm: 0 },
+                  }}
                 />
               </Stack>
             ))}

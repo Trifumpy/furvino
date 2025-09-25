@@ -10,13 +10,13 @@ import { useState } from "react";
 
 const MAX_COMMENT_LENGTH = 500;
 
-function ReplyBox({ onSubmit }: { parentId: string; onSubmit: (text: string) => void }) {
+function ReplyBox({ onSubmit, buttonBgColor, buttonTextColor }: { parentId: string; onSubmit: (text: string) => void; buttonBgColor?: string; buttonTextColor?: string }) {
   const [value, setValue] = useState("");
   return (
-    <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "center" }} mt={1}>
+    <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "flex-start" }} mt={1}>
       <TextField
         fullWidth
-        placeholder="Write a reply..."
+        label="Reply"
         value={value}
         onChange={(e) => setValue(e.target.value.slice(0, MAX_COMMENT_LENGTH))}
         size="small"
@@ -24,7 +24,9 @@ function ReplyBox({ onSubmit }: { parentId: string; onSubmit: (text: string) => 
         helperText={`${value.length}/${MAX_COMMENT_LENGTH}`}
       />
       <Button
-        variant="outlined"
+        variant="contained"
+        size="small"
+        sx={{ height: 40, alignSelf: { sm: 'flex-start' }, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
         disabled={!value.trim()}
         onClick={() => {
           const text = value.trim();
@@ -39,7 +41,7 @@ function ReplyBox({ onSubmit }: { parentId: string; onSubmit: (text: string) => 
   );
 }
 
-export function NovelComments() {
+export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColor?: string; buttonTextColor?: string }) {
   const { novel } = useNovel();
   const { user } = useUser();
   const { novels } = useRegistry();
@@ -88,10 +90,10 @@ export function NovelComments() {
     <Stack gap={2}>
       <Typography variant="h6">Comments</Typography>
       {user && (
-        <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "center" }}>
+        <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "flex-start" }}>
           <TextField
             fullWidth
-            placeholder="Add a comment..."
+            label="Add a comment"
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_COMMENT_LENGTH))}
             size="small"
@@ -100,6 +102,8 @@ export function NovelComments() {
           />
           <Button
             variant="contained"
+            size="small"
+            sx={{ height: 40, alignSelf: { sm: 'flex-start' }, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
             disabled={!text.trim() || addComment.isPending}
             onClick={() => addComment.mutate({ novelId: novel.id, text: text.trim() })}
           >
@@ -134,7 +138,7 @@ export function NovelComments() {
                     <Typography variant="subtitle2">{c.user.username}</Typography>
                     {isAuthor && <Chip label="Author" size="small" color="secondary" />}
                   </Stack>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
+                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                     {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                   </Typography>
                 </Stack>
@@ -163,6 +167,8 @@ export function NovelComments() {
                 {user && replyOpenForId === c.id && (
                   <Box sx={{ ml: { xs: -7, sm: 0 } }}>
                     <ReplyBox
+                      buttonBgColor={buttonBgColor}
+                      buttonTextColor={buttonTextColor}
                       parentId={c.id}
                       onSubmit={(replyText) => {
                         addComment.mutate({ novelId: novel.id, text: replyText, parentId: c.id });
@@ -194,7 +200,7 @@ export function NovelComments() {
                                 <Typography variant="subtitle2">{r.user.username}</Typography>
                                 {rIsAuthor && <Chip label="Author" size="small" color="secondary" />}
                               </Stack>
-                              <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
+                              <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                                 {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                               </Typography>
                             </Stack>
@@ -262,7 +268,7 @@ export function NovelComments() {
                         <Typography variant="subtitle2">{c.user.username}</Typography>
                         {isAuthor && <Chip label="Author" size="small" color="secondary" />} 
                       </Stack>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
+                      <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                         {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                       </Typography>
                     </Stack>
@@ -291,6 +297,8 @@ export function NovelComments() {
                     {user && replyOpenForIdAll === c.id && (
                       <Box sx={{ ml: { xs: -7, sm: 0 } }}>
                         <ReplyBox
+                          buttonBgColor={buttonBgColor}
+                          buttonTextColor={buttonTextColor}
                           parentId={c.id}
                           onSubmit={(replyText) => {
                             addComment.mutate({ novelId: novel.id, text: replyText, parentId: c.id });
@@ -318,7 +326,7 @@ export function NovelComments() {
                               <Stack gap={0.5} sx={{ flex: 1 }}>
                                 <Stack direction={{ xs: "column", sm: "row" }} gap={{ xs: 0, sm: 1 }} alignItems={{ xs: "flex-start", sm: "center" }}>
                                   <Typography variant="subtitle2">{r.user.username}</Typography>
-                                  <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 0.25, sm: 0 } }}>
+                                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
                                     {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
                                   </Typography>
                                 </Stack>

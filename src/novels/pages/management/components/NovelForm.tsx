@@ -313,21 +313,6 @@ export function NovelForm({
               )}
             />
             <Controller
-              name="foregroundColorHex"
-              control={control}
-              render={({ field, fieldState }) => (
-                <TextField
-                  label="Foreground color"
-                  type="color"
-                  value={field.value ?? "#121212"}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  error={!!fieldState?.error?.message}
-                  helperText={fieldState?.error?.message}
-                  sx={{ width: 160 }}
-                />
-              )}
-            />
-            <Controller
               name="externalUrls"
               control={control}
               render={({ field }) => (

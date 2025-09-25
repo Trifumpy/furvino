@@ -28,67 +28,11 @@ export async function generateMetadata(
 
 export default async function Layout({ children, params }: Props) {
   const { novelId } = await params;
-  const raw = await ensureGetNovel(novelId);
-  const pageBackgroundUrl = (raw as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || undefined;
-  const foregroundOpacityPercent = (raw as unknown as { foregroundOpacityPercent?: number }).foregroundOpacityPercent ?? 95;
-  const foregroundColorHex = (raw as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || "#121212";
-  const foregroundTextColorHex = (raw as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || "#ffffff";
+  await ensureGetNovel(novelId);
 
   return (
     <NovelProvider novelId={novelId}>
-      {pageBackgroundUrl && (
-        <Box
-          aria-hidden
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: -1,
-            backgroundImage: `url(${pageBackgroundUrl})`,
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-      )}
-      {pageBackgroundUrl && (
-        <Box
-          aria-hidden
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: -1,
-            pointerEvents: "none",
-            background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)",
-          }}
-        />
-      )}
-      <Box sx={{ minHeight: "100dvh", color: foregroundTextColorHex }}>
-        <Box
-          sx={{
-            position: "relative",
-            mx: { xs: 0, md: "auto" },
-            width: { xs: "100%", md: "auto" },
-            maxWidth: { xs: "100%", md: 1200 },
-            minHeight: "100dvh",
-            borderRadius: { xs: 2, md: 2 },
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            aria-hidden
-            sx={{
-              position: "absolute",
-              inset: 0,
-            bgcolor: foregroundColorHex,
-              opacity: Math.max(0, Math.min(100, foregroundOpacityPercent)) / 100,
-            }}
-          />
-          <Box sx={{ position: "relative", px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
-            {children}
-          </Box>
-        </Box>
-      </Box>
+      {children}
     </NovelProvider>
   );
 }

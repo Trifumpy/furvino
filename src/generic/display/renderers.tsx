@@ -9,7 +9,7 @@ type RichRendererProps = {
 
 export function SanitizedHtml({ html }: RichRendererProps) {
   const safe = sanitizeHtmlAllowlist(html);
-  return <Box sx={{ color: 'text.secondary' }} dangerouslySetInnerHTML={{ __html: safe }} />;
+  return <Box sx={{ color: 'text.primary' }} dangerouslySetInnerHTML={{ __html: safe }} />;
 }
 
 
