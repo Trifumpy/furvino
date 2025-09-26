@@ -42,19 +42,39 @@ export async function createDirectory(auth: StackAuth, parentID: number, name: s
   return data.id;
 }
 
-export async function uploadFile(auth: StackAuth, parentID: number, filename: string, content: Buffer): Promise<number> {
+export async function uploadFile(
+  auth: StackAuth,
+  parentID: number,
+  filename: string,
+  content: ArrayBuffer | Uint8Array | Blob
+): Promise<number> {
+  let body: BodyInit;
+  let byteSize: number;
+
+  if (content instanceof Blob) {
+    body = content;
+    byteSize = content.size;
+  } else if (content instanceof Uint8Array) {
+    // TypedArray is valid BodyInit in fetch
+    body = content;
+    byteSize = content.byteLength;
+  } else {
+    // ArrayBuffer
+    body = content as ArrayBuffer;
+    byteSize = (content as ArrayBuffer).byteLength;
+  }
+
   const resp = await fetch(`${auth.baseUrl}/upload`, {
     method: "POST",
     headers: {
       "x-sessiontoken": auth.sessionToken,
-      "x-filebytesize": content.length.toString(),
+      "x-filebytesize": byteSize.toString(),
       "x-parentid": parentID.toString(),
       "x-filename": Buffer.from(filename).toString("base64"),
       "x-overwrite": "false",
       "Content-Type": "application/octet-stream",
-      "Content-Length": String(content.byteLength),
     },
-    body: new Uint8Array(content.buffer, content.byteOffset, content.byteLength).slice().buffer,
+    body,
   });
   if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
   const idHeader = resp.headers.get("x-id");
