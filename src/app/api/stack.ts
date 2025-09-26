@@ -71,8 +71,12 @@ export class StackService {
         "Content-Type": "application/octet-stream",
         // Leave Content-Length to be set by the runtime
       },
-      // Use Blob for BodyInit to satisfy TS in web fetch types
-      body: new Blob([content], { type: "application/octet-stream" }),
+      // Convert Node Buffer to a fresh Uint8Array copy to avoid SAB issues
+      body: (() => {
+        const copy = new Uint8Array(content.byteLength);
+        copy.set(new Uint8Array(content.buffer, content.byteOffset, content.byteLength));
+        return new Blob([copy], { type: "application/octet-stream" });
+      })(),
     });
     if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
     const idHeader = resp.headers.get("x-id");
@@ -118,7 +122,11 @@ export class StackService {
         "Content-Type": "application/octet-stream",
         // Let runtime compute Content-Length
       },
-      body: new Blob([chunk], { type: "application/octet-stream" }),
+      body: (() => {
+        const copy = new Uint8Array(chunk.byteLength);
+        copy.set(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength));
+        return new Blob([copy], { type: "application/octet-stream" });
+      })(),
     });
     if (resp.status !== 201) {
       const text = await resp.text().catch(() => "");

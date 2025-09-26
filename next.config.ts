@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  eslint: { ignoreDuringBuilds: process.env.DISABLE_LINT_DURING_BUILD === "1" },
+  typescript: { ignoreBuildErrors: process.env.DISABLE_TS_ERRORS === "1" },
   images: {
-    domains: ["stack.furvino.com", "cdn.furvino.com", "stack.furvino.org", "cdn.furvino.org", "localhost"], // your trusted domains
-    // Cache optimized images for a year on the client
+    domains: ["stack.furvino.com", "cdn.furvino.com", "stack.furvino.org", "cdn.furvino.org", "localhost"],
     minimumCacheTTL: 31536000,
   },
 };

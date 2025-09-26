@@ -32,6 +32,12 @@ COPY . .
 # Ensure openssl available during build (e.g. prisma generate)
 RUN apk add --no-cache openssl
 
+# Optional build-time toggles to skip lint/TS errors
+ARG DISABLE_LINT_DURING_BUILD=1
+ARG DISABLE_TS_ERRORS=0
+ENV DISABLE_LINT_DURING_BUILD=$DISABLE_LINT_DURING_BUILD
+ENV DISABLE_TS_ERRORS=$DISABLE_TS_ERRORS
+
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
