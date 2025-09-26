@@ -51,8 +51,10 @@ export async function uploadFile(auth: StackAuth, parentID: number, filename: st
       "x-parentid": parentID.toString(),
       "x-filename": Buffer.from(filename).toString("base64"),
       "x-overwrite": "false",
+      "Content-Type": "application/octet-stream",
+      "Content-Length": String(content.byteLength),
     },
-    body: content,
+    body: new Uint8Array(content.buffer, content.byteOffset, content.byteLength).slice().buffer,
   });
   if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
   const idHeader = resp.headers.get("x-id");
