@@ -103,6 +103,29 @@ export function NovelDownloads({ novel, buttonBgColor, buttonTextColor }: Props)
         anchorEl={anchorEl}
         open={Boolean(anchorEl) && hasAlternatives}
         onClose={() => setAnchorEl(null)}
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: buttonBgColor,
+              color: buttonTextColor,
+              border: '1px solid',
+              borderColor: buttonBgColor,
+              outline: 'none',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              '&::before, &::after': { display: 'none' },
+              '& .MuiMenuItem-root': {
+                color: buttonTextColor,
+              },
+            },
+          },
+          list: {
+            sx: {
+              p: 0,
+              bgcolor: buttonBgColor,
+              color: buttonTextColor,
+            },
+          },
+        }}
       >
         {alternativePlatforms.map((platform) => {
           const Icon = PLATFORM_ICONS[platform];
@@ -117,6 +140,10 @@ export function NovelDownloads({ novel, buttonBgColor, buttonTextColor }: Props)
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                bgcolor: buttonBgColor,
+                color: buttonTextColor,
+                '&:hover': { bgcolor: buttonBgColor },
+                border: 'none',
               }}
             >
               <Icon size={24} />
