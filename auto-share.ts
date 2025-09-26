@@ -134,14 +134,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
   const fileSize = fileContent.length;
   const base64Filename = Buffer.from(filename).toString('base64');
 
-  // Prepare a typed ArrayBufferView from the Node Buffer for fetch BodyInit
-  // Build a copy to ensure an ArrayBuffer (not SharedArrayBuffer) for BodyInit
-  const view = new Uint8Array(
-    fileContent.buffer,
-    fileContent.byteOffset,
-    fileContent.byteLength
-  );
-  const body: ArrayBuffer = view.slice().buffer;
+  // Prepare Blob as BodyInit for fetch; copy into a plain Uint8Array first
+  const viewCopy = new Uint8Array(fileContent.byteLength);
+  viewCopy.set(new Uint8Array(fileContent.buffer, fileContent.byteOffset, fileContent.byteLength));
+  const body = new Blob([viewCopy], { type: 'application/octet-stream' });
 
   const uploadResponse = await fetch(`${baseUrl}/upload`, {
     method: 'POST',
@@ -152,7 +148,7 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
       'x-filename': base64Filename,
       'x-overwrite': 'false',
       'Content-Type': 'application/octet-stream',
-      'Content-Length': String(view.byteLength),
+      // Let runtime compute Content-Length
     },
     body,
   });

@@ -48,20 +48,19 @@ export async function uploadFile(
   filename: string,
   content: ArrayBuffer | Uint8Array | Blob
 ): Promise<number> {
-  let body: BodyInit;
+  let body: Blob;
   let byteSize: number;
 
   if (content instanceof Blob) {
     body = content;
     byteSize = content.size;
   } else if (content instanceof Uint8Array) {
-    // TypedArray is valid BodyInit in fetch
-    body = content;
+    body = new Blob([content], { type: "application/octet-stream" });
     byteSize = content.byteLength;
   } else {
-    // ArrayBuffer
-    body = content as ArrayBuffer;
-    byteSize = (content as ArrayBuffer).byteLength;
+    const ab = content as ArrayBuffer;
+    body = new Blob([ab], { type: "application/octet-stream" });
+    byteSize = ab.byteLength;
   }
 
   const resp = await fetch(`${auth.baseUrl}/upload`, {

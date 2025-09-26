@@ -69,10 +69,10 @@ export class StackService {
         "x-filename": Buffer.from(filename).toString("base64"),
         "x-overwrite": "true",
         "Content-Type": "application/octet-stream",
-        "Content-Length": String(content.byteLength),
+        // Leave Content-Length to be set by the runtime
       },
-      // Convert Node Buffer to ArrayBuffer for Web Fetch BodyInit
-      body: new Uint8Array(content.buffer, content.byteOffset, content.byteLength).slice().buffer,
+      // Use Blob for BodyInit to satisfy TS in web fetch types
+      body: new Blob([content], { type: "application/octet-stream" }),
     });
     if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
     const idHeader = resp.headers.get("x-id");
@@ -116,9 +116,9 @@ export class StackService {
         "x-sessionid": sessionId,
         "x-startoffset": startOffset.toString(),
         "Content-Type": "application/octet-stream",
-        "Content-Length": String(chunk.byteLength),
+        // Let runtime compute Content-Length
       },
-      body: new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength).slice().buffer,
+      body: new Blob([chunk], { type: "application/octet-stream" }),
     });
     if (resp.status !== 201) {
       const text = await resp.text().catch(() => "");
