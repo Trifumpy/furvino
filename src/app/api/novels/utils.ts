@@ -336,6 +336,7 @@ export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
     foregroundOpacityPercent: (data as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95,
     foregroundColorHex: (data as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || null,
     foregroundTextColorHex: (data as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || null,
+    buttonBgColorHex: (data as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex || null,
     galleryItems: galleryItems?.map(enrichGalleryItem) || [],
     createdAt: data.createdAt.toISOString(),
     updatedAt: data.updatedAt.toISOString(),
@@ -530,6 +531,7 @@ export async function updateNovelAndEnrich(
     foregroundOpacityPercent?: number | null;
     foregroundColorHex?: string | null;
     foregroundTextColorHex?: string | null;
+    buttonBgColorHex?: string | null;
     tags?: string[];
     indexingTags?: string[];
     externalUrls?: Record<string, string>;
@@ -545,6 +547,8 @@ export async function updateNovelAndEnrich(
       thumbnailUrl: data.thumbnailUrl,
       pageBackgroundUrl: (data as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl,
       foregroundColorHex: (data as unknown as { foregroundColorHex?: string | null }).foregroundColorHex,
+      foregroundTextColorHex: (data as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex,
+      buttonBgColorHex: (data as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex,
       tags: (data as unknown as { tags?: string[] }).tags,
       indexingTags: (data as unknown as { indexingTags?: string[] }).indexingTags,
       externalUrls: (data as unknown as { externalUrls?: object }).externalUrls as unknown as Prisma.InputJsonValue,

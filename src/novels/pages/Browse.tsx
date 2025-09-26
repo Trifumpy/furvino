@@ -27,7 +27,7 @@ export function BrowsePage() {
     <>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Find Your Next Furry Visual Novel
+          
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "flex-start" }}>
           <Box sx={{ flex: 1 }}>

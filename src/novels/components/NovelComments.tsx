@@ -22,6 +22,11 @@ function ReplyBox({ onSubmit, buttonBgColor, buttonTextColor }: { parentId: stri
         size="small"
         inputProps={{ maxLength: MAX_COMMENT_LENGTH }}
         helperText={`${value.length}/${MAX_COMMENT_LENGTH}`}
+        sx={{
+          '& .MuiFormHelperText-root': {
+            color: buttonTextColor,
+          },
+        }}
       />
       <Button
         variant="contained"
@@ -99,6 +104,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
             size="small"
             inputProps={{ maxLength: MAX_COMMENT_LENGTH }}
             helperText={`${text.length}/${MAX_COMMENT_LENGTH}`}
+            sx={{
+              '& .MuiFormHelperText-root': {
+                color: buttonTextColor,
+              },
+            }}
           />
           <Button
             variant="contained"
@@ -147,7 +157,8 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                   <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -7, sm: 0 } }}>
                     <Button
                       size="small"
-                      variant="text"
+                      variant="contained"
+                      sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                       onClick={() => setReplyOpenForId((prev) => (prev === c.id ? null : c.id))}
                     >
                       {replyOpenForId === c.id ? "Cancel" : "Reply"}
@@ -155,7 +166,8 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                     {canDelete && (
                       <Button
                         size="small"
-                        color="error"
+                        variant="contained"
+                        sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                         onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
                         disabled={deleteComment.isPending}
                       >
@@ -209,7 +221,8 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                               <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -6, sm: 0 } }}>
                                 <Button
                                   size="small"
-                                  variant="text"
+                                  variant="contained"
+                                  sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                                   onClick={() => setReplyOpenForId((prev) => (prev === c.id ? null : c.id))}
                                 >
                                   {replyOpenForId === c.id ? "Cancel" : "Reply"}
@@ -217,7 +230,8 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                                 {rCanDelete && (
                                   <Button
                                     size="small"
-                                    color="error"
+                                    variant="contained"
+                                    sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                                     onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: r.id })}
                                     disabled={deleteComment.isPending}
                                   >
@@ -276,16 +290,18 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                     {user && (
                       <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -7, sm: 0 } }}>
                         <Button
-                          size="small"
-                          variant="text"
+                            size="small"
+                            variant="contained"
+                            sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                           onClick={() => setReplyOpenForIdAll((prev) => (prev === c.id ? null : c.id))}
                         >
                           {replyOpenForIdAll === c.id ? "Cancel" : "Reply"}
                         </Button>
                         {canDelete && (
                           <Button
-                            size="small"
-                            color="error"
+                              size="small"
+                              variant="contained"
+                              sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                             onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
                             disabled={deleteComment.isPending}
                           >
@@ -335,7 +351,8 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                                   <Stack direction="row" gap={1} alignItems="center" mt={0.5} sx={{ ml: { xs: -6, sm: 0 } }}>
                                     <Button
                                       size="small"
-                                      color="error"
+                                      variant="contained"
+                                      sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
                                       onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: r.id })}
                                       disabled={deleteComment.isPending}
                                     >

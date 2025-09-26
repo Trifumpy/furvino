@@ -102,9 +102,7 @@ export function NovelGallery({ editable = false }: Props) {
             </IconButton>
           </label>
         )}
-        <Typography variant="body2" color="text.secondary" ml="auto">
-          {novel.galleryItems?.length ?? 0}/{MAX_GALLERY_ITEMS}
-        </Typography>
+        
       </Stack>
       {sortedItems.length ? (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -224,18 +222,20 @@ export function NovelGallery({ editable = false }: Props) {
             <XIcon />
           </IconButton>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={previewUrl ?? ""}
-            alt="Gallery image"
-            style={{
-              width: "100%",
-              height: "100%",
-              maxWidth: "100vw",
-              maxHeight: "100vh",
-              objectFit: "contain",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Gallery image"
+              style={{
+                width: "100%",
+                height: "100%",
+                maxWidth: "100vw",
+                maxHeight: "100vh",
+                objectFit: "contain",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
         </ModalContent>
       </Modal>
     </Stack>

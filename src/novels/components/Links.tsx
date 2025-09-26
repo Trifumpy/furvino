@@ -53,8 +53,8 @@ function LinkButton({ href, site, buttonBgColor, buttonTextColor }: LinkProps) {
         target="_blank"
         href={href}
         sx={buttonBgColor
-          ? { bgcolor: buttonBgColor, color: buttonTextColor, borderRadius: 2, '&:hover': { bgcolor: buttonBgColor } }
-          : { color: 'inherit', borderRadius: 2 }
+          ? { bgcolor: buttonBgColor, color: buttonTextColor, borderRadius: 2, boxShadow: '0 2px 6px rgba(0,0,0,0.25)', '&:hover': { bgcolor: buttonBgColor } }
+          : { color: 'inherit', borderRadius: 2, boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }
         }
       >
         <Icon size={32} />

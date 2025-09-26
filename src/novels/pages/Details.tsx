@@ -15,6 +15,8 @@ import Underline from "@tiptap/extension-underline";
 import { FontSize } from "@/generic/input/extensions/FontSize";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
+import TextAlign from "@tiptap/extension-text-align";
+import { HorizontalRuleEx } from "@/generic/input/extensions/HorizontalRuleEx";
 import Link from "next/link";
 import { PencilIcon } from "lucide-react";
 import { useState } from "react";
@@ -63,6 +65,7 @@ export function NovelDetailsPage() {
   const foregroundOpacityPercent = (novel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95;
   const foregroundColorHex = (novel as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || "#121212";
   const foregroundTextColorHex = (novel as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || "#ffffff";
+  const buttonBgColorHex = (novel as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex || foregroundColorHex;
   const rich = (novel as unknown as { descriptionRich?: unknown | null }).descriptionRich;
   const hasRich = !!rich;
   const thumbnailUrl = novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL;
@@ -143,14 +146,14 @@ export function NovelDetailsPage() {
                 {novel.author.name}
               </Link>
             </Typography>
-            <NovelDownloads
-              novel={novel}
-              buttonBgColor={foregroundColorHex}
-              buttonTextColor={foregroundTextColorHex}
-            />
             <Links
               novel={novel}
-              buttonBgColor={foregroundColorHex}
+              buttonBgColor={buttonBgColorHex}
+              buttonTextColor={foregroundTextColorHex}
+            />
+            <NovelDownloads
+              novel={novel}
+              buttonBgColor={buttonBgColorHex}
               buttonTextColor={foregroundTextColorHex}
             />
             {user && (
@@ -158,7 +161,7 @@ export function NovelDetailsPage() {
                 <Button
                   variant="contained"
                   onClick={() => setIsOpen(true)}
-                  sx={{ bgcolor: foregroundColorHex, color: foregroundTextColorHex, '&:hover': { bgcolor: foregroundColorHex } }}
+                  sx={{ bgcolor: buttonBgColorHex, color: foregroundTextColorHex, '&:hover': { bgcolor: buttonBgColorHex } }}
                 >
                   Add to collection
                 </Button>
@@ -177,30 +180,42 @@ export function NovelDetailsPage() {
                 height: "auto",
                 aspectRatio: "4 / 3",
                 objectFit: "cover",
+                borderRadius: 8,
               }}
             />
           </Box>
             </Stack>
-            <NovelTags
-              tags={novel.tags}
-              chipSize="medium"
-              bgColor={foregroundColorHex}
-              textColor={foregroundTextColorHex}
-            />
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", '& .MuiChip-root': { boxShadow: '0 2px 6px rgba(0,0,0,0.25)' } }}>
+              <NovelTags
+                tags={novel.tags}
+                chipSize="medium"
+                bgColor={buttonBgColorHex}
+                textColor={foregroundTextColorHex}
+              />
+              {Array.isArray((novel as unknown as { indexingTags?: string[] }).indexingTags) &&
+                (novel as unknown as { indexingTags?: string[] }).indexingTags!.length > 0 && (
+                <NovelTags
+                  tags={(novel as unknown as { indexingTags: string[] }).indexingTags}
+                  chipSize="medium"
+                  bgColor={buttonBgColorHex}
+                  textColor={foregroundTextColorHex}
+                />
+              )}
+            </Box>
           </Stack>
           {hasRich ? (
-            <Box sx={{ color: 'text.primary' }}>
+            <Box sx={{ color: 'text.primary', '& p:empty::before': { content: '"\\00A0"' }, '& p:empty': { minHeight: '24px' } }}>
               <SanitizedHtml html={JSONToHtml(rich)} />
             </Box>
           ) : description ? (
-            description.split("\n").map((paragraph) => (
+            description.split("\n").map((paragraph, idx) => (
               <Typography
-                key={paragraph}
+                key={`${idx}-${paragraph}`}
                 variant="body1"
                 color="text.secondary"
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, minHeight: 24 }}
               >
-                {paragraph}
+                {paragraph.trim().length === 0 ? '\u00A0' : paragraph}
               </Typography>
             ))
           ) : (
@@ -208,28 +223,17 @@ export function NovelDetailsPage() {
               No description available.
             </Typography>
           )}
-          {Array.isArray((novel as unknown as { indexingTags?: string[] }).indexingTags) &&
-            (novel as unknown as { indexingTags?: string[] }).indexingTags!.length > 0 && (
-            <Box my={2}>
-              <NovelTags
-                tags={(novel as unknown as { indexingTags: string[] }).indexingTags}
-                chipSize="small"
-                bgColor={foregroundColorHex}
-                textColor={foregroundTextColorHex}
-              />
-            </Box>
-          )}
           <Box my={4}>
             <NovelGallery />
           </Box>
           <Box my={4}>
-            <NovelRatings buttonBgColor={foregroundColorHex} buttonTextColor={foregroundTextColorHex} />
+            <NovelRatings buttonBgColor={buttonBgColorHex} buttonTextColor={foregroundTextColorHex} />
           </Box>
           <Box my={2}>
             <NovelRatingsList />
           </Box>
           <Box my={4}>
-            <NovelComments buttonBgColor={foregroundColorHex} buttonTextColor={foregroundTextColorHex} />
+            <NovelComments buttonBgColor={buttonBgColorHex} buttonTextColor={foregroundTextColorHex} />
           </Box>
           {user && (
             <Modal
@@ -313,16 +317,61 @@ function JSONToHtml(json: unknown): string {
   try {
     if (!json) return "";
     // Use TipTap server-side HTML generator to render a safe subset
-    const html = generateHTML(json as never, [
+    let html = generateHTML(json as never, [
       StarterKit.configure({ heading: { levels: [2,3,4] } }),
       TextStyle,
       FontSize,
       Color.configure({ types: ["textStyle"] }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      HorizontalRuleEx,
       Underline,
       TiptapLink.configure({ protocols: ["http", "https"], HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
     ]);
+    // Safeguard: if hr attributes were dropped, enforce styles based on JSON attrs order
+    const hrStyles: { thickness: number; color: string }[] = [];
+    try {
+      collectHrStyles(json as never, hrStyles);
+      if (hrStyles.length > 0) {
+        let idx = 0;
+        html = html.replace(/<hr\b[^>]*>/g, (match) => {
+          const s = hrStyles[idx++];
+          if (!s) return match;
+          const style = `border: none; border-top: ${Math.max(1, s.thickness || 1)}px solid ${s.color || '#9ca3af'}; margin: 12px 0;`;
+          // Preserve any existing attributes except style
+          const withoutStyle = match.replace(/\sstyle="[^"]*"/i, "");
+          return withoutStyle.replace(/<hr/, `<hr style=\"${style}\"`);
+        });
+      }
+    } catch {}
+    // Preserve visually blank lines: convert <p><br/></p> to <p>&nbsp;</p>
+    html = html.replace(/<p>\s*<br\s*\/?>(\s*)<\/p>/gi, '<p>&nbsp;</p>');
     return html;
   } catch {
     return "";
+  }
+}
+
+type PMNode = {
+  type?: string;
+  attrs?: { thickness?: unknown; color?: unknown };
+  content?: unknown[];
+};
+
+function collectHrStyles(node: unknown, out: { thickness: number; color: string }[]): void {
+  if (!node) return;
+  if (Array.isArray(node)) {
+    for (const n of node) collectHrStyles(n, out);
+    return;
+  }
+  if (typeof node === 'object') {
+    const n = node as PMNode;
+    if (n.type === 'horizontalRule') {
+      const t = Number(n.attrs?.thickness) || 1;
+      const c = typeof n.attrs?.color === 'string' ? (n.attrs?.color as string) : '#9ca3af';
+      out.push({ thickness: t, color: c });
+    }
+    if (Array.isArray(n.content)) {
+      for (const child of n.content) collectHrStyles(child, out);
+    }
   }
 }

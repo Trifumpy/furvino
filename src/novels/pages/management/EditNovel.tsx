@@ -26,6 +26,7 @@ export function EditNovelPage() {
       foregroundColorHex: (novel as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || undefined,
       foregroundOpacityPercent: (novel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95,
       foregroundTextColorHex: (novel as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || undefined,
+      buttonBgColorHex: (novel as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex || undefined,
       externalUrls: pruneEmptyKeys(novel.externalUrls || {}),
       downloadUrls: pruneEmptyKeys(novel.downloadUrls || {}),
       tags: novel.tags || [],

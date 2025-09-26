@@ -62,6 +62,10 @@ export const novelSchema = z.object({
     .string()
     .regex(/^#(?:[0-9a-fA-F]{3}){1,2}$/, "Enter a valid hex color like #ffffff")
     .optional(),
+  buttonBgColorHex: z
+    .string()
+    .regex(/^#(?:[0-9a-fA-F]{3}){1,2}$/, "Enter a valid hex color like #121212")
+    .optional(),
   galleryItems: z.array(galleryItemSchema).max(MAX_GALLERY_ITEMS, `Gallery cannot exceed ${MAX_GALLERY_ITEMS} items`).optional(),
   externalUrls: z.partialRecord(externalSiteEnum, urlOrEmpty).optional(),
   downloadUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
@@ -159,6 +163,7 @@ export type FullNovel = ListedNovel & {
   foregroundOpacityPercent?: number | null;
   foregroundColorHex?: string | null;
   foregroundTextColorHex?: string | null;
+  buttonBgColorHex?: string | null;
   galleryItems: GalleryItem[];
 }
 

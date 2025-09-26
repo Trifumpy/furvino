@@ -39,6 +39,7 @@ model Novel {
   foregroundColorHex  String? @default("#121212")
   foregroundOpacityPercent Int @default(95)
   foregroundTextColorHex String? @default("#FFFFFF")
+  buttonBgColorHex String?
   galleryItems    GalleryItem[]
   tags            String[]
   indexingTags    String[]         @default([])

@@ -34,6 +34,7 @@ export const POST = wrapRoute(async (req, _ctx) => {
     foregroundOpacityPercent: (validatedNovel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95,
     foregroundColorHex: (validatedNovel as unknown as { foregroundColorHex?: string | null }).foregroundColorHex,
     foregroundTextColorHex: (validatedNovel as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex,
+    buttonBgColorHex: (validatedNovel as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex,
     tags: validatedNovel.tags,
     indexingTags: validatedNovel.indexingTags,
     externalUrls: validatedNovel.externalUrls,

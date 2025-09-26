@@ -112,7 +112,7 @@ export function NovelForm({
   };
 
   const textTitle = watch("title");
-  const descriptionRich = watch("descriptionRich");
+  // Note: no need to watch descriptionRich here
   const textSnippet = watch("snippet");
 
   return (
@@ -227,30 +227,87 @@ export function NovelForm({
                 name="foregroundColorHex"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    label="Foreground color"
-                    type="color"
-                    value={field.value ?? "#121212"}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    error={!!fieldState?.error?.message}
-                    helperText={fieldState?.error?.message}
-                    sx={{ width: 160 }}
-                  />
+                  <Stack direction="row" alignItems="center" gap={1} sx={{ width: 360 }}>
+                    <TextField
+                      type="color"
+                      value={field.value ?? "#121212"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      sx={{ width: 56, minWidth: 56 }}
+                    />
+                    <TextField
+                      label="Foreground color (hex)"
+                      placeholder="#121212"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onBlur={(e) => {
+                        let v = (e.target.value || "").trim();
+                        if (v && !v.startsWith("#")) v = `#${v}`;
+                        field.onChange(v);
+                      }}
+                      inputProps={{ inputMode: "text", pattern: "^#?(?:[0-9a-fA-F]{3}){1,2}$" }}
+                      error={!!fieldState?.error?.message}
+                      helperText={fieldState?.error?.message}
+                      sx={{ width: 200 }}
+                    />
+                  </Stack>
                 )}
               />
               <Controller
                 name="foregroundTextColorHex"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    label="Text color"
-                    type="color"
-                    value={field.value ?? "#ffffff"}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    error={!!fieldState?.error?.message}
-                    helperText={fieldState?.error?.message}
-                    sx={{ width: 160 }}
-                  />
+                  <Stack direction="row" alignItems="center" gap={1} sx={{ width: 360 }}>
+                    <TextField
+                      type="color"
+                      value={field.value ?? "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      sx={{ width: 56, minWidth: 56 }}
+                    />
+                    <TextField
+                      label="Text color (hex)"
+                      placeholder="#ffffff"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onBlur={(e) => {
+                        let v = (e.target.value || "").trim();
+                        if (v && !v.startsWith("#")) v = `#${v}`;
+                        field.onChange(v);
+                      }}
+                      inputProps={{ inputMode: "text", pattern: "^#?(?:[0-9a-fA-F]{3}){1,2}$" }}
+                      error={!!fieldState?.error?.message}
+                      helperText={fieldState?.error?.message}
+                      sx={{ width: 200 }}
+                    />
+                  </Stack>
+                )}
+              />
+              <Controller
+                name="buttonBgColorHex"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Stack direction="row" alignItems="center" gap={1} sx={{ width: 380 }}>
+                    <TextField
+                      type="color"
+                      value={field.value ?? "#121212"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      sx={{ width: 56, minWidth: 56 }}
+                    />
+                    <TextField
+                      label="Button foreground color (hex)"
+                      placeholder="#121212"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      onBlur={(e) => {
+                        let v = (e.target.value || "").trim();
+                        if (v && !v.startsWith("#")) v = `#${v}`;
+                        field.onChange(v);
+                      }}
+                      inputProps={{ inputMode: "text", pattern: "^#?(?:[0-9a-fA-F]{3}){1,2}$" }}
+                      error={!!fieldState?.error?.message}
+                      helperText={fieldState?.error?.message}
+                      sx={{ width: 220 }}
+                    />
+                  </Stack>
                 )}
               />
             </Stack>
