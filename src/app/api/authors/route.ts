@@ -4,7 +4,7 @@ import { ensureAdmin, getQueryParams, validateRequestBody, wrapRoute } from '../
 import { createAuthorSchema, getAuthorsQuerySchema, GetAuthorsResponse } from '@/contracts/users';
 import prisma from '@/utils/db';
 
-export const GET = wrapRoute(async (req, _ctx) => {
+export const GET = wrapRoute(async (req) => {
   const options = getQueryParams(req, getAuthorsQuerySchema);
   const authors = await getAuthors(options);
   const listed = enrichAuthorsWithUsers(authors);
@@ -13,7 +13,7 @@ export const GET = wrapRoute(async (req, _ctx) => {
   return NextResponse.json(sanitizedAuthors, { status: 200 });
 });
 
-export const POST = wrapRoute(async (req, _ctx) => {
+export const POST = wrapRoute(async (req) => {
   await ensureAdmin();
 
   const data = await validateRequestBody(req, createAuthorSchema);

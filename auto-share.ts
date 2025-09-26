@@ -147,8 +147,10 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
       'x-parentid': currentParentId.toString(),
       'x-filename': base64Filename,
       'x-overwrite': 'false',
+      'Content-Type': 'application/octet-stream',
     },
-    body: fileContent,
+    // Use a Blob to satisfy Web Fetch BodyInit types in Node runtimes
+    body: new Blob([fileContent]),
   });
 
   if (!uploadResponse.ok) {

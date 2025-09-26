@@ -118,7 +118,6 @@ export function NovelGallery({ editable = false }: Props) {
                 },
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.imageUrl}
                 alt={item.footer ?? "Gallery image"}
@@ -221,7 +220,6 @@ export function NovelGallery({ editable = false }: Props) {
           >
             <XIcon />
           </IconButton>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           {previewUrl && (
             <img
               src={previewUrl}
