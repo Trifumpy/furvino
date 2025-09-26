@@ -68,8 +68,11 @@ export class StackService {
         "x-parentid": parentID.toString(),
         "x-filename": Buffer.from(filename).toString("base64"),
         "x-overwrite": "true",
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(content.byteLength),
       },
-      body: content,
+      // Convert Node Buffer to ArrayBuffer for Web Fetch BodyInit
+      body: new Uint8Array(content.buffer, content.byteOffset, content.byteLength).slice().buffer,
     });
     if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
     const idHeader = resp.headers.get("x-id");
@@ -112,8 +115,10 @@ export class StackService {
         "x-sessiontoken": sessionToken,
         "x-sessionid": sessionId,
         "x-startoffset": startOffset.toString(),
+        "Content-Type": "application/octet-stream",
+        "Content-Length": String(chunk.byteLength),
       },
-      body: chunk,
+      body: new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength).slice().buffer,
     });
     if (resp.status !== 201) {
       const text = await resp.text().catch(() => "");
