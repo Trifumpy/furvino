@@ -55,7 +55,10 @@ export async function uploadFile(
     body = content;
     byteSize = content.size;
   } else if (content instanceof Uint8Array) {
-    body = new Blob([content], { type: "application/octet-stream" });
+    // Create a copy to ensure it's backed by ArrayBuffer, not SharedArrayBuffer
+    const copy = new Uint8Array(content.byteLength);
+    copy.set(content);
+    body = new Blob([copy], { type: "application/octet-stream" });
     byteSize = content.byteLength;
   } else {
     const ab = content as ArrayBuffer;
