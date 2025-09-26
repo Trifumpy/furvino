@@ -11,10 +11,7 @@ interface ApiResponse {
   error?: string;
 }
 
-interface AuthResponseHeaders {
-  'x-sessiontoken'?: string;
-  'x-2fa-required'?: string;
-}
+//
 
 interface MeResponse {
   filesNodeID: number;
@@ -28,9 +25,7 @@ interface CreateDirResponse {
   id: number;
 }
 
-interface UploadResponseHeaders {
-  'x-id'?: string;
-}
+//
 
 interface CreateShareResponse {
   urlToken: string;
@@ -139,6 +134,15 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
   const fileSize = fileContent.length;
   const base64Filename = Buffer.from(filename).toString('base64');
 
+  // Prepare a typed ArrayBufferView from the Node Buffer for fetch BodyInit
+  // Build a copy to ensure an ArrayBuffer (not SharedArrayBuffer) for BodyInit
+  const view = new Uint8Array(
+    fileContent.buffer,
+    fileContent.byteOffset,
+    fileContent.byteLength
+  );
+  const body: ArrayBuffer = view.slice().buffer;
+
   const uploadResponse = await fetch(`${baseUrl}/upload`, {
     method: 'POST',
     headers: {
@@ -148,9 +152,9 @@ export default async function POST(req: NextApiRequest, res: NextApiResponse<Api
       'x-filename': base64Filename,
       'x-overwrite': 'false',
       'Content-Type': 'application/octet-stream',
+      'Content-Length': String(view.byteLength),
     },
-    // Use a Blob to satisfy Web Fetch BodyInit types in Node runtimes
-    body: new Blob([fileContent]),
+    body,
   });
 
   if (!uploadResponse.ok) {
