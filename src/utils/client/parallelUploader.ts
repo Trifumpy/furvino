@@ -76,7 +76,6 @@ async function withRetry<T>(fn: () => Promise<T>, retry: ParallelUploaderOptions
   const base = retry?.backoffMs ?? 500;
   const factor = retry?.backoffFactor ?? 2;
   let attempt = 0;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       return await fn();
@@ -114,7 +113,7 @@ export async function uploadFileInParallel(
   const adaptiveEnabled = concurrency == null && (adaptiveCfg.enabled ?? true);
   const minConc = Math.max(1, adaptiveCfg.min ?? 2);
   const startConc = Math.max(minConc, adaptiveCfg.start ?? DEFAULT_UPLOAD_CONCURRENCY);
-  const maxConc = Math.max(startConc, adaptiveCfg.max ?? Math.max(DEFAULT_UPLOAD_CONCURRENCY, 12));
+  const maxConc = Math.max(startConc, adaptiveCfg.max ?? Math.max(DEFAULT_UPLOAD_CONCURRENCY, 16));
   const rampUpStep = Math.max(1, adaptiveCfg.rampUpStep ?? 1);
   const rampDownStep = Math.max(1, adaptiveCfg.rampDownStep ?? 1);
   const windowParts = Math.max(1, adaptiveCfg.windowParts ?? 10);
@@ -225,6 +224,13 @@ export async function uploadFileInParallel(
   let statsTimer: ReturnType<typeof setInterval> | null = null;
 
   await new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      if (statsTimer) {
+        clearInterval(statsTimer);
+        statsTimer = null;
+      }
+    };
+
     const schedule = () => {
       if (failed) return; // stop scheduling
       while (inFlight < currentAllowed && queue.length > 0) {
@@ -238,10 +244,12 @@ export async function uploadFileInParallel(
           .finally(() => {
             inFlight--;
             if (failed) {
+              cleanup();
               reject(failed);
               return;
             }
             if (uploadedParts >= totalParts) {
+              cleanup();
               resolve();
               return;
             }
@@ -251,6 +259,7 @@ export async function uploadFileInParallel(
       }
       // If nothing to schedule and none in flight and queue empty, complete
       if (inFlight === 0 && queue.length === 0) {
+        cleanup();
         if (failed) reject(failed);
         else resolve();
       }
@@ -263,6 +272,7 @@ export async function uploadFileInParallel(
     if (signal) {
       const onAbort = () => {
         failed = new DOMException("Aborted", "AbortError");
+        cleanup();
         reject(failed);
       };
       if (signal.aborted) onAbort();
