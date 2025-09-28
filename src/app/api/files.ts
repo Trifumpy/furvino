@@ -1,5 +1,6 @@
-import { createReadStream } from "fs";
+import { createReadStream, createWriteStream } from "fs";
 import { writeFile, readFile, mkdir, rm, readdir, stat } from "fs/promises";
+import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 import { NotFoundError } from "./errors";
 import path from "path";
@@ -18,10 +19,12 @@ export async function uploadFileToStack(
 
   await ensureFolderExists(path.dirname(filePath));
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  await writeFile(fullPath, buffer);
-  console.log("Uploading file to:", fullPath);
+  // Stream the incoming file to disk to avoid buffering large files in memory
+  const webReadable = (file as Blob).stream();
+  const nodeReadable = convertWebToNodeReadable(webReadable);
+  const writeStream = createWriteStream(fullPath, { flags: "w" });
+  await pipeline(nodeReadable, writeStream);
+  console.log("Uploaded file to:", fullPath);
 
   return stackPath;
 }
@@ -157,6 +160,35 @@ export function convertReadableToWebStream(readable: Readable): ReadableStream<U
       readable.on("error", (err) => controller.error(err));
     }
   });
+}
+
+// Converts Web ReadableStream -> Node Readable
+export function convertWebToNodeReadable(webStream: ReadableStream): Readable {
+  // Node 18+ provides Readable.fromWeb
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyReadable = Readable as any;
+  if (typeof anyReadable.fromWeb === "function") {
+    return anyReadable.fromWeb(webStream);
+  }
+
+  // Fallback: manual adapter
+  const nodeReadable = new Readable({
+    read() {}
+  });
+  const reader = webStream.getReader();
+  (async () => {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) nodeReadable.push(Buffer.from(value));
+      }
+      nodeReadable.push(null);
+    } catch (err) {
+      nodeReadable.destroy(err as Error);
+    }
+  })();
+  return nodeReadable;
 }
 
 export function getTypedStreamFromPath(filePath: string): TypedFileStream {
