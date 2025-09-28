@@ -23,7 +23,6 @@ export function useUploadNovelFile() {
       const { stackPath } = await uploadFileInParallel(
         { file, targetFolder, filename: file.name },
         {
-          adaptive: { enabled: true, min: 2, start: 8, max: 12, windowParts: 10 },
           partSize: optPartSize,
           onProgress: ({ uploadedBytes, totalBytes }) => {
             const percent = totalBytes > 0 ? Math.round((uploadedBytes / totalBytes) * 100) : 0;

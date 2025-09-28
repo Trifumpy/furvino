@@ -17,17 +17,6 @@ export type ParallelUploaderOptions = {
   signal?: AbortSignal;
   onProgress?: (progress: { uploadedBytes: number; totalBytes: number; uploadedParts: number; totalParts: number }) => void;
   headers?: Record<string, string>; // extra headers for auth, etc.
-  adaptive?: boolean | {
-    enabled?: boolean;
-    min?: number; // minimum allowed concurrency
-    start?: number; // starting concurrency
-    max?: number; // maximum allowed concurrency
-    rampUpStep?: number; // how many to add when increasing
-    rampDownStep?: number; // how many to remove when decreasing
-    windowParts?: number; // evaluate after N parts complete
-    errorRateThreshold?: number; // decrease if retry/error rate exceeds this
-    throttleStatusCodes?: number[]; // treat these as throttle signals (e.g., 429, 503)
-  };
   onStats?: (stats: { allowed: number; inFlight: number; uploadedBytes: number; totalBytes: number; mbps: number }) => void;
 };
 
@@ -104,21 +93,10 @@ export async function uploadFileInParallel(
     signal,
     onProgress,
     headers = {},
-    adaptive,
     onStats,
   } = options;
 
-  // Determine strategy: fixed or adaptive
-  const adaptiveCfg = typeof adaptive === "object" ? adaptive : { enabled: adaptive };
-  const adaptiveEnabled = concurrency == null && (adaptiveCfg.enabled ?? true);
-  const minConc = Math.max(1, adaptiveCfg.min ?? 2);
-  const startConc = Math.max(minConc, adaptiveCfg.start ?? DEFAULT_UPLOAD_CONCURRENCY);
-  const maxConc = Math.max(startConc, adaptiveCfg.max ?? Math.max(DEFAULT_UPLOAD_CONCURRENCY, 16));
-  const rampUpStep = Math.max(1, adaptiveCfg.rampUpStep ?? 1);
-  const rampDownStep = Math.max(1, adaptiveCfg.rampDownStep ?? 1);
-  const windowParts = Math.max(1, adaptiveCfg.windowParts ?? 10);
-  const errorRateThreshold = Math.min(1, Math.max(0, adaptiveCfg.errorRateThreshold ?? 0.15));
-  const throttleCodes = adaptiveCfg.throttleStatusCodes ?? [429, 503];
+  const allowedConcurrency = Math.max(1, concurrency ?? DEFAULT_UPLOAD_CONCURRENCY);
 
   // 1) Start session
   const initBody = JSON.stringify({ targetFolder: params.targetFolder, filename: params.filename, totalSize: params.file.size, partSize: partSize ?? DEFAULT_PART_SIZE_BYTES });
@@ -143,11 +121,10 @@ export async function uploadFileInParallel(
   const queue: number[] = [];
   for (let i = 0; i < totalParts; i++) queue.push(i + 1); // 1-based parts
 
-  // Metrics for adaptive tuning
-  type PartWindowRec = { durationMs: number; attempts: number; sawThrottled: boolean };
-  let currentAllowed = adaptiveEnabled ? startConc : (concurrency ?? DEFAULT_UPLOAD_CONCURRENCY);
+  // Metrics
+  type PartWindowRec = { durationMs: number; attempts: number };
   let inFlight = 0;
-  let windowRecs: PartWindowRec[] = [];
+  const windowRecs: PartWindowRec[] = [];
   let failed: Error | null = null;
   let emaMbps = 0;
   const emaAlpha = 0.3;
@@ -160,30 +137,9 @@ export async function uploadFileInParallel(
 
   const progressUpdate = () => {
     onProgress?.({ uploadedBytes, totalBytes, uploadedParts, totalParts });
-    onStats?.({ allowed: currentAllowed, inFlight, uploadedBytes, totalBytes, mbps: computeMbps() });
+    onStats?.({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: computeMbps() });
   };
   progressUpdate();
-
-  const adjustConcurrencyIfNeeded = () => {
-    if (!adaptiveEnabled) return;
-    if (windowRecs.length < windowParts) return;
-    const attemptsOver1 = windowRecs.filter(r => r.attempts > 1).length;
-    const throttled = windowRecs.filter(r => r.sawThrottled).length;
-    const errRate = attemptsOver1 / windowRecs.length;
-    const throttleRate = throttled / windowRecs.length;
-
-    if (throttleRate > 0 || errRate > errorRateThreshold) {
-      // Back off on throttle or high retry rate
-      currentAllowed = Math.max(minConc, currentAllowed - rampDownStep);
-    } else {
-      // If we were fully utilized and have backlog, try increasing
-      if (inFlight >= currentAllowed && queue.length > 0) {
-        currentAllowed = Math.min(maxConc, currentAllowed + rampUpStep);
-      }
-    }
-    windowRecs = [];
-    onStats?.({ allowed: currentAllowed, inFlight, uploadedBytes, totalBytes, mbps: computeMbps() });
-  };
 
   const uploadPart = async (partNumber: number) => {
     const start = (partNumber - 1) * actualPartSize;
@@ -192,7 +148,6 @@ export async function uploadFileInParallel(
 
     const t0 = Date.now();
     let attempts = 0;
-    let sawThrottled = false;
     await withRetry(async () => {
       attempts++;
       const res = await fetch(`/api/uploads/${uploadId}/part?part=${partNumber}`, {
@@ -201,10 +156,7 @@ export async function uploadFileInParallel(
         headers: { ...headers },
         signal,
       });
-      if (!res.ok) {
-        if (throttleCodes.includes(res.status)) sawThrottled = true;
-        throw new Error(`Part ${partNumber} failed with ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Part ${partNumber} failed with ${res.status}`);
     }, retry, signal);
 
     uploadedBytes += chunk.size;
@@ -215,11 +167,10 @@ export async function uploadFileInParallel(
     progressUpdate();
 
     const durationMs = Date.now() - t0;
-    windowRecs.push({ durationMs, attempts, sawThrottled });
-    adjustConcurrencyIfNeeded();
+    windowRecs.push({ durationMs, attempts });
   };
 
-  // 3) Dynamic scheduler
+  // 3) Scheduler
   const statsIntervalMs = 500;
   let statsTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -233,7 +184,7 @@ export async function uploadFileInParallel(
 
     const schedule = () => {
       if (failed) return; // stop scheduling
-      while (inFlight < currentAllowed && queue.length > 0) {
+      while (inFlight < allowedConcurrency && queue.length > 0) {
         const part = queue.shift();
         if (part == null) break;
         inFlight++;
@@ -253,11 +204,9 @@ export async function uploadFileInParallel(
               resolve();
               return;
             }
-            // Keep scheduling as parts complete
             schedule();
           });
       }
-      // If nothing to schedule and none in flight and queue empty, complete
       if (inFlight === 0 && queue.length === 0) {
         cleanup();
         if (failed) reject(failed);
@@ -265,10 +214,8 @@ export async function uploadFileInParallel(
       }
     };
 
-    // Initial kick
     schedule();
 
-    // React to abort early
     if (signal) {
       const onAbort = () => {
         failed = new DOMException("Aborted", "AbortError");
@@ -279,10 +226,9 @@ export async function uploadFileInParallel(
       else signal.addEventListener("abort", onAbort, { once: true });
     }
 
-    // Periodic stats update for smoother UI on high-latency links
     if (onStats) {
       statsTimer = setInterval(() => {
-        onStats({ allowed: currentAllowed, inFlight, uploadedBytes, totalBytes, mbps: emaMbps || computeMbps() });
+        onStats({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: emaMbps || computeMbps() });
       }, statsIntervalMs);
     }
   });
