@@ -4,6 +4,7 @@ import { useNovel } from "../providers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
 import { Box, Button, Rating, Stack, Typography } from "@mui/material";
+import { SafeImage } from "@/generic/display";
 import { ListedUserRating } from "@/contracts/novels";
 import { useState } from "react";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input/Modal";
@@ -100,12 +101,16 @@ export function NovelRatingsList() {
       )}
       {recent.map((r) => (
         <Stack key={r.id} direction="row" gap={2} alignItems="flex-start" sx={{ py: 1 }}>
-          <Box
-            component="img"
-            src={r.user.avatarUrl || "https://placehold.co/64x64?text=?"}
-            alt={`${r.user.username}'s avatar`}
-            sx={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
-          />
+          <Box sx={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden" }}>
+            <SafeImage
+              src={r.user.avatarUrl || "https://placehold.co/64x64?text=?"}
+              alt={`${r.user.username}'s avatar`}
+              width={32}
+              height={32}
+              sizes="32px"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </Box>
           <Stack sx={{ flex: 1 }} gap={0.5}>
             <Stack direction="row" gap={1} alignItems="center">
               <Typography variant="subtitle2">{r.user.username}</Typography>
@@ -163,12 +168,16 @@ export function NovelRatingsList() {
           <Stack gap={2}>
             {((fullQuery.data?.recent ?? []) as ListedUserRating[]).map((r) => (
               <Stack key={`all-${r.id}`} direction="row" gap={2} alignItems="flex-start" sx={{ py: 1 }}>
-                <Box
-                  component="img"
-                  src={r.user.avatarUrl || "https://placehold.co/64x64?text=?"}
-                  alt={`${r.user.username}'s avatar`}
-                  sx={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
-                />
+                <Box sx={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden" }}>
+                  <SafeImage
+                    src={r.user.avatarUrl || "https://placehold.co/64x64?text=?"}
+                    alt={`${r.user.username}'s avatar`}
+                    width={32}
+                    height={32}
+                    sizes="32px"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </Box>
                 <Stack sx={{ flex: 1 }} gap={0.5}>
                   <Stack direction="row" gap={1} alignItems="center">
                     <Typography variant="subtitle2">{r.user.username}</Typography>

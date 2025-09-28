@@ -4,7 +4,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardMedia,
   IconButton,
   Stack,
   Typography,
@@ -16,6 +15,7 @@ import { HeartIcon } from "lucide-react";
 import Link from "next/link";
 import { NovelTags } from "./NovelTags";
 import { ListedNovel } from "@/contracts/novels";
+import { SafeImage } from "@/generic/display";
 
 // NovelCard Component
 interface Props {
@@ -45,16 +45,13 @@ export function NovelCard({
 
   const MediaAndContent = (
     <>
-      <CardMedia
-        component="img"
-        image={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
+      <SafeImage
+        src={novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL}
         alt={`Cover for ${novel.title}`}
-        loading="lazy"
-        decoding="async"
-        sx={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover" }}
-        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-          e.currentTarget.src = `https://placehold.co/400x300/1e1e1e/ffffff?text=Image+Error`;
-        }}
+        width={400}
+        height={300}
+        sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, (max-width: 1200px) 33vw, 25vw"
+        style={{ width: "100%", height: "auto", aspectRatio: "4 / 3", objectFit: "cover" }}
       />
       <CardContent>
         <Stack pb={2}>

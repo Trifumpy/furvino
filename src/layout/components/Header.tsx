@@ -2,6 +2,7 @@ import { AppBar, Box, Button, Stack, Toolbar, Typography } from "@mui/material";
 import Link from "next/link";
 import { Auth } from "./Auth";
 import { MobileNavMenu } from "./MobileNavMenu";
+import { SafeImage } from "@/generic/display";
 
 export function Header() {
   return (
@@ -10,7 +11,7 @@ export function Header() {
         <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
           <Link href="/" aria-label="Furvino home" style={{ textDecoration: "none", color: "inherit" }}>
             <Stack direction="row" alignItems="center" gap={1}>
-              <Box component="img" src="/icon.svg" alt="Furvino" sx={{ width: 28, height: 28 }} />
+              <SafeImage src="/icon.svg" alt="Furvino" width={28} height={28} />
               <Typography
                 variant="h6"
                 sx={{ display: { xs: "none", sm: "block" }, cursor: "pointer" }}

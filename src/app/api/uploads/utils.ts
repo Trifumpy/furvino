@@ -1,6 +1,6 @@
 import { SETTINGS } from "@/app/api/settings";
 import { ensureFolderExists, sanitizeFilename, convertWebToNodeReadable } from "@/app/api/files";
-import { mkdir, readdir, readFile, rm, stat, writeFile } from "fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "fs/promises";
 import { createWriteStream, existsSync, createReadStream } from "fs";
 import path from "path";
 import os from "os";

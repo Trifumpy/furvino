@@ -20,7 +20,6 @@ export async function generateMetadata({ params }: { params: Promise<{ novelId: 
     return { title: "Novel not found", robots: { index: false, follow: true } };
   }
   const imageUrl = novel.thumbnailUrl || undefined;
-  const url = absoluteUrl(`/novels/${novelId}`);
   return {
     title: `${novel.title} - Furry Visual Novel | Furvino`,
     description: novel.snippet ?? `Read ${novel.title}, a furry visual novel, on Furvino.`,

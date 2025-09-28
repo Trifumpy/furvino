@@ -1,5 +1,5 @@
 import { createReadStream, createWriteStream } from "fs";
-import { writeFile, readFile, mkdir, rm, readdir, stat } from "fs/promises";
+import { readFile, mkdir, rm, readdir, stat } from "fs/promises";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 import { NotFoundError } from "./errors";

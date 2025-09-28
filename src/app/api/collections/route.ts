@@ -23,7 +23,7 @@ function toListed(
   } satisfies CreateCollectionResponse;
 }
 
-export const GET = wrapRoute(async (_req, _ctx) => {
+export const GET = wrapRoute(async () => {
   const { clerkId } = await ensureClerkId();
   const user = await getOrCreateUserByExternalId(clerkId);
 
@@ -49,7 +49,7 @@ export const GET = wrapRoute(async (_req, _ctx) => {
   return NextResponse.json(result, { status: 200 });
 });
 
-export const POST = wrapRoute(async (req, _ctx) => {
+export const POST = wrapRoute(async (req) => {
   const { clerkId } = await ensureClerkId();
   const user = await getOrCreateUserByExternalId(clerkId);
   const body = await validateRequestBody<CreateCollectionBody>(req, createCollectionSchema);

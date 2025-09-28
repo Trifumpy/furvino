@@ -1,6 +1,7 @@
 import { ResponsiveValue } from "@/app/types";
 import { PublicUser } from "@/contracts/users";
 import { Box, Stack, Typography } from "@mui/material";
+import { SafeImage } from "@/generic/display";
 
 export type AvatarProps = {
   fallbackName?: string;
@@ -13,20 +14,18 @@ export function Avatar({ fallbackName, user, size }: AvatarProps) {
     return <NameAvatar name={fallbackName} size={size} />;
   }
 
+  const numeric = typeof size === "number" ? size : undefined;
   return (
-    <Box
-      flexShrink={0}
-      width={size}
-      height={size}
-      borderRadius="50%"
-      component="img"
-      sx={{
-        objectFit: "cover",
-      }}
-      // Add a cache-busting param if the URL is from our API, so we can cache long-term safely
-      src={user.avatarUrl}
-      alt={`Avatar for ${user.username}`}
-    />
+    <Box flexShrink={0} width={size} height={size} borderRadius="50%" overflow="hidden">
+      <SafeImage
+        src={user.avatarUrl}
+        alt={`Avatar for ${user.username}`}
+        width={numeric ?? 64}
+        height={numeric ?? 64}
+        sizes={numeric ? `${numeric}px` : "(max-width: 600px) 24px, 32px"}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    </Box>
   );
 }
 

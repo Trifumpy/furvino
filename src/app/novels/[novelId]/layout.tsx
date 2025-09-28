@@ -3,7 +3,6 @@ import { PropsWithChildren } from "react";
 import { SETTINGS } from "@/app/api/settings";
 import { NextParams } from "@/app/types";
 import { NovelProvider } from "@/novels/providers/NovelProvider";
-import { Box } from "@mui/material";
 import { ensureGetNovel } from "@/app/api/novels/utils";
 
 type Props = PropsWithChildren<

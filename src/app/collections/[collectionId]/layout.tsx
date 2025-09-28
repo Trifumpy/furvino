@@ -1,4 +1,4 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { PropsWithChildren } from "react";
 import prisma from "@/utils/db";
 
@@ -7,8 +7,7 @@ export default function CollectionLayout({ children }: PropsWithChildren) {
 }
 
 export async function generateMetadata(
-  { params }: { params: Promise<{ collectionId: string }> },
-  _parent: ResolvingMetadata
+  { params }: { params: Promise<{ collectionId: string }> }
 ): Promise<Metadata> {
   const { collectionId } = await params;
   const collection = await prisma.collection.findUnique({

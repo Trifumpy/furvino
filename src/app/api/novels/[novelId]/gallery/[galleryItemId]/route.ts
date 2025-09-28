@@ -26,14 +26,11 @@ export const GET = wrapRoute<Params>(async (_req, { params }) => {
   const { novelId, galleryItemId } = await params;
 
   // Try by DB id first (new-style URL), fallback to treating param as fileName (old-style URL)
-  let fileName: string | null = null;
   const byId = await prisma.galleryItem.findUnique({
     where: { id: galleryItemId, novelId },
   });
   if (byId?.imageUrl) {
-    // compute fileName only when needed (removed unused variable usage)
-    const urlNoQuery = byId.imageUrl.split("?")[0];
-    fileName = urlNoQuery.split("/").pop() ?? null;
+    // previously used to derive fileName; now unnecessary
   }
 
   const url = byId?.imageUrl ?? `${SETTINGS.apiUrl}/novels/${novelId}/gallery/${galleryItemId}`;

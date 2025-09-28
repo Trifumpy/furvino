@@ -175,6 +175,7 @@ export function NovelDetailsPage() {
               width={400}
               height={300}
               priority
+              sizes="(max-width: 600px) 100vw, 400px"
               style={{
                 width: "100%",
                 height: "auto",

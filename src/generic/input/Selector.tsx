@@ -141,6 +141,7 @@ export function Selector<T extends WithId>({
       />
     ),
     onChange: (_, value) => handleSelect(value),
+    loading: loading,
     renderOption: ({ key, ...optionProps }, option_) => {
       const option = option_ as SelectorOption<T>;
       return (

@@ -11,6 +11,9 @@ const TRUSTED_DOMAINS = [
   "stack.furvino.org",
   "cdn.furvino.org",
   "localhost",
+  // placeholders and third-party avatars used in the app
+  "placehold.co",
+  "images.clerk.dev",
 ];
 
 function isTrusted(url: string) {

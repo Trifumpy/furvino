@@ -8,6 +8,7 @@ import { useCreateNovelGalleryItem, useDeleteNovelGalleryItem } from "../hooks";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { Modal, ModalContent } from "@/generic/input";
+import { SafeImage } from "@/generic/display";
 
 type Props = {
   editable?: boolean;
@@ -118,10 +119,12 @@ export function NovelGallery({ editable = false }: Props) {
                 },
               }}
             >
-              <img
+              <SafeImage
                 src={item.imageUrl}
                 alt={item.footer ?? "Gallery image"}
-                loading="lazy"
+                width={800}
+                height={600}
+                sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
                 style={{
                   width: "100%",
                   height: "auto",
@@ -221,14 +224,12 @@ export function NovelGallery({ editable = false }: Props) {
             <XIcon />
           </IconButton>
           {previewUrl && (
-            <img
+            <SafeImage
               src={previewUrl}
               alt="Gallery image"
+              fill
+              sizes="100vw"
               style={{
-                width: "100%",
-                height: "100%",
-                maxWidth: "100vw",
-                maxHeight: "100vh",
                 objectFit: "contain",
               }}
               onClick={(e) => e.stopPropagation()}

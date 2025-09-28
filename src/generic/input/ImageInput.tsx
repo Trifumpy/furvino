@@ -6,6 +6,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { SafeImage } from "@/generic/display";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon } from "lucide-react";
 import { toast } from "react-toastify";
@@ -96,14 +97,16 @@ export function ImageInput({
       >
         <input {...getInputProps()} />
         {valueUrl ? (
-          <Box
-            component="img"
-            src={valueUrl}
-            alt={label}
-            width={300}
-            height={100}
-            sx={{ objectFit: "cover" }}
-          />
+          <Box width={300} height={100} sx={{ overflow: "hidden", borderRadius: 1 }}>
+            <SafeImage
+              src={valueUrl}
+              alt={label || "Image preview"}
+              width={300}
+              height={100}
+              sizes="300px"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </Box>
         ) : (
           <CloudUploadIcon size={48} />
         )}
