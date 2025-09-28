@@ -37,6 +37,13 @@ const DEFAULT_UPLOAD_CONCURRENCY = (() => {
   return Number.isFinite(v) && v > 0 ? v : 8;
 })();
 
+const DEFAULT_PART_SIZE_BYTES = (() => {
+  const raw = process.env.NEXT_PUBLIC_UPLOAD_PART_SIZE_MB;
+  const mb = raw ? parseInt(raw, 10) : NaN;
+  if (Number.isFinite(mb) && mb > 0) return mb * 1024 * 1024;
+  return undefined; // fall back to server default (8 MiB)
+})();
+
 function delay(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const t = setTimeout(resolve, ms);
@@ -115,7 +122,7 @@ export async function uploadFileInParallel(
   const throttleCodes = adaptiveCfg.throttleStatusCodes ?? [429, 503];
 
   // 1) Start session
-  const initBody = JSON.stringify({ targetFolder: params.targetFolder, filename: params.filename, totalSize: params.file.size, partSize });
+  const initBody = JSON.stringify({ targetFolder: params.targetFolder, filename: params.filename, totalSize: params.file.size, partSize: partSize ?? DEFAULT_PART_SIZE_BYTES });
   const initRes: StartUploadResponse = await fetchJson(`/api/uploads/init`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
@@ -143,6 +150,8 @@ export async function uploadFileInParallel(
   let inFlight = 0;
   let windowRecs: PartWindowRec[] = [];
   let failed: Error | null = null;
+  let emaMbps = 0;
+  const emaAlpha = 0.3;
 
   const computeMbps = () => {
     const elapsedMs = Math.max(1, Date.now() - startTimeMs);
@@ -201,6 +210,9 @@ export async function uploadFileInParallel(
 
     uploadedBytes += chunk.size;
     uploadedParts += 1;
+    // Update EMA speed for smoother display
+    const inst = computeMbps();
+    emaMbps = emaMbps === 0 ? inst : emaMbps * (1 - emaAlpha) + inst * emaAlpha;
     progressUpdate();
 
     const durationMs = Date.now() - t0;
@@ -209,6 +221,9 @@ export async function uploadFileInParallel(
   };
 
   // 3) Dynamic scheduler
+  const statsIntervalMs = 500;
+  let statsTimer: ReturnType<typeof setInterval> | null = null;
+
   await new Promise<void>((resolve, reject) => {
     const schedule = () => {
       if (failed) return; // stop scheduling
@@ -252,6 +267,13 @@ export async function uploadFileInParallel(
       };
       if (signal.aborted) onAbort();
       else signal.addEventListener("abort", onAbort, { once: true });
+    }
+
+    // Periodic stats update for smoother UI on high-latency links
+    if (onStats) {
+      statsTimer = setInterval(() => {
+        onStats({ allowed: currentAllowed, inFlight, uploadedBytes, totalBytes, mbps: emaMbps || computeMbps() });
+      }, statsIntervalMs);
     }
   });
 

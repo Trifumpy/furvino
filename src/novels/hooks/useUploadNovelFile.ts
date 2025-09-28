@@ -18,10 +18,13 @@ export function useUploadNovelFile() {
 
       // Use chunked adaptive uploader to STACK temp path for this novel/platform
       const targetFolder = `novels/${novelId}/files/${platform}`;
+      const envPartMb = process.env.NEXT_PUBLIC_UPLOAD_PART_SIZE_MB ? parseInt(process.env.NEXT_PUBLIC_UPLOAD_PART_SIZE_MB, 10) : NaN;
+      const optPartSize = Number.isFinite(envPartMb) && envPartMb > 0 ? envPartMb * 1024 * 1024 : undefined;
       const { stackPath } = await uploadFileInParallel(
         { file, targetFolder, filename: file.name },
         {
           adaptive: { enabled: true, min: 2, start: 8, max: 12, windowParts: 10 },
+          partSize: optPartSize,
           onProgress: ({ uploadedBytes, totalBytes }) => {
             const percent = totalBytes > 0 ? Math.round((uploadedBytes / totalBytes) * 100) : 0;
             const elapsedMs = startTimeRef.current ? Date.now() - startTimeRef.current : 0;
