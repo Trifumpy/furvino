@@ -3,6 +3,7 @@ import {
   MAX_NOVEL_FILE_SIZE,
   PLATFORMS,
   Platform,
+  ListedNovel,
 } from "@/contracts/novels";
 import { PLATFORM_ICONS, PLATFORM_NAMES } from "@/generic/data";
 import { FileOrUrlInput, KeyMapField, KeyMapKey } from "@/generic/input";
@@ -32,7 +33,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     value ?? {},
     onChange
   );
-  const { uploadFile, isUploading, progress } = useUploadNovelFile();
+  const { uploadFile, isUploading, progress, stats } = useUploadNovelFile();
   const { deleteFile } = useDeleteNovelFile();
   const [currentPlatform, setCurrentPlatform] = useState<Platform | null>(null);
 
@@ -57,40 +58,47 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
     const isThisUploading = isUploading && currentPlatform === itemKey;
     const isOtherUploading = isUploading && currentPlatform !== itemKey;
     return (
-      <FileOrUrlInput<Platform>
-        itemKey={itemKey}
-        label={`File for ${PLATFORM_NAMES[itemKey] ?? "-"}`}
-        value={value}
-        onChange={onChange}
-        error={error}
-        disabled={disabled || isOtherUploading}
-        loading={isThisUploading}
-        progressPercent={isThisUploading ? progress?.percent : undefined}
-        etaSeconds={isThisUploading ? progress?.etaSeconds : undefined}
-        maxSize={MAX_NOVEL_FILE_SIZE}
-        onUpload={async (file) => {
-          if (!novelId) return;
-          if (isUploading && currentPlatform && currentPlatform !== itemKey) {
-            toast.info(
-              "Another upload is in progress. Please wait until it finishes."
-            );
-            return;
-          }
-          try {
-            setCurrentPlatform(itemKey);
-            const novel = await uploadFile({
-              novelId,
-              platform: itemKey,
-              file,
-            });
-            const url = novel.downloadUrls?.[itemKey] ?? "";
-            onChange(url);
-            toast.success("Upload successful");
-          } finally {
-            setCurrentPlatform(null);
-          }
-        }}
-      />
+      <Stack gap={0.5}>
+        <FileOrUrlInput<Platform>
+          itemKey={itemKey}
+          label={`File for ${PLATFORM_NAMES[itemKey] ?? "-"}`}
+          value={value}
+          onChange={onChange}
+          error={error}
+          disabled={disabled || isOtherUploading}
+          loading={isThisUploading}
+          progressPercent={isThisUploading ? progress?.percent : undefined}
+          etaSeconds={isThisUploading ? progress?.etaSeconds : undefined}
+          maxSize={MAX_NOVEL_FILE_SIZE}
+          onUpload={async (file) => {
+            if (!novelId) return;
+            if (isUploading && currentPlatform && currentPlatform !== itemKey) {
+              toast.info(
+                "Another upload is in progress. Please wait until it finishes."
+              );
+              return;
+            }
+            try {
+              setCurrentPlatform(itemKey);
+              const novel = (await uploadFile({
+                novelId,
+                platform: itemKey,
+                file,
+              })) as ListedNovel;
+              const url = novel.downloadUrls?.[itemKey] ?? "";
+              onChange(url);
+              toast.success("Upload successful");
+            } finally {
+              setCurrentPlatform(null);
+            }
+          }}
+        />
+        {isThisUploading && stats && (
+          <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
+            Concurrency: {stats.concurrency} (in-flight {stats.inFlight}) • Speed: {stats.mbps.toFixed(2)} MB/s
+          </Typography>
+        )}
+      </Stack>
     );
   };
 
