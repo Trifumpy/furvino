@@ -38,6 +38,7 @@ export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
 export const MAX_INDEXING_TAGS = 30;
 export const MAX_GALLERY_ITEMS = 6;
+export const MAX_UPDATE_TITLE_LENGTH = 50;
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
   title: z.string().min(1, "Title is required").max(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`),
@@ -270,3 +271,17 @@ export type NovelComment = {
 export type GetNovelCommentsResponse = NovelComment[];
 export type CreateNovelCommentBody = { text: string; parentId?: string };
 export type CreateNovelCommentResponse = NovelComment;
+
+// Novel updates (author posts short title + rich description via TipTap)
+export type NovelUpdateItem = {
+  id: string;
+  novelId: string;
+  title: string;
+  contentRich?: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+};
+export type GetNovelUpdatesResponse = NovelUpdateItem[];
+export type CreateNovelUpdateBody = { title: string; contentRich?: unknown };
+export type CreateNovelUpdateResponse = NovelUpdateItem;
+export type DeleteNovelUpdateResponse = void;

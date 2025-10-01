@@ -41,6 +41,7 @@ model Novel {
   foregroundTextColorHex String? @default("#FFFFFF")
   buttonBgColorHex String?
   galleryItems    GalleryItem[]
+  updates         NovelUpdate[]
   tags            String[]
   indexingTags    String[]         @default([])
   downloads       Int              @default(0)
@@ -109,6 +110,21 @@ model GalleryItem {
 
   @@unique([novelId, imageUrl])
   @@index([novelId])
+}
+
+model NovelUpdate {
+  id          String   @id @default(uuid())
+  novelId     String
+  novel       Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String
+  contentRich Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([novelId])
+  @@index([userId])
 }
 
 model User {

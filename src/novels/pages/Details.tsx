@@ -4,7 +4,7 @@ import { Box, Button, IconButton, Stack, TextField, Typography } from "@mui/mate
 import { useNovel } from "../providers";
 import { DEFAULT_NOVEL_COVER_URL } from "../components/constants";
 import { Links } from "../components/Links";
-import { NovelComments, NovelDownloads, NovelRatings, NovelRatingsList, NovelGallery } from "../components";
+import { NovelComments, NovelDownloads, NovelRatings, NovelRatingsList, NovelGallery, NovelUpdates } from "../components";
 import { NovelTags } from "../components/NovelTags";
 import { SafeImage } from "@/generic/display";
 import { SanitizedHtml } from "@/generic/display";
@@ -226,6 +226,9 @@ export function NovelDetailsPage() {
           )}
           <Box my={4}>
             <NovelGallery />
+          </Box>
+          <Box my={2}>
+            <NovelUpdates />
           </Box>
           <Box my={4}>
             <NovelRatings buttonBgColor={buttonBgColorHex} buttonTextColor={foregroundTextColorHex} />

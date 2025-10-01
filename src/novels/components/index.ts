@@ -7,3 +7,4 @@ export * from './NovelComments';
 export * from './NovelRatings';
 export * from './NovelRatingsList';
 export * from './NovelGallery';
+export * from './NovelUpdates';

@@ -94,6 +94,26 @@ export class NovelsService extends HttpService {
     });
   }
 
+  // Updates
+  getUpdates(novelId: string, options?: { limit?: number }) {
+    return this.get<import("@/contracts/novels").GetNovelUpdatesResponse>(
+      `/${novelId}/updates`,
+      { cache: "no-store", queryParams: { limit: options?.limit } }
+    );
+  }
+  createUpdate(novelId: string, body: import("@/contracts/novels").CreateNovelUpdateBody) {
+    return this.post<
+      import("@/contracts/novels").CreateNovelUpdateResponse,
+      import("@/contracts/novels").CreateNovelUpdateBody
+    >(`/${novelId}/updates`, body, { cache: "no-store" });
+  }
+  deleteUpdate(novelId: string, updateId: string) {
+    return this.delete<import("@/contracts/novels").DeleteNovelUpdateResponse>(
+      `/${novelId}/updates/${updateId}`,
+      { cache: "no-store" }
+    );
+  }
+
   getNovels(options: GetNovelsQParams = {}) {
     // Request is too big to cache
     return this.get<GetNovelsResponse>("/", {
