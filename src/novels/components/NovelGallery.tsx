@@ -177,20 +177,23 @@ export function NovelGallery({ editable = false }: Props) {
         slotProps={{
           paper: {
             sx: {
-              width: "100vw",
-              height: "100vh",
-              maxWidth: "100vw",
-              maxHeight: "100vh",
+              width: "100dvw",
+              height: "100dvh",
+              maxWidth: "100dvw",
+              maxHeight: "100dvh",
               m: 0,
               bgcolor: "transparent",
               borderRadius: 0,
               boxShadow: "none",
               border: "none",
+              overflow: "hidden",
             },
           },
           backdrop: {
             sx: {
-              backgroundColor: "rgba(0,0,0,0.9)",
+              backgroundColor: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
             },
           },
         }}
@@ -198,15 +201,27 @@ export function NovelGallery({ editable = false }: Props) {
         <ModalContent
           sx={{
             p: 0,
+            pt: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "hidden",
             bgcolor: "transparent",
             position: "relative",
+            width: "100%",
+            height: "100%",
           }}
           onClick={() => setPreviewUrl(null)}
         >
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              p: { xs: 2, sm: 3 },
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
           <IconButton
             aria-label="Close"
             onClick={(e) => {
@@ -224,17 +239,20 @@ export function NovelGallery({ editable = false }: Props) {
             <XIcon />
           </IconButton>
           {previewUrl && (
-            <SafeImage
+            <Box
+              component="img"
               src={previewUrl}
               alt="Gallery image"
-              fill
-              sizes="100vw"
-              style={{
+              sx={{
+                display: "block",
+                width: "100%",
+                height: "100%",
                 objectFit: "contain",
+                objectPosition: "center",
               }}
-              onClick={(e) => e.stopPropagation()}
             />
           )}
+          </Box>
         </ModalContent>
       </Modal>
     </Stack>

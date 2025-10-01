@@ -59,6 +59,7 @@ export function Modal({
           }
         }}
         noValidate
+        style={{ height: "100%", display: "flex", flexDirection: "column" }}
       >
         {children}
       </form>
