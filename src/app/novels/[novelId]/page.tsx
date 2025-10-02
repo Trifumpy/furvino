@@ -2,7 +2,6 @@ import { NextParams } from "@/app/types";
 import { NovelDetailsPage } from "@/novels/pages";
 import type { Metadata } from "next";
 import prisma from "@/utils/db";
-import { absoluteUrl } from "@/utils/site";
 
 export default async function Page({ params }: NextParams<{ novelId: string }>) {
   await params;

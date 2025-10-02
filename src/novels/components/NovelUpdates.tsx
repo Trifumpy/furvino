@@ -2,7 +2,7 @@
 
 import { Box, Button, Collapse, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { useNovel } from "../providers";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
 import { MAX_UPDATE_TITLE_LENGTH, NovelUpdateItem } from "@/contracts/novels";
@@ -82,13 +82,15 @@ export function NovelUpdates() {
             label={`Title (${newTitle.length}/${MAX_UPDATE_TITLE_LENGTH})`}
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value.slice(0, MAX_UPDATE_TITLE_LENGTH))}
-            placeholder="Short title (max 50 chars)"
+            placeholder="Title"
           />
-          <RichTextEditor
-            value={newContent}
-            onChange={(json) => setNewContent(json)}
-            placeholder="Write the update details..."
-          />
+          <Box sx={{ color: 'text.primary' }}>
+            <RichTextEditor
+              value={newContent}
+              onChange={(json) => setNewContent(json)}
+              placeholder="Write the update details..."
+            />
+          </Box>
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Button variant="contained" onClick={() => create.mutate()} disabled={create.isPending}>
               Post update

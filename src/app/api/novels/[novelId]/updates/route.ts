@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { wrapRoute, ensureClerkId } from "../../utils";
+import { wrapRoute, revalidateTags } from "@/app/api/utils";
 import prisma from "@/utils/db";
 import z from "zod";
 import { MAX_UPDATE_TITLE_LENGTH } from "@/contracts/novels";
-import { enrichToFullNovel, ensureCanUpdateNovel, ensureGetNovel } from "../../utils";
+import { ensureCanUpdateNovel, ensureGetNovel } from "@/app/api/novels/utils";
 import { novelTags } from "@/utils";
-import { revalidateTags } from "../../utils";
 
 const createSchema = z.object({
   title: z.string().min(1).max(MAX_UPDATE_TITLE_LENGTH),

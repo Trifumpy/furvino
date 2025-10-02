@@ -145,6 +145,7 @@ model User {
   authorId            String?            @unique
   collections         Collection[]
   followedCollections CollectionFollow[]
+  updates             NovelUpdate[]
 
   @@index([clerkId])
   @@index([email])
