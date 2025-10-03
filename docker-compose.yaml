@@ -12,8 +12,13 @@ services:
       - .env.production.local
     environment:
       - NODE_ENV=production
+      - STACK_ROOT=/STACK
     volumes:
-      - /home/github/STACK:/STACK
+      - type: bind
+        source: ${STACK_HOST_ROOT:-/home/github/STACK}
+        target: /STACK
+        bind:
+          create_host_path: false
     depends_on:
       - db
     networks:
