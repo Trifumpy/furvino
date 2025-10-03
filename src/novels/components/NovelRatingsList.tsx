@@ -146,7 +146,11 @@ export function NovelRatingsList() {
                 <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{r.reason}</Typography>
                 {novel?.author && (isAdmin || user?.authorId === novel.author.id) && (
                   <Stack direction="row" justifyContent="flex-end">
-                    <Button size="small" color="error" disabled={removeReason.isPending} onClick={() => removeReason.mutate(r.id)}>
+                    <Button size="small" color="error" disabled={removeReason.isPending} onClick={() => {
+                      if (window.confirm('Remove this rating comment? This cannot be undone.')) {
+                        removeReason.mutate(r.id);
+                      }
+                    }}>
                       Remove comment
                     </Button>
                   </Stack>
@@ -213,7 +217,11 @@ export function NovelRatingsList() {
                       <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{r.reason}</Typography>
                       {novel?.author && (isAdmin || user?.authorId === novel.author.id) && (
                         <Stack direction="row" justifyContent="flex-end">
-                          <Button size="small" color="error" disabled={removeReason.isPending} onClick={() => removeReason.mutate(r.id)}>
+                          <Button size="small" color="error" disabled={removeReason.isPending} onClick={() => {
+                            if (window.confirm('Remove this rating comment? This cannot be undone.')) {
+                              removeReason.mutate(r.id);
+                            }
+                          }}>
                             Remove comment
                           </Button>
                         </Stack>

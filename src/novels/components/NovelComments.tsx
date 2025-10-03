@@ -173,7 +173,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                         size="small"
                         variant="contained"
                         sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
-                        onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
+                        onClick={() => {
+                          if (window.confirm('Delete this comment? This cannot be undone.')) {
+                            deleteComment.mutate({ novelId: novel.id, commentId: c.id });
+                          }
+                        }}
                         disabled={deleteComment.isPending}
                       >
                         Delete
@@ -241,7 +245,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                                     size="small"
                                     variant="contained"
                                     sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
-                                    onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: r.id })}
+                                    onClick={() => {
+                                      if (window.confirm('Delete this reply? This cannot be undone.')) {
+                                        deleteComment.mutate({ novelId: novel.id, commentId: r.id });
+                                      }
+                                    }}
                                     disabled={deleteComment.isPending}
                                   >
                                     Delete
@@ -315,7 +323,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                               size="small"
                               variant="contained"
                               sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
-                            onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: c.id })}
+                            onClick={() => {
+                              if (window.confirm('Delete this comment? This cannot be undone.')) {
+                                deleteComment.mutate({ novelId: novel.id, commentId: c.id });
+                              }
+                            }}
                             disabled={deleteComment.isPending}
                           >
                             Delete
@@ -370,7 +382,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                                       size="small"
                                       variant="contained"
                                       sx={{ height: 32, bgcolor: buttonBgColor, color: buttonTextColor, '&:hover': { bgcolor: buttonBgColor } }}
-                                      onClick={() => deleteComment.mutate({ novelId: novel.id, commentId: r.id })}
+                                      onClick={() => {
+                                        if (window.confirm('Delete this reply? This cannot be undone.')) {
+                                          deleteComment.mutate({ novelId: novel.id, commentId: r.id });
+                                        }
+                                      }}
                                       disabled={deleteComment.isPending}
                                     >
                                       Delete

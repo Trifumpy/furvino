@@ -119,24 +119,36 @@ export function NovelGallery({ editable = false }: Props) {
                 },
               }}
             >
-              <SafeImage
-                src={item.imageUrl}
-                alt={item.footer ?? "Gallery image"}
-                width={800}
-                height={600}
-                sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
-                style={{
+              <Box
+                sx={{
+                  position: "relative",
                   width: "100%",
-                  height: "auto",
+                  aspectRatio: "4 / 3",
                   borderRadius: 8,
+                  overflow: "hidden",
                   cursor: "zoom-in",
                 }}
                 onClick={() => setPreviewUrl(item.imageUrl)}
-              />
+              >
+                <SafeImage
+                  src={item.imageUrl}
+                  alt={item.footer ?? "Gallery image"}
+                  fill
+                  sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+                  style={{
+                    objectFit: "cover",
+                    objectPosition: "center",
+                  }}
+                />
+              </Box>
               {allowEdits && (
                 <IconButton
                   aria-label="delete"
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => {
+                    if (window.confirm('Delete this image from the gallery? This cannot be undone.')) {
+                      onDelete(item.id);
+                    }
+                  }}
                   sx={{
                     position: "absolute",
                     top: 8,

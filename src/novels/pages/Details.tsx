@@ -62,13 +62,24 @@ export function NovelDetailsPage() {
 
   const description = novel.snippet;
   const pageBackgroundUrl = (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl || undefined;
-  const foregroundOpacityPercent = (novel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 95;
+  const foregroundOpacityPercent = (novel as unknown as { foregroundOpacityPercent?: number | null }).foregroundOpacityPercent ?? 80;
+  const foregroundBlurPercent = (novel as unknown as { foregroundBlurPercent?: number | null }).foregroundBlurPercent ?? 20;
   const foregroundColorHex = (novel as unknown as { foregroundColorHex?: string | null }).foregroundColorHex || "#121212";
   const foregroundTextColorHex = (novel as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || "#ffffff";
   const buttonBgColorHex = (novel as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex || foregroundColorHex;
   const rich = (novel as unknown as { descriptionRich?: unknown | null }).descriptionRich;
   const hasRich = !!rich;
   const thumbnailUrl = novel.thumbnailUrl || DEFAULT_NOVEL_COVER_URL;
+
+  function hexToRgba(hex: string, alpha: number): string {
+    const cleaned = (hex || "").replace(/^#/, "");
+    const isShort = cleaned.length === 3;
+    const r = parseInt(isShort ? cleaned[0] + cleaned[0] : cleaned.substring(0, 2), 16) || 0;
+    const g = parseInt(isShort ? cleaned[1] + cleaned[1] : cleaned.substring(2, 4), 16) || 0;
+    const b = parseInt(isShort ? cleaned[2] + cleaned[2] : cleaned.substring(4, 6), 16) || 0;
+    const a = Math.max(0, Math.min(1, alpha || 0));
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
 
   return (
     <>
@@ -116,8 +127,13 @@ export function NovelDetailsPage() {
             sx={{
               position: "absolute",
               inset: 0,
-              bgcolor: foregroundColorHex,
-              opacity: Math.max(0, Math.min(100, foregroundOpacityPercent)) / 100,
+              backgroundColor: hexToRgba(
+                foregroundColorHex,
+                Math.max(0, Math.min(100, foregroundOpacityPercent)) / 100
+              ),
+              backdropFilter: `blur(${Math.round(Math.max(0, Math.min(100, foregroundBlurPercent)) * 0.5)}px)`,
+              WebkitBackdropFilter: `blur(${Math.round(Math.max(0, Math.min(100, foregroundBlurPercent)) * 0.5)}px)`,
+              pointerEvents: "none",
             }}
           />
           <Box sx={{ position: "relative", px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, md: 3 } }}>

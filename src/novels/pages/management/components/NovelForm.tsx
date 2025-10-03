@@ -214,7 +214,23 @@ export function NovelForm({
                   <TextField
                     label="Foreground opacity (%)"
                     type="number"
-                    value={field.value ?? 95}
+                    value={field.value ?? 80}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    inputProps={{ min: 0, max: 100, step: 1 }}
+                    error={!!fieldState?.error?.message}
+                    helperText={fieldState?.error?.message}
+                    sx={{ width: 220 }}
+                  />
+                )}
+              />
+              <Controller
+                name="foregroundBlurPercent"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <TextField
+                    label="Foreground blur (%)"
+                    type="number"
+                    value={field.value ?? 20}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     inputProps={{ min: 0, max: 100, step: 1 }}
                     error={!!fieldState?.error?.message}

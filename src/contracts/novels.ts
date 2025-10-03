@@ -53,7 +53,14 @@ export const novelSchema = z.object({
     .int()
     .min(0)
     .max(100)
-    .default(95)
+    .default(80)
+    .optional(),
+  foregroundBlurPercent: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .default(20)
     .optional(),
   foregroundColorHex: z
     .string()
@@ -162,6 +169,7 @@ export type FullNovel = ListedNovel & {
   descriptionRich?: unknown | null;
   pageBackgroundUrl?: string | null;
   foregroundOpacityPercent?: number | null;
+  foregroundBlurPercent?: number | null;
   foregroundColorHex?: string | null;
   foregroundTextColorHex?: string | null;
   buttonBgColorHex?: string | null;

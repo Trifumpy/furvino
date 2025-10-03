@@ -37,7 +37,8 @@ model Novel {
   thumbnailUrl        String?
   pageBackgroundUrl   String?
   foregroundColorHex  String? @default("#121212")
-  foregroundOpacityPercent Int @default(95)
+  foregroundOpacityPercent Int @default(80)
+  foregroundBlurPercent Int @default(20)
   foregroundTextColorHex String? @default("#FFFFFF")
   buttonBgColorHex String?
   galleryItems    GalleryItem[]
@@ -141,6 +142,7 @@ model User {
 
   comments            Comment[]
   ratings             UserRating[]
+  novelUpdates        NovelUpdate[]
   author              Author?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId            String?            @unique
   collections         Collection[]

@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { Trash2Icon } from "lucide-react";
 import { IconButton } from "@mui/material";
 import { useState } from "react";
+import { SafeImage } from "@/generic/display";
 
 export function NovelGalleryEditor() {
   const { novel } = useNovel();
@@ -42,16 +43,26 @@ export function NovelGalleryEditor() {
                   <Typography variant="subtitle2">Slot {slot}</Typography>
                   {existing ? (
                     <Stack gap={1}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={existing.imageUrl}
-                        alt={`Gallery slot ${slot}`}
-                        style={{
+                      <Box
+                        sx={{
+                          position: "relative",
                           width: "100%",
-                          height: "auto",
+                          aspectRatio: "4 / 3",
                           borderRadius: 8,
+                          overflow: "hidden",
                         }}
-                      />
+                      >
+                        <SafeImage
+                          src={existing.imageUrl}
+                          alt={`Gallery slot ${slot}`}
+                          fill
+                          sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+                          style={{
+                            objectFit: "cover",
+                            objectPosition: "center",
+                          }}
+                        />
+                      </Box>
                       <IconButton
                         aria-label={`Remove image from slot ${slot}`}
                         onClick={async () => {
