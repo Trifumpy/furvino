@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
     domains: [
       "stack.furvino.com",
       "cdn.furvino.com",
-      "stack.furvino.org",
-      "cdn.furvino.org",
+      "stack.furvino.com",
+      "cdn.furvino.com",
       "localhost",
       // placeholders and third-party avatars
       "placehold.co",

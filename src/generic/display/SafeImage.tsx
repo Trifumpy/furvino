@@ -8,8 +8,8 @@ import Image, { ImageProps } from "next/image";
 const TRUSTED_DOMAINS = [
   "stack.furvino.com",
   "cdn.furvino.com",
-  "stack.furvino.org",
-  "cdn.furvino.org",
+  "stack.furvino.com",
+  "cdn.furvino.com",
   "localhost",
   // placeholders and third-party avatars used in the app
   "placehold.co",
