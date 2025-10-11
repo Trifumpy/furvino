@@ -34,7 +34,7 @@
     "@tiptap/starter-kit": "^3.4.1",
     "lucide-react": "^0.536.0",
     "mime": "^4.0.7",
-    "next": "15.4.5",
+    "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
