@@ -26,7 +26,17 @@ export function NovelGalleryEditor() {
   return (
     <Stack gap={1}>
       <Typography variant="h5">Gallery</Typography>
-      <Stack direction={{ xs: "column", md: "row" }} flexWrap="wrap" gap={2}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 2,
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "1fr 1fr",
+            md: "1fr 1fr 1fr",
+          },
+        }}
+      >
         {Array.from({ length: MAX_GALLERY_ITEMS }, (_, i) => i + 1).map(
           (slot) => {
             const existing = novel.galleryItems.find((item) => {
@@ -38,7 +48,7 @@ export function NovelGalleryEditor() {
               return false;
             });
             return (
-              <Box key={slot} sx={{ flex: { md: "1 1 calc(33% - 16px)" } }}>
+              <Box key={slot} sx={{ width: "100%" }}>
                 <Stack gap={1}>
                   <Typography variant="subtitle2">Slot {slot}</Typography>
                   {existing ? (
@@ -145,7 +155,7 @@ export function NovelGalleryEditor() {
             );
           }
         )}
-      </Stack>
+      </Box>
     </Stack>
   );
 }

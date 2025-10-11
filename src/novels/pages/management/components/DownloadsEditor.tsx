@@ -61,7 +61,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
       <Stack gap={0.5}>
         <FileOrUrlInput<Platform>
           itemKey={itemKey}
-          label={`File for ${PLATFORM_NAMES[itemKey] ?? "-"}`}
+          label=""
           value={value}
           onChange={onChange}
           error={error}

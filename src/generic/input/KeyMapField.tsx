@@ -117,31 +117,23 @@ export function KeyMapField<TKey extends string, TValue>({
           All keys are set.
         </Typography>
       ) : (
-        <KeyValueFieldFrame<TKey, TValue>
-          label={
-            <Selector<{ id: TKey }>
-              options={missingKeyOptions}
-              value={null}
-              multiple={false}
-              inputValue={query}
-              onInputChange={(_, value) => setQuery(value)}
-              onChange={(selected) => {
-                if (selected) {
-                  addKey(selected.id);
-                  setQuery("");
-                }
-              }}
-              sx={{
-                minWidth:
-                  slotProps.fields?.minKeyWidth || DEFAULT_MIN_KEY_WIDTH,
-              }}
-              placeholder="Add a key"
-              {...slotProps.selector}
-            />
-          }
-          value={getDefaultValue(missingKeyOptions[0].value.id)}
-          ValueField={ValueField}
-          disabled
+        <Selector<{ id: TKey }>
+          options={missingKeyOptions}
+          value={null}
+          multiple={false}
+          inputValue={query}
+          onInputChange={(_, value) => setQuery(value)}
+          onChange={(selected) => {
+            if (selected) {
+              addKey(selected.id);
+              setQuery("");
+            }
+          }}
+          sx={{
+            minWidth: slotProps.fields?.minKeyWidth || DEFAULT_MIN_KEY_WIDTH,
+          }}
+          placeholder="Add a key"
+          {...slotProps.selector}
         />
       )}
     </Stack>
@@ -218,15 +210,17 @@ function KeyValueFieldFrame<TKey extends string, TValue>({
   label,
 }: FrameProps<TKey, TValue>) {
   return (
-    <Stack direction="row" alignItems="center" gap={1}>
+    <Stack direction="row" alignItems="center" gap={1} sx={{ width: "100%" }}>
       {label}
-      <ValueField
-        itemKey={(itemKey?.value as TKey) ?? ("" as TKey)}
-        value={value}
-        onChange={(...args) => onChange?.(...args)}
-        error={error}
-        disabled={disabled}
-      />
+      <Stack sx={{ flex: 1, minWidth: 0 }}>
+        <ValueField
+          itemKey={(itemKey?.value as TKey) ?? ("" as TKey)}
+          value={value}
+          onChange={(...args) => onChange?.(...args)}
+          error={error}
+          disabled={disabled}
+        />
+      </Stack>
       <IconButton
         color="error"
         onClick={onDelete}

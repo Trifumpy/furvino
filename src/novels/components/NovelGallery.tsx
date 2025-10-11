@@ -78,7 +78,6 @@ export function NovelGallery({ editable = false }: Props) {
     if (sa !== sb) return sa - sb;
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
-  const cols = Math.min(3, Math.max(1, sortedItems.length));
 
   return (
     <Stack gap={1}>
@@ -106,17 +105,23 @@ export function NovelGallery({ editable = false }: Props) {
         
       </Stack>
       {sortedItems.length ? (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 1,
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "1fr 1fr",
+              md: "1fr 1fr 1fr",
+            },
+          }}
+        >
           {sortedItems.map((item) => (
             <Box
               key={item.id}
               sx={{
                 position: "relative",
-                width: {
-                  xs: "100%",
-                  sm: `calc(50% - 8px)`,
-                  md: `calc(${100 / cols}% - 8px)`,
-                },
+                width: "100%",
               }}
             >
               <Box

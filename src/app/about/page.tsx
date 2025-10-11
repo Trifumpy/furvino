@@ -35,7 +35,7 @@ export default function AboutPage() {
         If you want to contact me on more serious matters like takedown requests, cooperation and more, please use the email below: <br />
         Email:
         {" "}
-        <Link href="mailto:furvino.com@gmail.com" target="_blank" rel="noopener">furvino.com@gmail.com</Link>
+        <Link href="mailto:team@furvino.com" target="_blank" rel="noopener">team@furvino.com</Link>
       </Typography>
       <Box mt={4} />
       <Divider sx={{ my: 3 }} />

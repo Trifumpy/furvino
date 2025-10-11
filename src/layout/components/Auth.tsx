@@ -7,7 +7,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { IsAdmin } from ".";
-import { IconButton, Stack } from "@mui/material";
+import { Button, IconButton, Stack } from "@mui/material";
 import Link from "next/link";
 import { BookUserIcon, WrenchIcon } from "lucide-react";
 import { useUser } from "@/users/providers";
@@ -15,7 +15,7 @@ import { useUser } from "@/users/providers";
 export function Auth() {
   const { user } = useUser();
   return (
-    <Stack direction="row" gap={2} alignItems="center">
+    <Stack direction="row" gap={1} alignItems="center">
       <IsAdmin>
         {
           <IconButton
@@ -39,8 +39,12 @@ export function Auth() {
         </IconButton>
       )}
       <SignedOut>
-        <SignInButton />
-        <SignUpButton />
+        <SignInButton mode="modal">
+          <Button color="inherit">Sign in</Button>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <Button color="inherit">Sign up</Button>
+        </SignUpButton>
       </SignedOut>
       <SignedIn>
         <UserButton />

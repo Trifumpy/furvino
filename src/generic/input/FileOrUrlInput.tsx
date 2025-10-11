@@ -4,12 +4,16 @@ import {
   Stack,
   Typography,
   useTheme,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
 } from "@mui/material";
 import { Accept, useDropzone } from "react-dropzone";
 import { CloudUploadIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import { ValueFieldProps } from "./KeyMapField";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
   label?: string;
@@ -24,10 +28,12 @@ type Props<TKey extends string> = ValueFieldProps<TKey, string> & {
 const DEFAULT_MAX_FILE_SIZE = Math.floor(1024 * 1024 * 1024); // 1 GB
 
 export function FileOrUrlInput<TKey extends string>({
+  itemKey,
   label = "File or URL",
   value,
   error,
   disabled = false,
+  onChange,
   onUpload,
   loading = false,
   accept,
@@ -73,6 +79,25 @@ export function FileOrUrlInput<TKey extends string>({
 
   const isHttpUrl = typeof value === "string" && /^(https?:)?\/\//i.test(value);
 
+  const storageKey = `furvino:file-or-url-mode:${String(itemKey)}`;
+  const [mode, setMode] = useState<"upload" | "link">(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.sessionStorage.getItem(storageKey);
+      if (saved === "upload" || saved === "link") return saved;
+    }
+    return isHttpUrl ? "link" : "upload";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(storageKey, mode);
+    }
+  }, [mode, storageKey]);
+
+  useEffect(() => {
+    if (isHttpUrl && mode !== "link") setMode("link");
+  }, [isHttpUrl, mode]);
+
   const isNullStringError =
     typeof error === "string" &&
     /Invalid input: expected string, received null/i.test(error);
@@ -85,7 +110,7 @@ export function FileOrUrlInput<TKey extends string>({
     : theme.palette.primary.main;
 
   return (
-    <Stack position="relative">
+    <Stack position="relative" sx={{ flex: 1, width: "100%" }}>
       {label && (
         <Typography
           variant="caption"
@@ -102,67 +127,112 @@ export function FileOrUrlInput<TKey extends string>({
           {label}
         </Typography>
       )}
-      <Stack
-        p={4}
-        borderRadius={2}
-        alignItems="center"
-        gap={2}
-        sx={{
-          border: `2px dashed ${borderColor}`,
-          cursor: loading || disabled ? "not-allowed" : "pointer",
-        }}
-        {...rootProps}
-      >
-        <input {...getInputProps()} />
-        {isHttpUrl ? (
-          <Stack
-            component={Link}
-            href={value}
-            target="_blank"
-            rel="noopener noreferrer"
-            alignItems="center"
-            gap={1}
-          >
-            <ExternalLinkIcon size={32} />
-            <Typography variant="body2" color="primary.main">
-              Open current file
-            </Typography>
-          </Stack>
-        ) : (
-          <CloudUploadIcon size={48} color={iconColor} />
-        )}
-        <Stack alignItems="center">
-          <Typography variant="body2" color="textPrimary">
-            Drop a file here
-          </Typography>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              open();
-            }}
-            disabled={loading || disabled}
-            sx={{ mt: 1 }}
-          >
-            Choose a file
-          </Button>
-        </Stack>
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1 }}>
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={mode}
+          onChange={(_, v) => v && setMode(v)}
+        >
+          <ToggleButton value="upload">Upload file</ToggleButton>
+          <ToggleButton value="link">Use link</ToggleButton>
+        </ToggleButtonGroup>
       </Stack>
-      {typeof progressPercent === "number" && progressPercent >= 0 && (
-        <Stack gap={0.5} sx={{ mt: 1, px: 1 }}>
-          <LinearProgress
-            variant="determinate"
-            value={Math.min(progressPercent, 100)}
+
+      {mode === "link" ? (
+        <Stack gap={1}>
+          <TextField
+            fullWidth
+            hiddenLabel
+            placeholder="https://…"
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            error={!!error && !isNullStringError}
+            helperText={isNullStringError ? undefined : error}
+            disabled={disabled || loading}
           />
-          <Typography variant="caption" color="textSecondary">
-            {progressPercent}%
-            {typeof etaSeconds === "number" && etaSeconds > 0
-              ? ` • ~${etaSeconds}s remaining`
-              : ""}
-          </Typography>
+          {typeof value === "string" && value && isHttpUrl && (
+            <Stack
+              component={Link}
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              direction="row"
+              alignItems="center"
+              gap={1}
+            >
+              <ExternalLinkIcon size={16} />
+              <Typography variant="body2" color="primary.main">
+                Open link
+              </Typography>
+            </Stack>
+          )}
         </Stack>
+      ) : (
+        <>
+          <Stack
+            p={4}
+            borderRadius={2}
+            alignItems="center"
+            gap={2}
+            sx={{
+              border: `2px dashed ${borderColor}`,
+              cursor: loading || disabled ? "not-allowed" : "pointer",
+            }}
+            {...rootProps}
+          >
+            <input {...getInputProps()} />
+            {isHttpUrl ? (
+              <Stack
+                component={Link}
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                alignItems="center"
+                gap={1}
+              >
+                <ExternalLinkIcon size={32} />
+                <Typography variant="body2" color="primary.main">
+                  Open current file
+                </Typography>
+              </Stack>
+            ) : (
+              <CloudUploadIcon size={48} color={iconColor} />
+            )}
+            <Stack alignItems="center">
+              <Typography variant="body2" color="textPrimary">
+                Drop a file here
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  open();
+                }}
+                disabled={loading || disabled}
+                sx={{ mt: 1 }}
+              >
+                Choose a file
+              </Button>
+            </Stack>
+          </Stack>
+          {typeof progressPercent === "number" && progressPercent >= 0 && (
+            <Stack gap={0.5} sx={{ mt: 1, px: 1 }}>
+              <LinearProgress
+                variant="determinate"
+                value={Math.min(progressPercent, 100)}
+              />
+              <Typography variant="caption" color="textSecondary">
+                {progressPercent}%
+                {typeof etaSeconds === "number" && etaSeconds > 0
+                  ? ` • ~${etaSeconds}s remaining`
+                  : ""}
+              </Typography>
+            </Stack>
+          )}
+        </>
       )}
       {helperMessage && (
         <Typography

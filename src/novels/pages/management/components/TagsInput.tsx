@@ -1,5 +1,5 @@
 import { Tag, TAGS } from "@/generic/data";
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, IconButton, Stack, TextField } from "@mui/material";
 import {
   MultiSelectorProps,
   OptionRendererWithIcon,
@@ -37,42 +37,76 @@ export function TagsInput({ value, onChange, label = "Tags", noSuggestions = fal
 
 function FreeSoloTagsInput({ value, onChange, label, ...props }: Omit<Props, "noSuggestions">) {
   const freeSoloValue = useMemo(() => value, [value]);
+  // Local input buffer to support explicit + button for mobile users
+  const [buffer, setBuffer] = useState("");
+
+  const commitTag = (raw: string) => {
+    const tag = raw.trim();
+    if (!tag) return;
+    const lower = tag.toLowerCase();
+    const next = Array.from(new Set([...freeSoloValue.map((v) => v.toLowerCase()), lower]));
+    onChange(next);
+    setBuffer("");
+  };
+
   return (
-    <Autocomplete<string, true, false, true>
-      multiple
-      freeSolo
-      options={[]}
-      filterOptions={(x) => x}
-      value={freeSoloValue}
-      onChange={(_, newValue) => {
-        const cleaned = (newValue || [])
-          .map((v) => (typeof v === "string" ? v : String(v)))
-          .map((v) => v.trim())
-          .filter((v) => v.length > 0);
-        const dedup = Array.from(new Set(cleaned.map((v) => v.toLowerCase())));
-        onChange(dedup);
-      }}
-      renderTags={(selected, getTagProps) =>
-        selected.map((tag, index) => {
-          const { key, ...chipProps } = getTagProps({ index });
-          return <NovelTag key={key} {...chipProps} tag={tag} />;
-        })
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={label}
-          error={!!props.error}
-          helperText={props.error as string}
-          variant={props.variant}
-        />
-      )}
-      forcePopupIcon={false}
-      open={false}
-      clearOnBlur
-      selectOnFocus
-      handleHomeEndKeys
-    />
+    <Stack direction="row" alignItems="stretch" gap={1}>
+      <Autocomplete<string, true, false, true>
+        multiple
+        freeSolo
+        options={[]}
+        filterOptions={(x) => x}
+        value={freeSoloValue}
+        onChange={(_, newValue) => {
+          const cleaned = (newValue || [])
+            .map((v) => (typeof v === "string" ? v : String(v)))
+            .map((v) => v.trim())
+            .filter((v) => v.length > 0);
+          const dedup = Array.from(new Set(cleaned.map((v) => v.toLowerCase())));
+          onChange(dedup);
+        }}
+        renderTags={(selected, getTagProps) =>
+          selected.map((tag, index) => {
+            const { key, ...chipProps } = getTagProps({ index });
+            return <NovelTag key={key} {...chipProps} tag={tag} />;
+          })
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            error={!!props.error}
+            helperText={props.error as string}
+            variant={props.variant}
+            onChange={(e) => setBuffer(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                // Preserve Enter behavior
+                commitTag(buffer || (e.target as HTMLInputElement).value);
+                // Prevent form submission in nested forms
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          />
+        )}
+        forcePopupIcon={false}
+        open={false}
+        clearOnBlur
+        selectOnFocus
+        handleHomeEndKeys
+        sx={{ flex: 1 }}
+      />
+      <IconButton
+        aria-label="Add tag"
+        onClick={() => commitTag(buffer)}
+        disabled={!buffer.trim()}
+        size="small"
+        sx={{ alignSelf: "center" }}
+      >
+        <PlusIcon size={18} />
+      </IconButton>
+    </Stack>
   );
 }
 
