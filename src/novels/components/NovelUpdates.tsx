@@ -193,11 +193,11 @@ function UpdateItem({ item, canEdit, onDelete, buttonBgColorHex, buttonTextColor
     staleTime: 15_000,
   });
   const markRead = useMutation({
-    mutationFn: () => novels.post<void>(`/${novelId}/updates/${item.id}/read`, undefined as never),
+    mutationFn: () => novels.post<{ ok: true }, never>(`/${novelId}/updates/${item.id}/read`, undefined as never),
     onSuccess: () => client.setQueryData(readKey, true),
   });
   const markUnread = useMutation({
-    mutationFn: () => novels.delete<void>(`/${novelId}/updates/${item.id}/read`),
+    mutationFn: () => novels.delete<{ ok: true }>(`/${novelId}/updates/${item.id}/read`),
     onSuccess: () => client.setQueryData(readKey, false),
   });
   return (

@@ -13,13 +13,14 @@ function buildPrismaClient() {
   return new PrismaClient();
 }
 
-let prisma: PrismaClient = globalForPrisma.prisma;
+type AnyPrisma = PrismaClient & Record<string, unknown>;
+let prismaAny = (globalForPrisma as unknown as { prisma?: AnyPrisma }).prisma;
 
 // If schema changed and cached client lacks new delegates, rebuild the client
-if (!prisma || !(prisma as unknown as Record<string, unknown>).authorFollow || !(prisma as unknown as Record<string, unknown>).novelUpdateRead) {
-  prisma = buildPrismaClient();
+if (!prismaAny || !('authorFollow' in prismaAny) || !('novelUpdateRead' in prismaAny)) {
+  prismaAny = buildPrismaClient() as unknown as AnyPrisma;
 }
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma as PrismaClient;
+if (process.env.NODE_ENV !== 'production') (globalForPrisma as unknown as { prisma?: AnyPrisma }).prisma = prismaAny;
 
-export default prisma
+export default (prismaAny as unknown) as PrismaClient
