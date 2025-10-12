@@ -26,6 +26,9 @@ export function Header() {
           <Button LinkComponent={Link} href="/" color="inherit">
             Browse
           </Button>
+          <Button LinkComponent={Link} href="/following" color="inherit">
+            Following
+          </Button>
           <Button LinkComponent={Link} href="/collections" color="inherit">
             Collections
           </Button>
@@ -33,11 +36,11 @@ export function Header() {
             About
           </Button>
         </Box>
-        {/* Mobile burger menu */}
-        <Box sx={{ display: { xs: "flex", sm: "none" } }}>
+        <Box flexGrow={1} />
+        {/* Mobile burger menu on the right, before auth icons */}
+        <Box sx={{ display: { xs: "flex", sm: "none" }, mr: 1 }}>
           <MobileNavMenu />
         </Box>
-        <Box flexGrow={1} />
         <Auth />
       </Toolbar>
     </AppBar>

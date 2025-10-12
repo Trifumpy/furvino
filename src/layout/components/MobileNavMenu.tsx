@@ -22,9 +22,19 @@ export function MobileNavMenu() {
       <IconButton color="inherit" aria-label="menu" onClick={handleOpen}>
         <MenuIcon />
       </IconButton>
-      <MuiMenu anchorEl={anchorEl} open={isOpen} onClose={handleClose} keepMounted>
+      <MuiMenu
+        anchorEl={anchorEl}
+        open={isOpen}
+        onClose={handleClose}
+        keepMounted
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
         <MenuItem component={Link} href="/" onClick={handleClose}>
           Browse
+        </MenuItem>
+        <MenuItem component={Link} href="/following" onClick={handleClose}>
+          Following
         </MenuItem>
         <MenuItem component={Link} href="/collections" onClick={handleClose}>
           Collections

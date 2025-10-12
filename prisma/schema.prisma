@@ -23,6 +23,7 @@ model Author {
 
   novels Novel[]
   user   User?
+  followers AuthorFollow[]
 }
 
 model Novel {
@@ -123,6 +124,7 @@ model NovelUpdate {
   contentRich Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
+  reads       NovelUpdateRead[]
 
   @@index([novelId])
   @@index([userId])
@@ -147,6 +149,8 @@ model User {
   authorId            String?            @unique
   collections         Collection[]
   followedCollections CollectionFollow[]
+  followedAuthors     AuthorFollow[]
+  readUpdates         NovelUpdateRead[]
 
   @@index([clerkId])
   @@index([email])
@@ -193,5 +197,29 @@ model CollectionFollow {
   createdAt    DateTime   @default(now())
 
   @@unique([collectionId, userId])
+  @@index([userId])
+}
+
+model AuthorFollow {
+  id        String   @id @default(uuid())
+  authorId  String
+  userId    String
+  author    Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([authorId, userId])
+  @@index([userId])
+}
+
+model NovelUpdateRead {
+  id       String   @id @default(uuid())
+  updateId String
+  userId   String
+  update   NovelUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt   DateTime @default(now())
+
+  @@unique([updateId, userId])
   @@index([userId])
 }

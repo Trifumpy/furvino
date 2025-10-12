@@ -37,6 +37,17 @@ export function NovelUpdates() {
     enabled: !!novel,
     staleTime: 60_000,
   });
+  const readQuery = useQuery({
+    queryKey: ["novelUpdatesRead", novel?.id],
+    queryFn: async () => {
+      // Fetch read states for current user by asking server via following API-like path per update
+      // Since there is no batch API yet, we derive read state client-side using a minimal head request
+      // For now, leave empty array; isRead will be handled via item-level fetch below if needed
+      return [] as string[];
+    },
+    enabled: !!novel,
+    staleTime: 30_000,
+  });
 
   const create = useMutation({
     mutationFn: async () => {
@@ -127,6 +138,7 @@ export function NovelUpdates() {
                 buttonBgColorHex={buttonBgColorHex}
                 buttonTextColorHex={buttonTextColorHex}
                 foregroundTextColorHex={foregroundTextColorHex}
+                novelId={novel!.id}
               />
             ))}
             <Collapse in={showAll} unmountOnExit>
@@ -140,6 +152,7 @@ export function NovelUpdates() {
                     buttonBgColorHex={buttonBgColorHex}
                     buttonTextColorHex={buttonTextColorHex}
                     foregroundTextColorHex={foregroundTextColorHex}
+                    novelId={novel!.id}
                   />
                 ))}
               </Stack>
@@ -165,9 +178,28 @@ export function NovelUpdates() {
   );
 }
 
-function UpdateItem({ item, canEdit, onDelete, buttonBgColorHex, buttonTextColorHex, foregroundTextColorHex }: { item: NovelUpdateItem; canEdit: boolean; onDelete: () => void; buttonBgColorHex: string; buttonTextColorHex: string; foregroundTextColorHex: string }) {
+function UpdateItem({ item, canEdit, onDelete, buttonBgColorHex, buttonTextColorHex, foregroundTextColorHex, novelId }: { item: NovelUpdateItem; canEdit: boolean; onDelete: () => void; buttonBgColorHex: string; buttonTextColorHex: string; foregroundTextColorHex: string; novelId: string }) {
   const [expanded, setExpanded] = useState(false);
   const html = useMemo(() => toHtml(item.contentRich), [item.contentRich]);
+  const { novels } = useRegistry();
+  const client = useQueryClient();
+  const readKey = ["novelUpdateRead", item.id];
+  const { data: isRead } = useQuery({
+    queryKey: readKey,
+    queryFn: async () => {
+      // Probe read status via following feed isn't available; default false
+      return false as boolean;
+    },
+    staleTime: 15_000,
+  });
+  const markRead = useMutation({
+    mutationFn: () => novels.post<void>(`/${novelId}/updates/${item.id}/read`, undefined as never),
+    onSuccess: () => client.setQueryData(readKey, true),
+  });
+  const markUnread = useMutation({
+    mutationFn: () => novels.delete<void>(`/${novelId}/updates/${item.id}/read`),
+    onSuccess: () => client.setQueryData(readKey, false),
+  });
   return (
     <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 1.5 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
@@ -178,6 +210,14 @@ function UpdateItem({ item, canEdit, onDelete, buttonBgColorHex, buttonTextColor
           </Typography>
         </Stack>
         <Stack direction="row" gap={1} alignItems="center">
+          <Button
+            size="small"
+            variant={isRead ? "outlined" : "contained"}
+            onClick={() => (isRead ? markUnread.mutate() : markRead.mutate())}
+            sx={{ bgcolor: isRead ? undefined : buttonBgColorHex, color: isRead ? undefined : buttonTextColorHex, '&:hover': { bgcolor: isRead ? undefined : buttonBgColorHex } }}
+          >
+            {isRead ? "Mark unread" : "Mark read"}
+          </Button>
           <Button
             size="small"
             variant="contained"

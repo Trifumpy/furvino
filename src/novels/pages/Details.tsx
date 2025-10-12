@@ -22,8 +22,8 @@ import { PencilIcon } from "lucide-react";
 import { useState } from "react";
 import { Modal, ModalActions, ModalContent, ModalTitle, Selector } from "@/generic/input";
 import { useUser } from "@/users/providers";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { collectionKeys, useRegistry } from "@/utils/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { authorKeys, collectionKeys, useRegistry } from "@/utils/client";
 import { ListedCollection } from "@/contracts/collections";
 import { toast } from "react-toastify";
 
@@ -173,7 +173,7 @@ export function NovelDetailsPage() {
               buttonTextColor={foregroundTextColorHex}
             />
             {user && (
-              <Stack direction="row" gap={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} gap={2}>
                 <Button
                   variant="contained"
                   onClick={() => setIsOpen(true)}
@@ -181,6 +181,7 @@ export function NovelDetailsPage() {
                 >
                   Add to collection
                 </Button>
+                <FollowAuthorButton authorId={novel.author.id} buttonBgColorHex={buttonBgColorHex} buttonTextColorHex={foregroundTextColorHex} />
               </Stack>
             )}
           </Stack>
@@ -330,6 +331,40 @@ export function NovelDetailsPage() {
         </Box>
       </Box>
     </>
+  );
+}
+
+function FollowAuthorButton({ authorId, buttonBgColorHex, buttonTextColorHex }: { authorId: string; buttonBgColorHex: string; buttonTextColorHex: string }) {
+  const { authors } = useRegistry();
+  const client = useQueryClient();
+  const { data } = useQuery({
+    queryKey: authorKeys.author(authorId),
+    queryFn: () => authors.getAuthorById(authorId),
+  });
+  const isFollowing = !!(data as unknown as { isFollowing?: boolean })?.isFollowing;
+
+  const follow = useMutation({
+    mutationFn: () => authors.follow(authorId),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: authorKeys.author(authorId) });
+    },
+  });
+  const unfollow = useMutation({
+    mutationFn: () => authors.unfollow(authorId),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: authorKeys.author(authorId) });
+    },
+  });
+
+  return (
+    <Button
+      variant="contained"
+      onClick={() => (isFollowing ? unfollow.mutate() : follow.mutate())}
+      disabled={follow.isPending || unfollow.isPending}
+      sx={{ bgcolor: buttonBgColorHex, color: buttonTextColorHex, '&:hover': { bgcolor: buttonBgColorHex } }}
+    >
+      {isFollowing ? "Unfollow author" : "Follow author"}
+    </Button>
   );
 }
 

@@ -61,4 +61,11 @@ export class AuthorsService extends HttpService {
   deleteAuthor(authorId: string) {
     return this.delete<{ ok: true }>(`/${authorId}`);
   }
+
+  follow(authorId: string) {
+    return this.post<{ ok: true }, never>(`/${authorId}/follow` as string, undefined as never);
+  }
+  unfollow(authorId: string) {
+    return this.delete<{ ok: true }>(`/${authorId}/follow`);
+  }
 }

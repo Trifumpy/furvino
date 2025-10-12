@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthor, enrichAuthorWithUser, sanitizeAuthor } from "../utils";
-import { ensureAdmin, revalidateTags, validateRequestBody, wrapRoute } from "../../utils";
+import { ensureAdmin, ensureClerkId, revalidateTags, validateRequestBody, wrapRoute } from "../../utils";
 import prisma from "@/utils/db";
 import { updateAuthorSchema } from "@/contracts/users";
 import { authorTags, novelTags } from "@/utils";
@@ -13,7 +13,20 @@ export const GET = wrapRoute<{ authorId: string }>(
     const author = await getAuthor(authorId);
 
     const enriched = enrichAuthorWithUser(author, author.user ?? null);
-    return NextResponse.json(sanitizeAuthor(enriched));
+
+    // Determine if current user is following
+    let isFollowing = false;
+    try {
+      const { clerkId } = await ensureClerkId();
+      const user = await (await import("@/app/api/users")).getOrCreateUserByExternalId(clerkId);
+      isFollowing = !!(await prisma.authorFollow.findUnique({
+        where: { authorId_userId: { authorId, userId: user.id } },
+      }));
+    } catch {
+      // unauthenticated contexts: leave isFollowing=false
+    }
+
+    return NextResponse.json({ ...sanitizeAuthor(enriched), isFollowing });
   }
 );
 

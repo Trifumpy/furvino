@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { useAuthor, useUser } from "@/users/providers";
 import { useNovels } from "@/novels/providers";
 import { NovelCard } from "@/novels/components";
@@ -9,6 +9,8 @@ import Link from "next/link";
 import { PencilIcon } from "lucide-react";
 import { SERVICE_ICONS, SERVICE_NAMES } from "@/generic/data";
 import { ExternalSite } from "@/contracts/novels";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { authorKeys, useRegistry } from "@/utils/client";
 
 export default function AuthorPageClient() {
   const { author } = useAuthor();
@@ -18,6 +20,21 @@ export default function AuthorPageClient() {
   const links = author.externalUrls;
   const isOwner = Boolean(user?.authorId && user.authorId === author.id);
   const canEdit = Boolean(isAdmin || isOwner);
+  const { authors: authorsSvc } = useRegistry();
+  const client = useQueryClient();
+  const { data } = useQuery({
+    queryKey: authorKeys.author(author.id),
+    queryFn: () => authorsSvc.getAuthorById(author.id),
+  });
+  const isFollowing = !!(data as unknown as { isFollowing?: boolean })?.isFollowing;
+  const follow = useMutation({
+    mutationFn: () => authorsSvc.follow(author.id),
+    onSuccess: () => client.invalidateQueries({ queryKey: authorKeys.author(author.id) }),
+  });
+  const unfollow = useMutation({
+    mutationFn: () => authorsSvc.unfollow(author.id),
+    onSuccess: () => client.invalidateQueries({ queryKey: authorKeys.author(author.id) }),
+  });
 
   return (
     <>
@@ -34,6 +51,13 @@ export default function AuthorPageClient() {
         </Box>
         <Stack direction="row" gap={2} alignItems="center">
           <SortSelect />
+          <Button
+            variant="contained"
+            onClick={() => (isFollowing ? unfollow.mutate() : follow.mutate())}
+            disabled={follow.isPending || unfollow.isPending}
+          >
+            {isFollowing ? "Unfollow author" : "Follow author"}
+          </Button>
           {canEdit && (
             <IconButton
               LinkComponent={Link}

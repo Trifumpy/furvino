@@ -3,6 +3,7 @@ import { AuthorsService } from "../authors";
 import { NovelsService } from "../novels";
 import { UsersService } from "../users";
 import { CollectionsService } from "../collections";
+import { FollowingService } from "../following";
 
 const API_BASE_URL = SETTINGS.apiUrl;
 
@@ -15,12 +16,14 @@ export class Registry {
   public readonly novels: NovelsService;
   public readonly users: UsersService;
   public readonly collections: CollectionsService;
+  public readonly following: FollowingService;
 
   private constructor() {
     this.authors = new AuthorsService(API_BASE_URL);
     this.novels = new NovelsService(API_BASE_URL);
     this.users = new UsersService(API_BASE_URL);
     this.collections = new CollectionsService(API_BASE_URL);
+    this.following = new FollowingService(API_BASE_URL);
   }
 
   // Static getter to retrieve singleton instance

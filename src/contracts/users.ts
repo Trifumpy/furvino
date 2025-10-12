@@ -49,12 +49,31 @@ export type GetMeResponse = ListedUser;
 
 export type ListedAuthor = AuthorSchema & {
   user?: User | null;
+  isFollowing?: boolean;
 }
 export type PublicAuthor = AuthorSchema & {
   user?: PublicUser | null;
+  isFollowing?: boolean;
 }
 export type GetAuthorParams = { authorId: string };
 export type GetAuthorResponse = PublicAuthor;
+
+// Following feed contracts
+export type ListedFollowedUpdate = {
+  id: string;
+  title: string;
+  contentRich?: unknown | null;
+  createdAt: string;
+  novel: { id: string; title: string };
+  author: { id: string; name: string };
+  isRead: boolean;
+};
+export type GetFollowingResponse = {
+  authors: { id: string; name: string; isFollowing: true }[];
+  updates: ListedFollowedUpdate[];
+  page: number;
+  pageSize: number;
+};
 
 export const getAuthorsQuerySchema = z.object({
   search: z.string(),
