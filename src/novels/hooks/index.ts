@@ -7,6 +7,5 @@ export * from "./useSearchUsers";
 export * from "./useUpdateNovel";
 export * from "./useUpdateNovelBanner";
 export * from "./useUpdateNovelThumbnail";
-export * from "./useUpdateNovelThumbnail";
 export * from "./useUploadNovelFile";
-export * from "./useUploadNovelFile";
+export * from "./useUpdateNovelLayout";

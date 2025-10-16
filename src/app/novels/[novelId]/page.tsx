@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ novelId: 
   }
   const imageUrl = novel.thumbnailUrl || undefined;
   return {
-    title: `${novel.title} - Furry Visual Novel | Furvino`,
+    title: `${novel.title} | Furvino`,
     description: novel.snippet ?? `Read ${novel.title}, a furry visual novel, on Furvino.`,
     alternates: { canonical: `/novels/${novelId}` },
     openGraph: {

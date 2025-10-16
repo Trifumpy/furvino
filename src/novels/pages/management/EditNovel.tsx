@@ -4,10 +4,11 @@ import { CreateNovelBody } from "@/contracts/novels";
 import { useUpdateNovel } from "@/novels/hooks";
 import { useRouter } from "next/navigation";
 import { startTransition, useMemo, useState } from "react";
-import { useNovel } from "@/novels/providers";
-import { NovelDangerZone, NovelForm, NovelGalleryEditor } from "./components";
+import { useNovel } from "@/novels/providers/ClientNovelProvider";
+import { NovelDangerZone, NovelForm, NovelGalleryEditor, PageLayoutEditor } from "./components";
 import { pruneEmptyKeys } from "@/utils/lib/collections";
 import { Button, Stack, TextField } from "@mui/material";
+import Link from "next/link";
 import { toast } from "react-toastify";
 
 export function EditNovelPage() {
@@ -113,6 +114,9 @@ function EditFormInternal({
         }}
       />
       <NovelGalleryEditor />
+      <Stack alignItems="flex-end">
+        <Button component={Link} href={`/novels/${novel.id}/layout`} variant="outlined">Open layout editor</Button>
+      </Stack>
       <Stack alignItems="center" mt={2}>
         <Button
           form="edit-novel-form"

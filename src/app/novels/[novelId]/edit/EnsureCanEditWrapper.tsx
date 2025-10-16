@@ -1,7 +1,7 @@
 "use client";
 
 import { ErrorPage, LoadingPage } from "@/generic/pages";
-import { useNovel } from "@/novels/providers";
+import { useNovel } from "@/novels/providers/ClientNovelProvider";
 
 export function EnsureCanEditWrapper({
   children,

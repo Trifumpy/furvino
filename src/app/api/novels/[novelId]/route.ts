@@ -67,6 +67,7 @@ export const PUT = wrapRoute<UpdateNovelParams>(async (request, { params }) => {
       // JSON fields we want to persist
       externalUrls: rest.externalUrls as unknown as object | undefined,
       downloadUrls: rest.downloadUrls as unknown as object | undefined,
+      pageLayout: (rest as unknown as { pageLayout?: object | null }).pageLayout as unknown as object | undefined,
     },
   });
   revalidateTags(novelTags.novel(novelId));

@@ -1,5 +1,5 @@
 import { BrowsePage } from "../../novels/pages";
-import { SearchProvider } from "@/novels/providers";
+import { SearchProvider } from "@/novels/providers/SearchProvider";
 import { NovelsProvider } from "@/novels/providers/NovelsProvider";
 
 export default async function App({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {

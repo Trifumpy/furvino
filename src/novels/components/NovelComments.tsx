@@ -1,13 +1,15 @@
 "use client";
 
-import { useNovel } from "../providers";
+import { useNovel } from "../providers/ClientNovelProvider";
 import { useUser } from "@/users/providers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
 import { Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
+import { formatDateTimeUtcShort } from "@/utils/lib/dates";
 import { SafeImage } from "@/generic/display";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input/Modal";
 import { useState } from "react";
+import { MessageSquareHeart as MessageSquareHeartIcon } from "lucide-react";
 
 const MAX_COMMENT_LENGTH = 500;
 
@@ -94,7 +96,10 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
 
   return (
     <Stack gap={2}>
-      <Typography variant="h6">Comments</Typography>
+      <Stack direction="row" alignItems="center" gap={1}>
+        <MessageSquareHeartIcon size={20} />
+        <Typography variant="h6">Comments</Typography>
+      </Stack>
       {user && (
         <Stack direction={{ xs: "column", sm: "row" }} gap={1} alignItems={{ xs: "stretch", sm: "flex-start" }}>
           <TextField
@@ -153,9 +158,7 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                     <Typography variant="subtitle2">{c.user.username}</Typography>
                     {isAuthor && <Chip label="Author" size="small" color="secondary" />}
                   </Stack>
-                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
-                    {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
-                  </Typography>
+                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>{formatDateTimeUtcShort(c.createdAt)}</Typography>
                 </Stack>
                 <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -7, sm: 0 } }}>{c.text}</Typography>
                 {user && (
@@ -225,9 +228,7 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                                 <Typography variant="subtitle2">{r.user.username}</Typography>
                                 {rIsAuthor && <Chip label="Author" size="small" color="secondary" />}
                               </Stack>
-                              <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
-                                {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
-                              </Typography>
+                              <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>{formatDateTimeUtcShort(r.createdAt)}</Typography>
                             </Stack>
                             <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -6, sm: 0 } }}>{r.text}</Typography>
                             {user && (
@@ -303,9 +304,7 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                         <Typography variant="subtitle2">{c.user.username}</Typography>
                         {isAuthor && <Chip label="Author" size="small" color="secondary" />} 
                       </Stack>
-                      <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
-                        {new Date(c.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
-                      </Typography>
+                      <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>{formatDateTimeUtcShort(c.createdAt)}</Typography>
                     </Stack>
                     <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -7, sm: 0 } }}>{c.text}</Typography>
                     {user && (
@@ -371,9 +370,7 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
                               <Stack gap={0.5} sx={{ flex: 1 }}>
                                 <Stack direction={{ xs: "column", sm: "row" }} gap={{ xs: 0, sm: 1 }} alignItems={{ xs: "flex-start", sm: "center" }}>
                                   <Typography variant="subtitle2">{r.user.username}</Typography>
-                                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>
-                                    {new Date(r.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
-                                  </Typography>
+                                  <Typography variant="caption" sx={{ mt: { xs: 0.25, sm: 0 } }}>{formatDateTimeUtcShort(r.createdAt)}</Typography>
                                 </Stack>
                                 <Typography variant="body2" sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word', ml: { xs: -6, sm: 0 } }}>{r.text}</Typography>
                                 {rCanDelete && (

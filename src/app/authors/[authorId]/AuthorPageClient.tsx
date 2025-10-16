@@ -2,7 +2,7 @@
 
 import { Box, Button, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { useAuthor, useUser } from "@/users/providers";
-import { useNovels } from "@/novels/providers";
+import { useNovels } from "@/novels/providers/ClientNovelsProvider";
 import { NovelCard } from "@/novels/components";
 import { SortSelect } from "@/novels/components";
 import Link from "next/link";

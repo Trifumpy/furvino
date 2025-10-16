@@ -37,8 +37,82 @@ export const MAX_SNIPPET_LENGTH = 250;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const MAX_TAGS = 10;
 export const MAX_INDEXING_TAGS = 30;
-export const MAX_GALLERY_ITEMS = 6;
+export const MAX_GALLERY_ITEMS = 18;
 export const MAX_UPDATE_TITLE_LENGTH = 50;
+// Layout configuration for customizable novel pages
+export const layoutBlockTypeEnum = z.enum([
+  "richText",
+  "gallery",
+  "image",
+  "updates",
+  "ratings",
+  "ratingsList",
+  "comments",
+  "spacer",
+  // Freeform canvas items
+  "title",
+  "thumbnail",
+  "links",
+  "downloads",
+]);
+export const layoutFrameSchema = z.object({
+  x: z.number().int().min(0).max(10000),
+  y: z.number().int().min(0).max(10000),
+  width: z.number().int().min(50).max(20000),
+  height: z.number().int().min(40).max(20000),
+});
+export const richTextBlockSchema = z.object({
+  type: z.literal("richText"),
+  content: z.unknown(),
+  frame: layoutFrameSchema.optional(),
+});
+export const galleryBlockSchema = z.object({
+  type: z.literal("gallery"),
+  // optional explicit order/subset of gallery item ids; if empty, show all
+  items: z.array(z.string()).max(MAX_GALLERY_ITEMS).optional(),
+  frame: layoutFrameSchema.optional(),
+});
+export const imageBlockSchema = z.object({
+  type: z.literal("image"),
+  id: z.string(), // gallery item id
+  caption: z.string().max(MAX_GALLERY_FOOTER_LENGTH).optional(),
+  frame: layoutFrameSchema.optional(),
+});
+export const updatesBlockSchema = z.object({ type: z.literal("updates"), frame: layoutFrameSchema.optional() });
+export const ratingsBlockSchema = z.object({ type: z.literal("ratings"), frame: layoutFrameSchema.optional() });
+export const ratingsListBlockSchema = z.object({ type: z.literal("ratingsList"), frame: layoutFrameSchema.optional() });
+export const commentsBlockSchema = z.object({ type: z.literal("comments"), frame: layoutFrameSchema.optional() });
+export const spacerBlockSchema = z.object({ type: z.literal("spacer"), frame: layoutFrameSchema.optional() });
+export const titleBlockSchema = z.object({ type: z.literal("title"), frame: layoutFrameSchema.optional() });
+export const thumbnailBlockSchema = z.object({ type: z.literal("thumbnail"), frame: layoutFrameSchema.optional() });
+export const linksBlockSchema = z.object({ type: z.literal("links"), frame: layoutFrameSchema.optional() });
+export const downloadsBlockSchema = z.object({ type: z.literal("downloads"), frame: layoutFrameSchema.optional() });
+export const layoutBlockSchema = z.discriminatedUnion("type", [
+  richTextBlockSchema,
+  galleryBlockSchema,
+  imageBlockSchema,
+  updatesBlockSchema,
+  ratingsBlockSchema,
+  ratingsListBlockSchema,
+  commentsBlockSchema,
+  spacerBlockSchema,
+  titleBlockSchema,
+  thumbnailBlockSchema,
+  linksBlockSchema,
+  downloadsBlockSchema,
+]);
+export const novelLayoutSchema = z.object({
+  version: z.literal(1).default(1),
+  blocks: z.array(layoutBlockSchema).max(100),
+  settings: z
+    .object({
+      hideThumbnail: z.boolean().optional(),
+      hideTags: z.boolean().optional(),
+      hiddenGalleryItemIds: z.array(z.string()).max(MAX_GALLERY_ITEMS).optional(),
+      compactGallery: z.boolean().optional(),
+    })
+    .optional(),
+});
 export const novelSchema = z.object({
   id: z.string().min(1, "ID cannot be an empty string").optional(),
   title: z.string().min(1, "Title is required").max(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`),
@@ -79,6 +153,8 @@ export const novelSchema = z.object({
   downloadUrls: z.partialRecord(platformEnum, urlOrEmpty).optional(),
   tags: z.array(z.string()).max(MAX_TAGS).optional(),
   indexingTags: z.array(z.string()).max(MAX_INDEXING_TAGS).optional(),
+  // Optional customizable page layout; if omitted, UI renders default layout
+  pageLayout: novelLayoutSchema.optional(),
 });
 export type NovelSchema = z.infer<typeof novelSchema>;
 
@@ -174,7 +250,18 @@ export type FullNovel = ListedNovel & {
   foregroundTextColorHex?: string | null;
   buttonBgColorHex?: string | null;
   galleryItems: GalleryItem[];
+  pageLayout?: NovelLayout | null;
 }
+
+export type NovelLayout = z.infer<typeof novelLayoutSchema>;
+export type LayoutBlock = z.infer<typeof layoutBlockSchema>;
+
+// Layout API contracts
+export type GetNovelLayoutParams = { novelId: string };
+export type GetNovelLayoutResponse = NovelLayout | null;
+export type UpdateNovelLayoutParams = { novelId: string };
+export type UpdateNovelLayoutBody = NovelLayout;
+export type UpdateNovelLayoutResponse = FullNovel;
 
 export type CommentsSummary = {
   total: number;

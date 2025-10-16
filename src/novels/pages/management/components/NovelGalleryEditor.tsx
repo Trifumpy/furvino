@@ -7,7 +7,7 @@ import {
   useCreateNovelGalleryItem,
   useDeleteNovelGalleryItem,
 } from "@/novels/hooks";
-import { useNovel } from "@/novels/providers";
+import { useNovel } from "@/novels/providers/ClientNovelProvider";
 import { toast } from "react-toastify";
 import { Trash2Icon } from "lucide-react";
 import { IconButton } from "@mui/material";
@@ -23,6 +23,38 @@ export function NovelGalleryEditor() {
 
   if (!novel) return null;
 
+  // Build a map of used slots → gallery item, based on imageUrl's `g=galleryN` param
+  const slotToItem = new Map<number, (typeof novel.galleryItems)[number]>();
+  for (const item of novel.galleryItems) {
+    try {
+      const u = new URL(item.imageUrl);
+      const g = u.searchParams.get("g");
+      let slot: number | null = null;
+      if (g && /^gallery\d+$/.test(g)) {
+        slot = parseInt(g.replace("gallery", ""), 10);
+      } else {
+        const m = /\/gallery(\d+)\//.exec(u.pathname);
+        if (m) slot = parseInt(m[1]!, 10);
+      }
+      if (slot && slot >= 1 && slot <= MAX_GALLERY_ITEMS && !slotToItem.has(slot)) {
+        slotToItem.set(slot, item);
+      }
+    } catch {
+      // ignore malformed URLs
+    }
+  }
+
+  const usedSlots = Array.from(slotToItem.keys()).sort((a, b) => a - b);
+  let nextSlot: number | null = null;
+  if (novel.galleryItems.length < MAX_GALLERY_ITEMS) {
+    for (let i = 1; i <= MAX_GALLERY_ITEMS; i++) {
+      if (!slotToItem.has(i)) {
+        nextSlot = i;
+        break;
+      }
+    }
+  }
+
   return (
     <Stack gap={1}>
       <Typography variant="h5">Gallery</Typography>
@@ -37,123 +69,113 @@ export function NovelGalleryEditor() {
           },
         }}
       >
-        {Array.from({ length: MAX_GALLERY_ITEMS }, (_, i) => i + 1).map(
-          (slot) => {
-            const existing = novel.galleryItems.find((item) => {
-              try {
-                const u = new URL(item.imageUrl);
-                const g = u.searchParams.get("g");
-                if (g === `gallery${slot}`) return true;
-              } catch {}
-              return false;
-            });
-            return (
-              <Box key={slot} sx={{ width: "100%" }}>
+        {usedSlots.map((slot) => {
+          const existing = slotToItem.get(slot)!;
+          return (
+            <Box key={slot} sx={{ width: "100%" }}>
+              <Stack gap={1}>
+                <Typography variant="subtitle2">Slot {slot}</Typography>
                 <Stack gap={1}>
-                  <Typography variant="subtitle2">Slot {slot}</Typography>
-                  {existing ? (
-                    <Stack gap={1}>
-                      <Box
-                        sx={{
-                          position: "relative",
-                          width: "100%",
-                          aspectRatio: "4 / 3",
-                          borderRadius: 8,
-                          overflow: "hidden",
-                        }}
-                      >
-                        <SafeImage
-                          src={existing.imageUrl}
-                          alt={`Gallery slot ${slot}`}
-                          fill
-                          sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
-                          style={{
-                            objectFit: "cover",
-                            objectPosition: "center",
-                          }}
-                        />
-                      </Box>
-                      <IconButton
-                        aria-label={`Remove image from slot ${slot}`}
-                        onClick={async () => {
-                          await deleteGalleryItem({
-                            novelId: novel.id,
-                            galleryItemId: existing.id,
-                          });
-                          // Optimistically update local state so the slot reverts to uploader
-                          novel.galleryItems = novel.galleryItems.filter(
-                            (gi) => gi.id !== existing.id
-                          );
-                          setRevision((r) => r + 1);
-                          toast.success("Image removed");
-                        }}
-                        color="error"
-                        size="small"
-                        sx={{ alignSelf: "flex-start" }}
-                      >
-                        <Trash2Icon />
-                      </IconButton>
-                    </Stack>
-                  ) : (
-                    <ImageInput
-                      label={`Upload for slot ${slot}`}
-                      valueUrl={undefined}
-                      onUpload={async (file) => {
-                        if (!file.type.startsWith("image/")) {
-                          toast.error("Please upload a valid image file.");
-                          return;
-                        }
-                        if (uploadingSlot !== null) {
-                          toast.info(
-                            "Another gallery upload is in progress. Please wait."
-                          );
-                          return;
-                        }
-                        try {
-                          setUploadingSlot(slot);
-                          const created = await createGalleryItem({
-                            novelId: novel.id,
-                            galleryItemFile: file,
-                            slot,
-                          });
-                          // Optimistically update the in-memory novel so the new image appears instantly in its slot
-                          const url = created.imageUrl;
-                          const id = created.id;
-                          novel.galleryItems = [
-                            // replace any previous slot image
-                            ...novel.galleryItems
-                              .filter((gi) => gi.id !== id)
-                              .filter((gi) => {
-                                try {
-                                  const g = new URL(
-                                    gi.imageUrl
-                                  ).searchParams.get("g");
-                                  return g !== `gallery${slot}`;
-                                } catch {
-                                  return true;
-                                }
-                              }),
-                            {
-                              id,
-                              imageUrl: url,
-                              createdAt: new Date().toISOString(),
-                              footer: null,
-                            },
-                          ];
-                          toast.success("Image uploaded");
-                        } finally {
-                          setUploadingSlot(null);
-                        }
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: "100%",
+                      aspectRatio: "4 / 3",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <SafeImage
+                      src={existing.imageUrl}
+                      alt={`Gallery slot ${slot}`}
+                      fill
+                      sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      style={{
+                        objectFit: "cover",
+                        objectPosition: "center",
                       }}
-                      maxSize={MAX_GALLERY_FILE_SIZE}
-                      loading={isCreating || uploadingSlot !== null}
-                      disabled={uploadingSlot !== null}
                     />
-                  )}
+                  </Box>
+                  <IconButton
+                    aria-label={`Remove image from slot ${slot}`}
+                    onClick={async () => {
+                      await deleteGalleryItem({
+                        novelId: novel.id,
+                        galleryItemId: existing.id,
+                      });
+                      novel.galleryItems = novel.galleryItems.filter(
+                        (gi) => gi.id !== existing.id
+                      );
+                      setRevision((r) => r + 1);
+                      toast.success("Image removed");
+                    }}
+                    color="error"
+                    size="small"
+                    sx={{ alignSelf: "flex-start" }}
+                  >
+                    <Trash2Icon />
+                  </IconButton>
                 </Stack>
-              </Box>
-            );
-          }
+              </Stack>
+            </Box>
+          );
+        })}
+
+        {nextSlot !== null && (
+          <Box key={`uploader-${nextSlot}`} sx={{ width: "100%" }}>
+            <Stack gap={1}>
+              <Typography variant="subtitle2">Slot {nextSlot}</Typography>
+              <ImageInput
+                label={`Upload for slot ${nextSlot}`}
+                valueUrl={undefined}
+                onUpload={async (file) => {
+                  if (!file.type.startsWith("image/")) {
+                    toast.error("Please upload a valid image file.");
+                    return;
+                  }
+                  if (uploadingSlot !== null) {
+                    toast.info(
+                      "Another gallery upload is in progress. Please wait."
+                    );
+                    return;
+                  }
+                  try {
+                    setUploadingSlot(nextSlot);
+                    const created = await createGalleryItem({
+                      novelId: novel.id,
+                      galleryItemFile: file,
+                      slot: nextSlot ?? undefined,
+                    });
+                    const url = created.imageUrl;
+                    const id = created.id;
+                    novel.galleryItems = [
+                      ...novel.galleryItems.filter((gi) => gi.id !== id).filter((gi) => {
+                        try {
+                          const g = new URL(gi.imageUrl).searchParams.get("g");
+                          return g !== `gallery${nextSlot}`;
+                        } catch {
+                          return true;
+                        }
+                      }),
+                      {
+                        id,
+                        imageUrl: url,
+                        createdAt: new Date().toISOString(),
+                        footer: null,
+                      },
+                    ];
+                    setRevision((r) => r + 1);
+                    toast.success("Image uploaded");
+                  } finally {
+                    setUploadingSlot(null);
+                  }
+                }}
+                maxSize={MAX_GALLERY_FILE_SIZE}
+                loading={isCreating || uploadingSlot !== null}
+                disabled={uploadingSlot !== null}
+              />
+            </Stack>
+          </Box>
         )}
       </Box>
     </Stack>

@@ -42,6 +42,7 @@ model Novel {
   foregroundBlurPercent Int @default(20)
   foregroundTextColorHex String? @default("#FFFFFF")
   buttonBgColorHex String?
+  pageLayout      Json?
   galleryItems    GalleryItem[]
   updates         NovelUpdate[]
   tags            String[]

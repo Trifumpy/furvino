@@ -3,7 +3,8 @@
 import { Alert, Box, CircularProgress, Grid, Pagination, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import { NovelCard } from "../components/NovelCard";
-import { useNovels, useSearch } from "../providers";
+import { useNovels } from "../providers/ClientNovelsProvider";
+import { useSearch } from "../providers/SearchProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SearchBar, SortSelect } from "../components";
 

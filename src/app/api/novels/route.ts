@@ -40,6 +40,11 @@ export const POST = wrapRoute(async (req) => {
     indexingTags: validatedNovel.indexingTags,
     externalUrls: validatedNovel.externalUrls,
     downloadUrls: validatedNovel.downloadUrls,
+    // Seed default page layout on create (not on upsert/update)
+    pageLayout: id ? undefined : (await import("./utils")).buildDefaultPageLayout({
+      descriptionRich: validatedNovel.descriptionRich as unknown,
+      snippet: validatedNovel.snippet ?? null,
+    }) as unknown as object,
   };
 
   const newNovel = await (

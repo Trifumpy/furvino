@@ -22,6 +22,7 @@ import {
 import { getUserByExternalId } from "../users";
 import { deleteStackFolder } from "../files";
 import { trimString } from "@/utils";
+import { NovelLayout } from "@/contracts/novels";
 
 type PrismaNovelWithAuthor = Novel & {
   author?: { id: string; name: string } | null;
@@ -339,9 +340,28 @@ export async function enrichToFullNovel(data: Novel): Promise<FullNovel> {
     foregroundTextColorHex: (data as unknown as { foregroundTextColorHex?: string | null }).foregroundTextColorHex || null,
     buttonBgColorHex: (data as unknown as { buttonBgColorHex?: string | null }).buttonBgColorHex || null,
     galleryItems: galleryItems?.map(enrichGalleryItem) || [],
+    pageLayout: (data as unknown as { pageLayout?: unknown | null }).pageLayout as unknown as FullNovel["pageLayout"],
     createdAt: data.createdAt.toISOString(),
     updatedAt: data.updatedAt.toISOString(),
   };
+}
+
+// DEFAULT LAYOUT
+export function buildDefaultPageLayout(input: { descriptionRich?: unknown | null; snippet?: string | null }): NovelLayout {
+  const blocks: Array<unknown> = [];
+  if (input.descriptionRich) {
+    blocks.push({ type: "richText", content: input.descriptionRich });
+  } else if (typeof input.snippet === "string" && input.snippet.trim().length > 0) {
+    const lines = input.snippet.split(/\n+/).map((s) => s.trim());
+    const content = lines.map((line) => ({ type: "paragraph", content: line ? [{ type: "text", text: line }] : [] }));
+    blocks.push({ type: "richText", content: { type: "doc", content } });
+  }
+  blocks.push({ type: "gallery" });
+  blocks.push({ type: "updates" });
+  blocks.push({ type: "ratings" });
+  blocks.push({ type: "ratingsList" });
+  blocks.push({ type: "comments" });
+  return { version: 1, blocks } as NovelLayout;
 }
 
 export async function enrichNovelWithAuthor(
@@ -537,6 +557,7 @@ export async function updateNovelAndEnrich(
     indexingTags?: string[];
     externalUrls?: Record<string, string>;
     downloadUrls?: Record<string, string>;
+    pageLayout?: unknown | null;
   }
 ) {
   const updated = await prisma.novel.update({
@@ -556,6 +577,7 @@ export async function updateNovelAndEnrich(
       indexingTags: (data as unknown as { indexingTags?: string[] }).indexingTags,
       externalUrls: (data as unknown as { externalUrls?: object }).externalUrls as unknown as Prisma.InputJsonValue,
       downloadUrls: (data as unknown as { downloadUrls?: object }).downloadUrls as unknown as Prisma.InputJsonValue,
+      pageLayout: (data as unknown as { pageLayout?: object | null }).pageLayout as unknown as Prisma.InputJsonValue,
     },
   });
   return enrichToFullNovel(updated);

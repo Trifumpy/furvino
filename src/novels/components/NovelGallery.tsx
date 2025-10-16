@@ -2,7 +2,7 @@
 
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { Trash2Icon, UploadIcon, ImagePlusIcon, XIcon } from "lucide-react";
-import { useNovel } from "../providers";
+import { useNovel } from "../providers/ClientNovelProvider";
 import { MAX_GALLERY_FILE_SIZE, MAX_GALLERY_ITEMS } from "@/contracts/novels";
 import { useCreateNovelGalleryItem, useDeleteNovelGalleryItem } from "../hooks";
 import { useState } from "react";

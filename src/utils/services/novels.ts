@@ -20,6 +20,9 @@ import {
   CreateNovelGalleryItemResponse,
   CreateNovelGalleryItemBody,
   DeleteNovelGalleryItemResponse,
+  GetNovelLayoutResponse,
+  UpdateNovelLayoutBody,
+  UpdateNovelLayoutResponse,
 } from "@/contracts/novels";
 import { HttpService } from "./core";
 import { novelTags } from "../cacheTags";
@@ -243,5 +246,17 @@ export class NovelsService extends HttpService {
 
   deleteNovel(novelId: string) {
     return this.delete<void>(`/${novelId}`);
+  }
+
+  // Layout
+  getLayout(novelId: string) {
+    return this.get<GetNovelLayoutResponse>(`/${novelId}/layout`, { cache: "no-store" });
+  }
+  updateLayout(novelId: string, body: UpdateNovelLayoutBody) {
+    return this.put<UpdateNovelLayoutResponse, UpdateNovelLayoutBody>(
+      `/${novelId}/layout`,
+      body,
+      { cache: "no-store" }
+    );
   }
 }

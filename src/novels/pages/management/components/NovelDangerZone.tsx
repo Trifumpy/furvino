@@ -1,5 +1,5 @@
 import { useModal } from "@/generic/hooks";
-import { useNovel } from "@/novels/providers";
+import { useNovel } from "@/novels/providers/ClientNovelProvider";
 import { Button, Stack, Typography } from "@mui/material";
 import { DeleteNovelModal } from "./DeleteNovelModal";
 

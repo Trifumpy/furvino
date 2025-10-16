@@ -4,7 +4,7 @@ import { Button, Stack, TextField, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
 import { useUser } from "@/users/providers";
-import { useNovelsService } from "@/novels/providers";
+import { useNovelsService } from "@/novels/providers/useNovelsService";
 import { toast } from "react-toastify";
 
 type FormValues = {

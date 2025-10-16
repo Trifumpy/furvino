@@ -2,7 +2,7 @@
 
 import { Alert, Grid, Typography } from "@mui/material";
 import { NovelCard } from "../components/NovelCard";
-import { useNovels } from "../providers";
+import { useNovels } from "../providers/ClientNovelsProvider";
 
 export function FavoritesPage() {
   const { favoriteNovels, toggleFavorite } = useNovels();

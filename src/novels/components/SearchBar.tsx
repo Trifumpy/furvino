@@ -2,7 +2,7 @@
 
 import { TextField } from "@mui/material";
 import Link from "next/link";
-import { useSearch } from "../providers";
+import { useSearch } from "../providers/SearchProvider";
 import { useSearchParams } from "next/navigation";
 
 export function SearchBar() {

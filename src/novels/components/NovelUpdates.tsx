@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Button, Collapse, IconButton, Stack, TextField, Typography } from "@mui/material";
-import { useNovel } from "../providers";
+import { useNovel } from "../providers/ClientNovelProvider";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
@@ -10,6 +10,7 @@ import { RichTextEditor } from "@/generic/input/RichTextEditor";
 import { toast } from "react-toastify";
 import { Trash2 as TrashIcon, ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon, History as HistoryIcon } from "lucide-react";
 import { SanitizedHtml } from "@/generic/display";
+import { formatDateTimeUtcShort } from "@/utils/lib/dates";
 import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -205,9 +206,7 @@ function UpdateItem({ item, canEdit, onDelete, buttonBgColorHex, buttonTextColor
       <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
         <Stack>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{item.title}</Typography>
-          <Typography variant="caption" sx={{ color: foregroundTextColorHex }}>
-            {new Date(item.createdAt).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}
-          </Typography>
+          <Typography variant="caption" sx={{ color: foregroundTextColorHex }}>{formatDateTimeUtcShort(item.createdAt)}</Typography>
         </Stack>
         <Stack direction="row" gap={1} alignItems="center">
           <Button
