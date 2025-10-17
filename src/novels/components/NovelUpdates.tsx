@@ -38,17 +38,6 @@ export function NovelUpdates() {
     enabled: !!novel,
     staleTime: 60_000,
   });
-  const readQuery = useQuery({
-    queryKey: ["novelUpdatesRead", novel?.id],
-    queryFn: async () => {
-      // Fetch read states for current user by asking server via following API-like path per update
-      // Since there is no batch API yet, we derive read state client-side using a minimal head request
-      // For now, leave empty array; isRead will be handled via item-level fetch below if needed
-      return [] as string[];
-    },
-    enabled: !!novel,
-    staleTime: 30_000,
-  });
 
   const create = useMutation({
     mutationFn: async () => {

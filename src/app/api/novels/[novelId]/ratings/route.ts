@@ -3,6 +3,7 @@ import { ensureClerkId, wrapRoute } from "@/app/api/utils";
 import prisma from "@/utils/db";
 import { Prisma } from "@/generated/prisma";
 import z from "zod";
+import { ForbiddenError } from "@/app/api/errors";
 import { auth } from "@clerk/nextjs/server";
 
 const upsertRatingSchema = z.object({
@@ -176,6 +177,9 @@ export const PUT = wrapRoute(async (req, { params }: { params: Promise<{ novelId
 
   const user = await prisma.user.findUnique({ where: { clerkId } });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (user.banCommentingAndRating) {
+    throw new ForbiddenError("Rating is disabled for your account");
+  }
 
   const data: Prisma.UserRatingUpsertArgs["create"] = {
     novelId,

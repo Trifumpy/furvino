@@ -44,7 +44,7 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
         .filter((t) => t.length > 0)
     : [];
 
-  const where: Prisma.NovelWhereInput = {
+  const whereBase: Prisma.NovelWhereInput = {
     authorId: authorId || undefined,
     ...(tags ? { tags: { hasEvery: tags } } : {}),
     ...(searchTokens.length
@@ -60,6 +60,24 @@ export async function getAllNovels(options: GetNovelsQParams): Promise<GetNovels
         }
       : {}),
   };
+
+  // Apply visibility: non-admins should not see hidden novels unless they are the owning author
+  let where: Prisma.NovelWhereInput = whereBase;
+  try {
+    const { clerkId } = await ensureClerkId();
+    const isAdmin = await checkIfUserIsAdmin(clerkId);
+    if (!isAdmin) {
+      // If caller is the owning author, allow hidden when filtering by their authorId
+      const user = await getUserByExternalId(clerkId);
+      const isOwnerListing = !!authorId && user?.authorId === authorId;
+      if (!isOwnerListing) {
+        where = { AND: [whereBase, { isHidden: false }] };
+      }
+    }
+  } catch {
+    // Unauthenticated contexts (SSR) should not see hidden novels
+    where = { AND: [whereBase, { isHidden: false }] };
+  }
 
   // Determine ordering
   const orderBy: Prisma.NovelOrderByWithRelationInput[] = [];
@@ -376,6 +394,7 @@ export async function enrichNovelWithAuthor(
 ): Promise<ListedNovel> {
   return {
     ...data,
+    isHidden: (data as unknown as { isHidden?: boolean }).isHidden ?? false,
     // Ensure non-null arrays for API contracts
     tags: Array.isArray((data as unknown as { tags?: string[] }).tags)
       ? ((data as unknown as { tags?: string[] }).tags as string[])

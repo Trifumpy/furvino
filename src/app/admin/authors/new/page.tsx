@@ -18,8 +18,13 @@ export default function AdminCreateAuthorPage() {
       await authors.createAuthor({ name });
       toast.success("Author created");
       setName("");
-    } catch {
-      toast.error("Failed to create author");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.toLowerCase().includes("already exists") || message.toLowerCase().includes("409")) {
+        toast.error("Author with this name already exists");
+      } else {
+        toast.error("Failed to create author");
+      }
     } finally {
       setSaving(false);
     }

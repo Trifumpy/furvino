@@ -122,6 +122,8 @@ export const novelSchema = z.object({
   snippet: z.string().max(MAX_SNIPPET_LENGTH).optional(),
   thumbnailUrl: urlOrEmpty.optional(),
   pageBackgroundUrl: urlOrEmpty.optional(),
+  // Visibility toggle: when true, novel is hidden from public lists for others
+  isHidden: z.boolean().optional(),
   foregroundOpacityPercent: z.coerce
     .number()
     .int()
@@ -223,6 +225,7 @@ export type ListedNovel = {
   id: string;
   title: string;
   author: Author;
+  isHidden: boolean;
   externalUrls?: Partial<Record<ExternalSite, string>>;
   downloadUrls?: Partial<Record<Platform, string>>;
   snippet?: string | null;

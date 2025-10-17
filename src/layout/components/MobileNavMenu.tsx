@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, MouseEvent } from "react";
-import { IconButton, Menu as MuiMenu, MenuItem } from "@mui/material";
-import { Menu as MenuIcon } from "lucide-react";
+import { IconButton, Menu as MuiMenu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Menu as MenuIcon, Compass as CompassIcon, UserRoundCheck as UserRoundCheckIcon, LibraryBig as LibraryBigIcon, Info as InfoIcon } from "lucide-react";
 import Link from "next/link";
 
 export function MobileNavMenu() {
@@ -31,16 +31,28 @@ export function MobileNavMenu() {
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <MenuItem component={Link} href="/" onClick={handleClose}>
-          Browse
+          <ListItemIcon>
+            <CompassIcon size={18} />
+          </ListItemIcon>
+          <ListItemText>Browse</ListItemText>
         </MenuItem>
         <MenuItem component={Link} href="/following" onClick={handleClose}>
-          Following
+          <ListItemIcon>
+            <UserRoundCheckIcon size={18} />
+          </ListItemIcon>
+          <ListItemText>Following</ListItemText>
         </MenuItem>
         <MenuItem component={Link} href="/collections" onClick={handleClose}>
-          Collections
+          <ListItemIcon>
+            <LibraryBigIcon size={18} />
+          </ListItemIcon>
+          <ListItemText>Collections</ListItemText>
         </MenuItem>
         <MenuItem component={Link} href="/about" onClick={handleClose}>
-          About
+          <ListItemIcon>
+            <InfoIcon size={18} />
+          </ListItemIcon>
+          <ListItemText>About</ListItemText>
         </MenuItem>
       </MuiMenu>
     </>

@@ -9,6 +9,8 @@ import { formatDateTimeUtcShort } from "@/utils/lib/dates";
 import { SafeImage } from "@/generic/display";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input/Modal";
 import { useState } from "react";
+import { HttpServiceError } from "@/utils/services/core/HttpService";
+import { toast } from "react-toastify";
 import { MessageSquareHeart as MessageSquareHeartIcon } from "lucide-react";
 
 const MAX_COMMENT_LENGTH = 500;
@@ -78,6 +80,11 @@ export function NovelComments({ buttonBgColor, buttonTextColor }: { buttonBgColo
       setText("");
       client.invalidateQueries({ queryKey: ["novelComments", novel?.id] });
       client.invalidateQueries({ queryKey: ["novelCommentsAll", novel?.id] });
+    },
+    onError: (err) => {
+      if (err instanceof HttpServiceError && err.status === 403) {
+        toast.error("You have been restricted by the admins to perform this action");
+      }
     },
   });
 

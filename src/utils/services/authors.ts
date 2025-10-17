@@ -44,6 +44,10 @@ export class AuthorsService extends HttpService {
     });
   }
 
+  deleteMe() {
+    return this.delete<{ ok: true }>(`/me`);
+  }
+
   updateAuthor(authorId: string, author: UpdateAuthorBody) {
     return this.put<GetAuthorResponse, UpdateAuthorBody>(
       `/${authorId}`,

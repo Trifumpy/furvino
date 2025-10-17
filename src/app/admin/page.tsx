@@ -18,6 +18,9 @@ export default function AdminPanel() {
           <Button LinkComponent={Link} href="/admin/authors/manage" variant="outlined">
             Manage Authors
           </Button>
+          <Button LinkComponent={Link} href="/admin/users/manage" variant="outlined">
+            Manage Users
+          </Button>
         </Stack>
       </Stack>
     </AdminGuardClient>

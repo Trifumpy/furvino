@@ -8,6 +8,8 @@ import { formatDateTimeUtcShort } from "@/utils/lib/dates";
 import { SafeImage } from "@/generic/display";
 import { ListedUserRating } from "@/contracts/novels";
 import { useState } from "react";
+import { HttpServiceError } from "@/utils/services/core/HttpService";
+import { toast } from "react-toastify";
 import { Modal, ModalActions, ModalContent, ModalTitle } from "@/generic/input/Modal";
 import { useUser } from "@/users/providers";
 import { UserStar as UserStarIcon } from "lucide-react";
@@ -87,6 +89,11 @@ export function NovelRatingsList({ buttonBgColor, buttonTextColor }: { buttonBgC
       client.invalidateQueries({ queryKey: ["novelRating", novelId] });
       client.invalidateQueries({ queryKey: ["novelRatingAll", novelId] });
       setIsRateOpen(false);
+    },
+    onError: (err) => {
+      if (err instanceof HttpServiceError && err.status === 403) {
+        toast.error("You have been restricted by the admins to perform this action");
+      }
     },
   });
 

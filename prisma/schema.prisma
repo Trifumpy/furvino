@@ -53,6 +53,7 @@ model Novel {
   comments        Comment[]
   ratings         UserRating[]
   collectionItems CollectionItem[]
+  isHidden        Boolean          @default(false)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @default(now()) @updatedAt
 
@@ -137,6 +138,8 @@ model User {
   email     String    @unique
   username  String    @unique
   roles     String[]  @default(["user"])
+  banCommentingAndRating Boolean @default(false)
+  banAuthorCreation      Boolean @default(false)
   avatarUrl String?
   bio       String?
   createdAt DateTime  @default(now())

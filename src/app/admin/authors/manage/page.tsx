@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Stack, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminGuardClient } from "../../AdminGuardClient";
 import { useRegistry } from "@/utils/client";
 import { useSearchAuthors } from "@/users/hooks";
@@ -34,14 +34,28 @@ export default function ManageAuthorsPage() {
     setName(selected?.name ?? "");
   }, [selected]);
 
+  const displayedUsers = useMemo(() => {
+    if (!userQuery.trim()) {
+      return [...userResults]
+        .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime())
+        .slice(0, 10);
+    }
+    return userResults;
+  }, [userResults, userQuery]);
+
   async function handleSave() {
     if (!selected) return;
     setSaving(true);
     try {
       await authors.updateAuthor(selected.id, { name });
       toast.success("Author updated");
-    } catch {
-      toast.error("Failed to update author");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.toLowerCase().includes("already exists") || message.toLowerCase().includes("409")) {
+        toast.error("Author with this name already exists");
+      } else {
+        toast.error("Failed to update author");
+      }
     } finally {
       setSaving(false);
     }
@@ -86,29 +100,21 @@ export default function ManageAuthorsPage() {
           <Stack gap={2} sx={{ maxWidth: 480 }}>
             <TextField label="Author name" value={name} onChange={(e) => setName(e.target.value)} />
             <Typography variant="subtitle1">Assign/Change linked user</Typography>
-            <TextField label="Search users or paste userId" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Type username or userId" />
+            <Typography variant="body2">Currently linked user: {selected.user ? selected.user.username : "None"}</Typography>
+            <TextField label="Search users" value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Type username" />
             <Stack direction="row" gap={1} flexWrap="wrap">
-              {userResults.map((u) => (
+              {displayedUsers.map((u) => (
                 <Button key={u.id} variant="outlined" onClick={async () => {
                   try {
                     await authors.linkAuthor(selected.id, u.id);
+                    const updated = await authors.getAuthorById(selected.id);
+                    setSelected(updated);
                     toast.success(`Linked to ${u.username}`);
                   } catch {
                     toast.error('Failed to link user');
                   }
                 }}>{u.username}</Button>
               ))}
-            </Stack>
-            <Stack direction="row" gap={1}>
-              <Button onClick={async () => {
-                if (!userQuery.trim()) return;
-                try {
-                  await authors.linkAuthor(selected.id, userQuery.trim());
-                  toast.success('Linked user');
-                } catch {
-                  toast.error('Failed to link user');
-                }
-              }}>Link by ID</Button>
             </Stack>
             <Stack direction="row" gap={1}>
               <Button onClick={handleSave} disabled={saving || !name.trim()} variant="contained">Save</Button>

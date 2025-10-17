@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Auth } from "./Auth";
 import { MobileNavMenu } from "./MobileNavMenu";
 import { SafeImage } from "@/generic/display";
+import { Compass as CompassIcon, UserRoundCheck as UserRoundCheckIcon, LibraryBig as LibraryBigIcon, Info as InfoIcon } from "lucide-react";
 
 export function Header() {
   return (
@@ -23,16 +24,16 @@ export function Header() {
         </Box>
         {/* Desktop nav */}
         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
-          <Button LinkComponent={Link} href="/" color="inherit">
+          <Button LinkComponent={Link} href="/" color="inherit" startIcon={<CompassIcon size={18} />}>
             Browse
           </Button>
-          <Button LinkComponent={Link} href="/following" color="inherit">
+          <Button LinkComponent={Link} href="/following" color="inherit" startIcon={<UserRoundCheckIcon size={18} />}>
             Following
           </Button>
-          <Button LinkComponent={Link} href="/collections" color="inherit">
+          <Button LinkComponent={Link} href="/collections" color="inherit" startIcon={<LibraryBigIcon size={18} />}>
             Collections
           </Button>
-          <Button LinkComponent={Link} href="/about" color="inherit">
+          <Button LinkComponent={Link} href="/about" color="inherit" startIcon={<InfoIcon size={18} />}>
             About
           </Button>
         </Box>

@@ -141,6 +141,10 @@ export class NovelsService extends HttpService {
     return this.put<UpdateNovelResponse, UpdateNovelBody>(`/${id}`, novel);
   }
 
+  updateVisibility(id: string, isHidden: boolean) {
+    return this.put<UpdateNovelResponse, { isHidden: boolean }>(`/${id}/visibility`, { isHidden }, { cache: "no-store" });
+  }
+
   importFromItch(novelId: string, itchUrl: string) {
     return this.post<GetNovelResponse, { url: string }>(
       `/${novelId}/import/itch`,

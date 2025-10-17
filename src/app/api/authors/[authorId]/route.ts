@@ -3,6 +3,7 @@ import { getAuthor, enrichAuthorWithUser, sanitizeAuthor } from "../utils";
 import { ensureAdmin, ensureClerkId, revalidateTags, validateRequestBody, wrapRoute } from "../../utils";
 import prisma from "@/utils/db";
 import { updateAuthorSchema } from "@/contracts/users";
+import { ConflictError } from "../../errors";
 import { authorTags, novelTags } from "@/utils";
 import { deleteStackFolder } from "../../files";
 
@@ -34,6 +35,19 @@ export const PUT = wrapRoute<{ authorId: string }>(async (req, { params }) => {
   await ensureAdmin();
   const { authorId } = await params;
   const data = await validateRequestBody(req, updateAuthorSchema);
+
+  // Prevent duplicate author names (case-insensitive) when renaming
+  if (data.name) {
+    const existing = await prisma.author.findFirst({
+      where: {
+        id: { not: authorId },
+        name: { equals: data.name, mode: "insensitive" },
+      },
+    });
+    if (existing) {
+      throw new ConflictError("An author with this name already exists");
+    }
+  }
 
   const author = await prisma.author.update({ where: { id: authorId }, data, include: { user: true } });
   const enriched = enrichAuthorWithUser(author, author.user ?? null);

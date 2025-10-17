@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Divider, IconButton, Stack, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Switch, FormControlLabel, Tooltip, Chip } from "@mui/material";
+import { Box, Button, Divider, IconButton, Stack, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Switch, FormControlLabel, Chip } from "@mui/material";
 import { useNovel } from "@/novels/providers/ClientNovelProvider";
 import { useUpdateNovelLayout } from "@/novels/hooks";
 import { galleryBlockSchema, imageBlockSchema, layoutBlockSchema, NovelLayout, richTextBlockSchema } from "@/contracts/novels";
@@ -165,8 +165,6 @@ export function PageLayoutEditor() {
 
   // Gallery blocks are not supported in the editor; no size enforcement
 
-  if (!novel || !canEdit) return null;
-
   const addBlock = (type: EditorBlock["type"]) => {
     switch (type) {
       case "richText":
@@ -176,7 +174,7 @@ export function PageLayoutEditor() {
         // Gallery is managed automatically on the novel page; it is not available in the editor
         break;
       case "image":
-        if ((novel.galleryItems ?? []).length === 0) {
+        if ((novel?.galleryItems ?? []).length === 0) {
           toast.error("No gallery images available");
           return;
         }
@@ -198,7 +196,7 @@ export function PageLayoutEditor() {
   // Auto-populate gallery blocks without items so they preview novel's gallery
   useEffect(() => {
     if (!novel) return;
-    const allIds = (novel.galleryItems ?? []).map((g) => g.id);
+    const allIds = (novel?.galleryItems ?? []).map((g) => g.id);
     if (allIds.length === 0) return;
     setBlocks((prev) => {
       let changed = false;
@@ -214,6 +212,8 @@ export function PageLayoutEditor() {
       return changed ? next : prev;
     });
   }, [novel, novel?.galleryItems?.length]);
+
+  if (!novel || !canEdit) return null;
 
   const insertImageWithInitialFrame = (imageId: string) => {
     setBlocks((prev) => {
@@ -251,7 +251,7 @@ export function PageLayoutEditor() {
     try {
       // Validate before send
       const toSave = filterEditableBlocks(blocks);
-      const fullIds = (novel.galleryItems ?? []).map((g) => g.id).filter((id) => !hiddenGalleryItemIds.includes(id));
+      const fullIds = (novel?.galleryItems ?? []).map((g) => g.id).filter((id) => !hiddenGalleryItemIds.includes(id));
       const normalized: EditorBlock[] = toSave.map((blk) => {
         if ((blk as { type: string }).type !== 'gallery') return blk;
         const items = ((blk as unknown as { items?: string[] }).items) as string[] | undefined;
@@ -334,7 +334,7 @@ export function PageLayoutEditor() {
                 gridTemplateColumns: { xs: "1fr 1fr", sm: "1fr 1fr 1fr", md: "1fr 1fr 1fr 1fr" },
               }}
             >
-              {(novel.galleryItems ?? []).map((gi) => (
+              {(novel?.galleryItems ?? []).map((gi) => (
                 <Box
                   key={gi.id}
                   draggable
@@ -371,7 +371,7 @@ export function PageLayoutEditor() {
               <Stack direction="row" alignItems="center" gap={1} mt={1} flexWrap="wrap">
                 <Typography variant="body2" color="text.secondary">Hidden in gallery preview:</Typography>
                 {hiddenGalleryItemIds.map((id) => {
-                  const gi = (novel.galleryItems ?? []).find((x) => x.id === id);
+                  const gi = (novel?.galleryItems ?? []).find((x) => x.id === id);
                   if (!gi) return null;
                   return (
                     <Chip key={id} size="small" label={gi.footer || id} onDelete={() => setHiddenGalleryItemIds((prev) => prev.filter((x) => x !== id))} />
@@ -533,7 +533,7 @@ export function PageLayoutEditor() {
                 <Stack className="layout-block-handle" direction="row" alignItems="center" gap={1} justifyContent="space-between">
                   <Stack direction="row" gap={1} alignItems="center">
                     <GripVerticalIcon size={16} />
-                    <Typography variant="subtitle2">{(block.type === 'richText' && typeof (block as any).content === 'object' && (block as any).content && (block as any).content.source === 'details') ? 'richText (details)' : block.type}</Typography>
+                    <Typography variant="subtitle2">{(block.type === 'richText' && typeof (block as { content?: unknown }).content === 'object' && (block as { content?: { source?: string } }).content && (block as { content?: { source?: string } }).content?.source === 'details') ? 'richText (details)' : block.type}</Typography>
                   </Stack>
                   <Stack direction="row" gap={1}>
                     <IconButton size="small" onClick={() => move(i, -1)} disabled={i === 0}><MoveUpIcon size={16} /></IconButton>
@@ -559,8 +559,8 @@ export function PageLayoutEditor() {
               {block.type === "richText" && (
                 <Box sx={{ width: '100%', overflow: 'hidden' }}>
                   {(() => {
-                    const c: any = (block as any).content;
-                    const isDetails = c && typeof c === 'object' && c.source === 'details';
+                    const rtContent = (block as { type: 'richText'; content?: unknown }).content;
+                    const isDetails = rtContent !== null && typeof rtContent === 'object' && (rtContent as { source?: string }).source === 'details';
                     if (isDetails) {
                       return (
                         <Typography variant="body2" color="text.secondary">
@@ -620,10 +620,10 @@ export function PageLayoutEditor() {
                   >
                     {(() => {
                       const items = (((block as { type: 'gallery'; items?: string[] }).items ?? []) as string[]);
-                      const ids = items.length > 0 ? items : (novel.galleryItems ?? []).map((g) => g.id);
+                      const ids = items.length > 0 ? items : (novel?.galleryItems ?? []).map((g) => g.id);
                       const visibleIds = ids.filter((id) => !hiddenGalleryItemIds.includes(id));
                       return visibleIds.map((id: string, giIndex: number) => {
-                        const item = novel.galleryItems.find((g) => g.id === id);
+                        const item = novel?.galleryItems?.find((g) => g.id === id);
                         if (!item) return null;
                         return (
                           <Box
@@ -691,7 +691,7 @@ export function PageLayoutEditor() {
                 >
                   {(() => {
                     const id = (block as { type: 'image'; id?: string }).id;
-                    const item = id ? novel.galleryItems.find((g) => g.id === id) : null;
+                    const item = id ? novel?.galleryItems?.find((g) => g.id === id) : null;
                     if (item) {
                       return (
                         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
@@ -739,7 +739,7 @@ export function PageLayoutEditor() {
               gridTemplateColumns: { xs: "1fr 1fr", sm: "1fr 1fr 1fr", md: "1fr 1fr 1fr 1fr" },
             }}
           >
-            {(novel.galleryItems ?? []).map((gi) => {
+            {(novel?.galleryItems ?? []).map((gi) => {
               const isSelected = imagePickerSelected === gi.id;
               return (
                 <Box

@@ -1,5 +1,5 @@
 import { HttpService } from "./core";
-import { GetUsersQParams, ListedUser, PublicUser } from "@/contracts/users";
+import { GetUsersQParams, ListedUser, PublicUser, UpdateUserModerationBody } from "@/contracts/users";
 
 export class UsersService extends HttpService {
   constructor(baseUrl: string) {
@@ -26,6 +26,22 @@ export class UsersService extends HttpService {
         ...options,
         search: options.search ? options.search : undefined,
       },
+    });
+  }
+
+  updateModeration(userId: string, body: UpdateUserModerationBody) {
+    return this.patch<PublicUser, UpdateUserModerationBody>(`/${userId}/moderation`, body, {
+      cache: 'no-cache',
+    });
+  }
+
+  unassignAuthor(userId: string) {
+    return this.delete<{ ok: true }>(`/${userId}/author`);
+  }
+
+  unassignAndRemoveAuthor(userId: string) {
+    return this.delete<{ ok: true }>(`/${userId}/author`, {
+      queryParams: { remove: true },
     });
   }
 }

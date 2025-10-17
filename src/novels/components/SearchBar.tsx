@@ -1,7 +1,6 @@
 "use client";
 
 import { TextField } from "@mui/material";
-import Link from "next/link";
 import { useSearch } from "../providers/SearchProvider";
 import { useSearchParams } from "next/navigation";
 
@@ -17,13 +16,6 @@ export function SearchBar() {
       variant="outlined"
       defaultValue={defaultValue}
       FormHelperTextProps={{ sx: { display: { xs: "none", sm: "block" } } }}
-      helperText={
-        <>
-          Do you want to upload your novel? Check &quot;
-          <Link href="/about">about</Link>
-          &quot; for more information
-        </>
-      }
       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
         setSearchQuery(e.target.value || undefined)
       }

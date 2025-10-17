@@ -91,3 +91,12 @@ export type LinkAuthorResponse = ListedAuthor;
 
 export type UpdateAuthorBody = Partial<CreateAuthorBody>;
 export type UpdateAuthorResponse = ListedAuthor;
+
+// Moderation
+export const updateUserModerationSchema = z
+  .object({
+    banCommentingAndRating: z.boolean().optional(),
+    banAuthorCreation: z.boolean().optional(),
+  })
+  .strip();
+export type UpdateUserModerationBody = z.infer<typeof updateUserModerationSchema>;

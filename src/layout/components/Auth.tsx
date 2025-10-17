@@ -9,7 +9,7 @@ import {
 import { IsAdmin } from ".";
 import { Button, IconButton, Stack } from "@mui/material";
 import Link from "next/link";
-import { BookUserIcon, WrenchIcon } from "lucide-react";
+import { BookUserIcon, WrenchIcon, CircleUserRound as CircleUserRoundIcon } from "lucide-react";
 import { useUser } from "@/users/providers";
 
 export function Auth() {
@@ -47,6 +47,16 @@ export function Auth() {
         </SignUpButton>
       </SignedOut>
       <SignedIn>
+        {!user?.authorId && (
+          <IconButton
+            LinkComponent={Link}
+            href="/users/me"
+            color="inherit"
+            aria-label="User menu"
+          >
+            <CircleUserRoundIcon />
+          </IconButton>
+        )}
         <UserButton />
       </SignedIn>
     </Stack>

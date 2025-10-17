@@ -12,7 +12,7 @@ export function NovelLayoutPage() {
     <Stack gap={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h4">Layout: {novel.title}</Typography>
-        <Button component={Link} href={`/novels/${novel.id}/edit`} variant="text">Back to edit</Button>
+        <Button component={Link} href={`/novels/${novel.id}/edit`} variant="outlined">Back to novel edit</Button>
       </Stack>
       <PageLayoutEditor />
     </Stack>

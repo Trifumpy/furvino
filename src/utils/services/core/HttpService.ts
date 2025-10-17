@@ -105,7 +105,8 @@ export abstract class HttpService {
           `[HttpService] Error response for ${method} ${url}:`,
           errorMessage
         );
-        throw new HttpServiceError(errorMessage, res.status);
+        const err = new HttpServiceError(errorMessage, res.status);
+        throw err;
       }
 
       // Try to parse JSON response, but allow empty body

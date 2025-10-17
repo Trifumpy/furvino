@@ -2,30 +2,16 @@
 
 import { useNovel } from "../providers/ClientNovelProvider";
 import { useUser } from "@/users/providers";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRegistry } from "@/utils/client";
 import { Rating, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 
-const CATEGORIES = [
-  { key: "plot", label: "Plot" },
-  { key: "characters", label: "Characters" },
-  { key: "backgroundsUi", label: "Backgrounds & UI" },
-  { key: "characterArt", label: "Character Art" },
-  { key: "music", label: "Music" },
-  { key: "soundEffects", label: "Sound Effects / Voice Acting" },
-  { key: "emotionalImpact", label: "Personal Emotional Impact" },
-] as const;
+// Ratings summary only; detailed rating form moved to NovelRatingsList
 
-type CategoryKey = (typeof CATEGORIES)[number]["key"];
-const LABEL_MIN_WIDTH = 260;
-
-export function NovelRatings({ buttonBgColor, buttonTextColor }: { buttonBgColor?: string; buttonTextColor?: string }) {
+export function NovelRatings() {
   const { novel } = useNovel();
   const { user } = useUser();
   const { novels } = useRegistry();
-  const client = useQueryClient();
 
   const summary = useQuery({
     queryKey: ["novelRating", novel?.id],

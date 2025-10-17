@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { Prisma } from "@/generated/prisma";
 import { ensureClerkId, validateRequestBody, wrapRoute } from "@/app/api/utils";
+import { ForbiddenError } from "@/app/api/errors";
 import { GetNovelParams } from "@/contracts/novels";
 import z from "zod";
 import { syncUser } from "@/utils/clerk";
@@ -71,6 +72,9 @@ export const POST = wrapRoute<GetNovelParams>(async (req, { params }) => {
 
   // Map Clerk user to local user, fallback to sync if missing
   const user = (await prisma.user.findUnique({ where: { clerkId } })) ?? (await syncUser(clerkId));
+  if (user.banCommentingAndRating) {
+    throw new ForbiddenError("Commenting is disabled for your account");
+  }
 
   const createArgs: Prisma.CommentCreateArgs = {
     data: {

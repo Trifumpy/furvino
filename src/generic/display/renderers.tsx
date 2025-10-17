@@ -1,6 +1,5 @@
 "use client";
 
-import { Box } from "@mui/material";
 import { sanitizeHtmlAllowlist } from "@/utils/lib/sanitize";
 
 type RichRendererProps = {
