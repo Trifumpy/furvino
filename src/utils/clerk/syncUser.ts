@@ -11,7 +11,7 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
 
     // Find the primary/verified email address
     const primaryEmail = clerkUser.emailAddresses?.find(
-      (email) => email.verificationStatus === "verified"
+      (email) => email.verification?.status === "verified"
     ) || clerkUser.emailAddresses?.[0];
 
     userData = {
@@ -32,6 +32,7 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
     if (existingUser && existingUser.clerkId !== clerkId) {
       console.warn(`Email ${userData.email} is already taken by another user. Skipping email update.`);
       // Remove email from update data to avoid unique constraint violation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { email, ...updateDataWithoutEmail } = userData;
       userData = updateDataWithoutEmail;
     }
