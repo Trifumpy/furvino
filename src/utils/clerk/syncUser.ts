@@ -11,7 +11,7 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
 
     // Find the primary/verified email address
     const primaryEmail = clerkUser.emailAddresses?.find(
-      (email) => email.verification?.status === "verified"
+      (email: { verification?: { status?: string } | null }) => email.verification?.status === "verified"
     ) || clerkUser.emailAddresses?.[0];
 
     userData = {
@@ -59,7 +59,8 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
     create: {
       clerkId,
       ...userData,
-      email: userData!.email || '',
+      // Use placeholder if missing to satisfy unique constraint; will be updated later
+      email: userData!.email || `${clerkId}@placeholder.local`,
       username: userData!.username || clerkId,
     },
   });

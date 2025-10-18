@@ -1,3 +1,3 @@
-import { UserWebhookEvent } from '@clerk/nextjs/webhooks'
+import type { UserWebhookEvent } from '@clerk/nextjs/webhooks'
 
 export type ClerkEvent = UserWebhookEvent;

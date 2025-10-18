@@ -24,7 +24,8 @@ export async function processEvent(event: ClerkEvent) {
     );
 
     const user: Partial<User> = {
-      email: primaryEmail?.email_address || "",
+      // Only include email if present and non-empty; avoid writing empty string
+      ...(primaryEmail?.email_address ? { email: primaryEmail.email_address } : {}),
       username: data.username || data.id,
       avatarUrl: data.image_url,
     }

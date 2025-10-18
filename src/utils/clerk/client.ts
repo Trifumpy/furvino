@@ -1,13 +1,22 @@
-import { clerkClient } from "@clerk/nextjs/server";
+import { clerkClient as rawClerkClient } from "@clerk/nextjs/server";
 
-// clerkClient is already a client instance. No invocation is needed.
-let globalClerkClient: typeof clerkClient | null = null;
+type MaybeFn<T> = (() => Promise<T>) | T;
+type ExtractClient<T> = T extends (...args: any[]) => Promise<infer R>
+  ? R
+  : T;
+
+let globalClerkClient: ExtractClient<typeof rawClerkClient> | null = null;
 
 export async function getClerkClient() {
   if (globalClerkClient) {
     return globalClerkClient;
   }
 
-  globalClerkClient = clerkClient;
+  const maybeFn = rawClerkClient as MaybeFn<ExtractClient<typeof rawClerkClient>>;
+  const resolved = typeof maybeFn === "function"
+    ? await (maybeFn as () => Promise<ExtractClient<typeof rawClerkClient>> )()
+    : (maybeFn as ExtractClient<typeof rawClerkClient>);
+
+  globalClerkClient = resolved;
   return globalClerkClient;
 }
