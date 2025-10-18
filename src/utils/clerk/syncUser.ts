@@ -53,17 +53,28 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
     }
   }
 
-  const user = await prisma.user.upsert({
-    where: { clerkId },
-    update: userData!,
-    create: {
-      clerkId,
-      ...userData,
-      // Use placeholder if missing to satisfy unique constraint; will be updated later
-      email: userData!.email || `${clerkId}@placeholder.local`,
-      username: userData!.username || clerkId,
-    },
-  });
+  try {
+    // Only include defined fields in update to avoid errors with empty objects
+    const updateData = Object.fromEntries(
+      Object.entries(userData!).filter(([_, v]) => v !== undefined)
+    );
 
-  return user;
+    const user = await prisma.user.upsert({
+      where: { clerkId },
+      update: Object.keys(updateData).length > 0 ? updateData : { updatedAt: new Date() },
+      create: {
+        clerkId,
+        ...userData,
+        // Use placeholder if missing to satisfy unique constraint; will be updated later
+        email: userData!.email || `${clerkId}@placeholder.local`,
+        username: userData!.username || clerkId,
+      },
+    });
+
+    console.log(`User synced successfully:`, { clerkId, id: user.id, email: user.email });
+    return user;
+  } catch (err) {
+    console.error(`Failed to sync user ${clerkId}:`, err);
+    throw err;
+  }
 }

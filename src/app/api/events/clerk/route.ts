@@ -28,8 +28,12 @@ export async function POST(req: Request) {
   const { type } = evt;
   console.log("Webhook received:", type);
 
-  await processEvent(evt);
-
-  // Handle user.created, user.updated, etc.
-  return new Response("OK", { status: 200 });
+  try {
+    await processEvent(evt);
+    return new Response("OK", { status: 200 });
+  } catch (err) {
+    console.error("Error processing Clerk webhook:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return new Response(`Webhook processing failed: ${errorMessage}`, { status: 500 });
+  }
 }
