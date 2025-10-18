@@ -2,7 +2,7 @@
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
 import Link from "next/link";
-import { PlusIcon, PencilIcon, SquareUserRoundIcon, BookUser as BookUserIcon } from "lucide-react";
+import { PlusIcon, PencilIcon, SquareUserRoundIcon, BookUser as BookUserIcon, HardDrive as HardDriveIcon } from "lucide-react";
 import { AuthorGuardClient, useUser } from "@/users/providers";
 import { useEffect, useRef, useState } from "react";
 import { useRegistry } from "@/utils/client";
@@ -53,7 +53,7 @@ export default function MyAuthorPanel() {
           <BookUserIcon />
           <Typography variant="h5">Author menu</Typography>
         </Stack>
-        <Stack direction="row" gap={2}>
+        <Stack direction="row" gap={2} flexWrap="wrap">
           <Button LinkComponent={Link} href="/authors/novels/new" variant="outlined" startIcon={<PlusIcon /> }>
             Create Novel
           </Button>
@@ -75,6 +75,27 @@ export default function MyAuthorPanel() {
           >
             Edit Author
           </Button>
+          {user?.stackName ? (
+            <Button
+              LinkComponent={Link}
+              href="https://stack.furvino.com/en/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              startIcon={<HardDriveIcon />}
+            >
+              Private Storage
+            </Button>
+          ) : (
+            <Button
+              LinkComponent={Link}
+              href="/request-private-storage"
+              variant="outlined"
+              startIcon={<HardDriveIcon />}
+            >
+              Private Storage
+            </Button>
+          )}
           <Button
             color="error"
             variant="outlined"

@@ -142,6 +142,7 @@ model User {
   banAuthorCreation      Boolean @default(false)
   avatarUrl String?
   bio       String?
+  stackName String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
   deletedAt DateTime?

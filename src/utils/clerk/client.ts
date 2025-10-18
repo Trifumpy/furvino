@@ -1,6 +1,7 @@
 import { clerkClient as rawClerkClient } from "@clerk/nextjs/server";
 
 type MaybeFn<T> = (() => Promise<T>) | T;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractClient<T> = T extends (...args: any[]) => Promise<infer R>
   ? R
   : T;

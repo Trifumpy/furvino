@@ -30,6 +30,7 @@ export const userSchema = z.object({
   avatarUrl: z.url().optional().nullable(),
   bio: z.string().optional().nullable(),
   authorId: z.string().min(1, "Author ID cannot be an empty string").optional().nullable(),
+  stackName: z.string().optional().nullable(),
 })
 export type UserSchema = z.infer<typeof userSchema>;
 export type ListedUser = User & {

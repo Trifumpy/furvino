@@ -165,6 +165,7 @@ export default function AboutPage() {
       <Typography>Upload or distribute illegal, infringing, or harmful content.</Typography>
       <Typography>Attempt to bypass security or gain unauthorized access.</Typography>
       <Typography>Harass, threaten, or abuse other Users or Authors.</Typography>
+      <Typography>Use STACK storage for purposes outside of Furvino or VN distribution. </Typography>
 
       <Box mt={4} />
       <Divider sx={{ my: 3 }} />
@@ -184,6 +185,8 @@ export default function AboutPage() {
       <Typography>
         The Owner is not liable for any damages resulting from use of the Website, to the maximum extent permitted by law.
       </Typography>
+      <Typography> The Owner retains the right to revoke 
+      access to your STACK account at any time if they suspect any suspicious activity. Author will be notified by the Owner into their linked e-mail address. </Typography>
 
       <Box mt={4} />
       <Divider sx={{ my: 3 }} />

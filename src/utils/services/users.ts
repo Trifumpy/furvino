@@ -44,4 +44,10 @@ export class UsersService extends HttpService {
       queryParams: { remove: true },
     });
   }
+
+  assignStackName(userId: string, stackName: string | null) {
+    return this.patch<PublicUser, { stackName: string | null }>(`/${userId}/stack`, { stackName }, {
+      cache: 'no-cache',
+    });
+  }
 }
