@@ -11,6 +11,13 @@ export type AuthorizeShareResult = {
   csrfToken: string;
 };
 
+export type UploadProgress = {
+  loaded: number;
+  total: number;
+  percent: number;
+  etaSeconds?: number;
+};
+
 /**
  * Authorizes a share and gets the X-ShareToken needed for uploads.
  * @param shareURLToken The share URL token from the backend
@@ -47,16 +54,18 @@ export async function authorizeShare(
 }
 
 /**
- * Uploads a file directly to STACK using a share token.
+ * Uploads a file directly to STACK using a share token with progress tracking.
  * @param file The file to upload
  * @param config Share upload configuration
  * @param targetPath Optional relative path within the share (e.g., "thumbnail", "files/windows")
+ * @param onProgress Optional progress callback
  * @returns The uploaded file's node ID
  */
 export async function uploadFileToShare(
   file: File,
   config: ShareUploadConfig,
-  targetPath?: string
+  targetPath?: string,
+  onProgress?: (progress: UploadProgress) => void
 ): Promise<number> {
   const { shareURLToken, shareToken, stackApiUrl } = config;
   let parentNodeID = config.parentNodeID;
@@ -69,36 +78,55 @@ export async function uploadFileToShare(
     );
   }
 
-  // Upload the file
+  // Upload the file using XMLHttpRequest for progress tracking
   const filename = file.name;
   const fileSize = file.size;
 
-  const response = await fetch(`${stackApiUrl}/share/${shareURLToken}/upload`, {
-    method: "POST",
-    headers: {
-      "x-sharetoken": shareToken,
-      "x-filebytesize": fileSize.toString(),
-      "x-parentid": parentNodeID.toString(),
-      "x-filename": btoa(filename),
-      "x-overwrite": "true",
-      "Content-Type": "application/octet-stream",
-    },
-    body: file,
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    // Track upload progress
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress({
+          loaded: e.loaded,
+          total: e.total,
+          percent: Math.round((e.loaded / e.total) * 100),
+        });
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const nodeIDHeader = xhr.getResponseHeader("x-id");
+        if (!nodeIDHeader) {
+          reject(new Error("Missing node ID in upload response"));
+          return;
+        }
+        resolve(parseInt(nodeIDHeader, 10));
+      } else {
+        reject(new Error(`Failed to upload file: ${xhr.status} - ${xhr.responseText}`));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.addEventListener("abort", () => {
+      reject(new Error("Upload aborted"));
+    });
+
+    xhr.open("POST", `${stackApiUrl}/share/${shareURLToken}/upload`);
+    xhr.setRequestHeader("x-sharetoken", shareToken);
+    xhr.setRequestHeader("x-filebytesize", fileSize.toString());
+    xhr.setRequestHeader("x-parentid", parentNodeID.toString());
+    xhr.setRequestHeader("x-filename", btoa(filename));
+    xhr.setRequestHeader("x-overwrite", "true");
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    
+    xhr.send(file);
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to upload file: ${response.status} - ${errorText}`
-    );
-  }
-
-  const nodeIDHeader = response.headers.get("x-id");
-  if (!nodeIDHeader) {
-    throw new Error("Missing node ID in upload response");
-  }
-
-  return parseInt(nodeIDHeader, 10);
 }
 
 /**

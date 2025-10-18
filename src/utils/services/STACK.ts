@@ -32,10 +32,11 @@ export async function listChildren(auth: StackAuth, parentID: number): Promise<A
 }
 
 export async function createDirectory(auth: StackAuth, parentID: number, name: string): Promise<number> {
+  const payload = { parentID, name };
   const resp = await fetch(`${auth.baseUrl}/directories`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-sessiontoken": auth.sessionToken },
-    body: JSON.stringify({ parentID, name }),
+    body: JSON.stringify(payload),
   });
   
   // 409 means directory already exists - that's OK, just return its ID
@@ -47,7 +48,7 @@ export async function createDirectory(auth: StackAuth, parentID: number, name: s
   
   if (!resp.ok) {
     const errorText = await resp.text().catch(() => "");
-    throw new Error(`STACK create directory failed (${resp.status}): ${errorText}`);
+    throw new Error(`STACK create directory failed (${resp.status}): ${errorText}. Request: ${JSON.stringify(payload)}`);
   }
   
   const idHeader = resp.headers.get("x-id");
@@ -86,25 +87,64 @@ export async function uploadFile(
       "x-filebytesize": byteSize.toString(),
       "x-parentid": parentID.toString(),
       "x-filename": Buffer.from(filename).toString("base64"),
-      "x-overwrite": "false",
+      "x-overwrite": "true",
       "Content-Type": "application/octet-stream",
     },
     body,
   });
-  if (!resp.ok) throw new Error(`STACK upload failed (${resp.status})`);
+  
+  // 409 means file already exists and we're overwriting - STACK should handle this, but just in case
+  if (resp.status === 409) {
+    const idHeader = resp.headers.get("x-id");
+    if (idHeader) return parseInt(idHeader, 10);
+    // If no ID header, fall through to error handling
+  }
+  
+  if (!resp.ok) {
+    const errorText = await resp.text().catch(() => "");
+    throw new Error(`STACK upload failed (${resp.status}): ${errorText}`);
+  }
+  
   const idHeader = resp.headers.get("x-id");
   if (!idHeader) throw new Error("STACK upload: missing node id");
   return parseInt(idHeader, 10);
 }
 
-export async function createPublicShare(auth: StackAuth, nodeId: number): Promise<{ urlToken: string }> {
-  const resp = await fetch(`${auth.baseUrl}/share`, {
+export async function createPublicShare(auth: StackAuth, nodeId: number): Promise<{ urlToken: string; shareId?: number }> {
+  const resp = await fetch(`${auth.baseUrl}/node-shares`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-sessiontoken": auth.sessionToken },
-    body: JSON.stringify({ nodeId, type: "Public" }),
+    body: JSON.stringify({
+      nodeId,
+      type: "Public",
+      password: "",
+      permissions: {
+        createFile: true,
+        createDirectory: true,
+        readFile: true,
+        readDirectory: true,
+        updateFile: false,
+        updateDirectory: false,
+        deleteFile: false,
+        deleteDirectory: false,
+      }
+    }),
   });
-  if (!resp.ok) throw new Error(`STACK create share failed (${resp.status})`);
-  return (await resp.json()) as { urlToken: string };
+
+  if (!resp.ok) {
+    const errorText = await resp.text().catch(() => "");
+    throw new Error(`STACK create share failed (${resp.status}): ${errorText}`);
+  }
+
+  const urlToken = resp.headers.get("x-urltoken");
+  const shareId = resp.headers.get("x-shareid");
+
+  if (!urlToken) throw new Error("STACK create share: missing x-urltoken header");
+
+  return {
+    urlToken,
+    shareId: shareId ? parseInt(shareId, 10) : undefined
+  };
 }
 
 

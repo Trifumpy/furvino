@@ -8,7 +8,7 @@ import {
   MAX_TITLE_LENGTH,
 } from "@/contracts/novels";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Button, IconButton, Stack, TextField, Typography, LinearProgress, Box } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { ExternalSitesEditor } from "./ExternalSitesEditor";
 import { ImageInput } from "@/generic/input";
@@ -23,7 +23,7 @@ import { toast } from "react-toastify";
 import { useUpdateNovelThumbnail, useUpdateNovelBanner } from "@/novels/hooks";
 import { MAX_PAGE_BACKGROUND_FILE_SIZE } from "@/contracts/novels";
 import { TextLengthCounterAdornment } from "@/generic/display";
-import { useNovelUpload } from "@/novels/providers";
+// import { useNovelUpload } from "@/novels/providers";
 
 type Props = {
   existingId?: string;
@@ -68,14 +68,14 @@ export function NovelForm({
     }
   }, [fixedAuthorId, setValue]);
 
-  const { updateThumbnail, isUpdating: isUploadingThumbnail } =
+  const { updateThumbnail, isUpdating: isUploadingThumbnail, progress: thumbnailProgress } =
     useUpdateNovelThumbnail();
 
-  const { updateBanner, isUpdating: isUploadingBanner } =
+  const { updateBanner, isUpdating: isUploadingBanner, progress: bannerProgress } =
     useUpdateNovelBanner();
 
   // Get upload config for direct STACK uploads (if available)
-  const { config: uploadConfig } = useNovelUpload();
+  // const { config: uploadConfig } = useNovelUpload();
 
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -88,7 +88,6 @@ export function NovelForm({
       const novel = await updateThumbnail({
         novelId: existingId,
         thumbnailFile: file,
-        uploadConfig,
       });
       setValue("thumbnailUrl", novel.thumbnailUrl ?? undefined);
       toast.success("Thumbnail updated successfully!");
@@ -108,7 +107,6 @@ export function NovelForm({
       const novel = await updateBanner({
         novelId: existingId,
         bannerFile: file,
-        uploadConfig,
       });
       setValue("pageBackgroundUrl", (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl ?? undefined);
       toast.success("Page background updated successfully!");
@@ -126,34 +124,44 @@ export function NovelForm({
       <Stack gap={1}>
         {!minimal && existingId && (
           <Stack direction={{ xs: "column", md: "row" }} gap={1}>
-            <Controller
-              name="thumbnailUrl"
-              control={control}
-              render={({ field, fieldState }) => (
-                <ImageInput
-                  label="Cover Image"
-                  valueUrl={field.value}
-                  onUpload={handleUpload}
-                  maxSize={MAX_THUMBNAIL_FILE_SIZE}
-                  loading={isUploadingThumbnail}
-                  error={fieldState?.error?.message}
-                />
+            <Box sx={{ flex: 1 }}>
+              <Controller
+                name="thumbnailUrl"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <ImageInput
+                    label="Cover Image"
+                    valueUrl={field.value}
+                    onUpload={handleUpload}
+                    maxSize={MAX_THUMBNAIL_FILE_SIZE}
+                    loading={isUploadingThumbnail}
+                    error={fieldState?.error?.message}
+                  />
+                )}
+              />
+              {isUploadingThumbnail && thumbnailProgress && (
+                <></>
               )}
-            />
-            <Controller
-              name="pageBackgroundUrl"
-              control={control}
-              render={({ field, fieldState }) => (
-                <ImageInput
-                  label="Page background"
-                  valueUrl={field.value}
-                  onUpload={handleBannerUpload}
-                  maxSize={MAX_PAGE_BACKGROUND_FILE_SIZE}
-                  loading={isUploadingBanner}
-                  error={fieldState?.error?.message}
-                />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Controller
+                name="pageBackgroundUrl"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <ImageInput
+                    label="Page background"
+                    valueUrl={field.value}
+                    onUpload={handleBannerUpload}
+                    maxSize={MAX_PAGE_BACKGROUND_FILE_SIZE}
+                    loading={isUploadingBanner}
+                    error={fieldState?.error?.message}
+                  />
+                )}
+              />
+              {isUploadingBanner && bannerProgress && (
+                <></>
               )}
-            />
+            </Box>
           </Stack>
         )}
         {!minimal && existingId && (

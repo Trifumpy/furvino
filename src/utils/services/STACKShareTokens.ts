@@ -57,8 +57,9 @@ export async function createUploadShareForNovel(
     SETTINGS.stack.password
   );
 
-  // Find or create novels/<novelId>/ directory
+  // Find or create furvino/novels/<novelId>/ directory
   const novelDirNodeID = await findOrCreateDirectoryPath(auth, [
+    SETTINGS.stack.prefix,
     "novels",
     novelId,
   ]);

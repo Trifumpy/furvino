@@ -183,11 +183,25 @@ export class StackService {
     return node.id;
   }
 
-  private async createPublicShare(sessionToken: string, nodeId: number): Promise<{ urlToken: string }> {
+  private async createPublicShare(sessionToken: string, nodeId: number): Promise<{ urlToken: string; shareId?: number }> {
     const resp = await fetch(`${this.baseUrl}/node-shares`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-sessiontoken": sessionToken },
-      body: JSON.stringify({ nodeId, type: "Public", password: "" }),
+      body: JSON.stringify({
+        nodeId,
+        type: "Public",
+        password: "",
+        permissions: {
+          createFile: true,
+          createDirectory: true,
+          readFile: true,
+          readDirectory: true,
+          updateFile: false,
+          updateDirectory: false,
+          deleteFile: false,
+          deleteDirectory: false,
+        }
+      }),
     });
     if (resp.status !== 201) {
       const text = await resp.text().catch(() => "");
@@ -195,18 +209,12 @@ export class StackService {
     }
     const token = resp.headers.get("x-urltoken");
     const shareIdHeader = resp.headers.get("x-shareid");
+
     if (!token) throw new Error("STACK create share: missing x-urltoken header");
-    // Ensure no password is required by clearing password if present
-    if (shareIdHeader) {
-      const shareId = parseInt(shareIdHeader, 10);
-      if (!Number.isNaN(shareId)) {
-        await this.updateShare(sessionToken, shareId, {
-          removePassword: true,
-          permissions: { readFile: true, readDirectory: true, createFile: false, createDirectory: false, updateFile: false, updateDirectory: false, deleteFile: false, deleteDirectory: false },
-        });
-      }
-    }
-    return { urlToken: token };
+
+    const shareId = shareIdHeader ? parseInt(shareIdHeader, 10) : undefined;
+
+    return { urlToken: token, shareId };
   }
 
   private async updateShare(sessionToken: string, shareId: number, body: Record<string, unknown>): Promise<void> {

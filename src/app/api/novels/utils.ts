@@ -374,7 +374,6 @@ export function buildDefaultPageLayout(input: { descriptionRich?: unknown | null
     const content = lines.map((line) => ({ type: "paragraph", content: line ? [{ type: "text", text: line }] : [] }));
     blocks.push({ type: "richText", content: { type: "doc", content } });
   }
-  blocks.push({ type: "gallery" });
   blocks.push({ type: "updates" });
   blocks.push({ type: "ratings" });
   blocks.push({ type: "ratingsList" });

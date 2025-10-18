@@ -85,7 +85,8 @@ export function FileOrUrlInput<TKey extends string>({
       const saved = window.sessionStorage.getItem(storageKey);
       if (saved === "upload" || saved === "link") return saved;
     }
-    return isHttpUrl ? "link" : "upload";
+    // Default to upload mode (even if there's an HTTP URL)
+    return "upload";
   });
 
   useEffect(() => {
@@ -93,10 +94,6 @@ export function FileOrUrlInput<TKey extends string>({
       window.sessionStorage.setItem(storageKey, mode);
     }
   }, [mode, storageKey]);
-
-  useEffect(() => {
-    if (isHttpUrl && mode !== "link") setMode("link");
-  }, [isHttpUrl, mode]);
 
   const isNullStringError =
     typeof error === "string" &&
