@@ -38,6 +38,21 @@ export async function syncUser(clerkId: string, userData?: UserSync) {
     }
   }
 
+  // Check if the username is already taken by another user
+  if (userData?.username) {
+    const existingUsernameOwner = await prisma.user.findUnique({
+      where: { username: userData.username },
+    });
+
+    if (existingUsernameOwner && existingUsernameOwner.clerkId !== clerkId) {
+      console.warn(`Username ${userData.username} is already taken by another user. Skipping username update.`);
+      // Remove username from update data to avoid unique constraint violation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { username, ...updateDataWithoutUsername } = userData;
+      userData = updateDataWithoutUsername;
+    }
+  }
+
   const user = await prisma.user.upsert({
     where: { clerkId },
     update: userData!,
