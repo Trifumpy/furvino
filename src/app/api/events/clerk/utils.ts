@@ -9,12 +9,19 @@ export async function processEvent(event: ClerkEvent) {
   if (event.type === "user.created" || event.type === "user.updated") {
     const data = event.data;
 
-    // Find the primary/verified email address
-    const primaryEmail = data.email_addresses?.find(
-      (email) => email.verification?.status === "verified"
-    ) || data.email_addresses?.[0];
+    // Prefer Clerk's primary_email_address_id, then verified, then first
+    const primaryEmailId = (data as unknown as { primary_email_address_id?: string })
+      .primary_email_address_id;
+    const primaryEmail =
+      data.email_addresses?.find((email) => email.id === primaryEmailId) ||
+      data.email_addresses?.find((email) => email.verification?.status === "verified") ||
+      data.email_addresses?.[0];
 
-    console.log(`Found primary email for user ${data.id}:`, primaryEmail?.email_address);
+    console.log(
+      `Resolved email for user ${data.id}:`,
+      primaryEmail?.email_address,
+      { preferredBy: primaryEmailId ? "primary_email_address_id" : primaryEmail?.verification?.status === "verified" ? "verified" : "first" }
+    );
 
     const user: Partial<User> = {
       email: primaryEmail?.email_address || "",
