@@ -30,6 +30,24 @@ When you first set up a database, run `npx prisma migrate deploy` to get the lat
 
 To visualize and alter the data, run `npx prisma studio`. The web interface will allow you to see entries in each table, as well as delete, update, and create entries. You may need to migrate the database once it is created or whenever we update our data schemas.
 
+## Email / SMTP configuration
+
+Set the following in `.env.local` to enable SMTP email notifications:
+
+```
+# SMTP server settings
+SMTP_HOST=
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=
+SMTP_PASS=
+
+# From header, e.g. "Furvino <notifications@your-domain.com>"
+EMAIL_FROM=
+```
+
+With these configured, admins can send a test email from the Admin panel using the "Send Test Email" button. The email is sent to the current user's Prisma `email`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -2,8 +2,27 @@
 import { Button, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import { AdminGuardClient } from "./AdminGuardClient";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 export default function AdminPanel() {
+  const [sending, setSending] = useState(false);
+
+  async function onSendTestEmail() {
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/test-email", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "Failed to send test email");
+      toast.success("Test email sent to your account email");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to send test email";
+      toast.error(msg);
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <AdminGuardClient>
       <Stack gap={2}>
@@ -20,6 +39,9 @@ export default function AdminPanel() {
           </Button>
           <Button LinkComponent={Link} href="/admin/users/manage" variant="outlined">
             Manage Users
+          </Button>
+          <Button onClick={onSendTestEmail} variant="contained" disabled={sending}>
+            {sending ? "Sending…" : "Send Test Email"}
           </Button>
         </Stack>
       </Stack>
