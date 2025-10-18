@@ -8,6 +8,7 @@ import {
   useDeleteNovelGalleryItem,
 } from "@/novels/hooks";
 import { useNovel } from "@/novels/providers/ClientNovelProvider";
+import { useNovelUpload } from "@/novels/providers";
 import { toast } from "react-toastify";
 import { Trash2Icon } from "lucide-react";
 import { IconButton } from "@mui/material";
@@ -18,6 +19,7 @@ export function NovelGalleryEditor() {
   const { novel } = useNovel();
   const { createGalleryItem, isCreating } = useCreateNovelGalleryItem();
   const { deleteGalleryItem } = useDeleteNovelGalleryItem();
+  const { config: uploadConfig } = useNovelUpload();
   const [uploadingSlot, setUploadingSlot] = useState<number | null>(null);
   const [, setRevision] = useState(0);
 
@@ -145,6 +147,7 @@ export function NovelGalleryEditor() {
                       novelId: novel.id,
                       galleryItemFile: file,
                       slot: nextSlot ?? undefined,
+                      uploadConfig,
                     });
                     const url = created.imageUrl;
                     const id = created.id;

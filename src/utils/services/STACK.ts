@@ -23,7 +23,7 @@ export async function getMe(auth: StackAuth): Promise<{ filesNodeID: number }> {
 }
 
 export async function listChildren(auth: StackAuth, parentID: number): Promise<Array<{ id: number; name: string; dir: boolean }>> {
-  const resp = await fetch(`${auth.baseUrl}/node?parentID=${parentID}&limit=100`, {
+  const resp = await fetch(`${auth.baseUrl}/nodes?parentID=${parentID}&limit=100`, {
     headers: { "x-sessiontoken": auth.sessionToken },
   });
   if (!resp.ok) throw new Error(`STACK list nodes failed (${resp.status})`);
@@ -32,14 +32,27 @@ export async function listChildren(auth: StackAuth, parentID: number): Promise<A
 }
 
 export async function createDirectory(auth: StackAuth, parentID: number, name: string): Promise<number> {
-  const resp = await fetch(`${auth.baseUrl}/node`, {
+  const resp = await fetch(`${auth.baseUrl}/directories`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-sessiontoken": auth.sessionToken },
     body: JSON.stringify({ parentID, name }),
   });
-  if (!resp.ok) throw new Error(`STACK create directory failed (${resp.status})`);
-  const data = (await resp.json()) as { id: number };
-  return data.id;
+  
+  // 409 means directory already exists - that's OK, just return its ID
+  if (resp.status === 409) {
+    const idHeader = resp.headers.get("x-id");
+    if (!idHeader) throw new Error("STACK create directory: directory exists but missing x-id header");
+    return parseInt(idHeader, 10);
+  }
+  
+  if (!resp.ok) {
+    const errorText = await resp.text().catch(() => "");
+    throw new Error(`STACK create directory failed (${resp.status}): ${errorText}`);
+  }
+  
+  const idHeader = resp.headers.get("x-id");
+  if (!idHeader) throw new Error("STACK create directory: missing x-id header");
+  return parseInt(idHeader, 10);
 }
 
 export async function uploadFile(

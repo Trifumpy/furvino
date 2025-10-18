@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import { useUpdateNovelThumbnail, useUpdateNovelBanner } from "@/novels/hooks";
 import { MAX_PAGE_BACKGROUND_FILE_SIZE } from "@/contracts/novels";
 import { TextLengthCounterAdornment } from "@/generic/display";
+import { useNovelUpload } from "@/novels/providers";
 
 type Props = {
   existingId?: string;
@@ -73,6 +74,9 @@ export function NovelForm({
   const { updateBanner, isUpdating: isUploadingBanner } =
     useUpdateNovelBanner();
 
+  // Get upload config for direct STACK uploads (if available)
+  const { config: uploadConfig } = useNovelUpload();
+
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload a valid image file.");
@@ -84,6 +88,7 @@ export function NovelForm({
       const novel = await updateThumbnail({
         novelId: existingId,
         thumbnailFile: file,
+        uploadConfig,
       });
       setValue("thumbnailUrl", novel.thumbnailUrl ?? undefined);
       toast.success("Thumbnail updated successfully!");
@@ -103,6 +108,7 @@ export function NovelForm({
       const novel = await updateBanner({
         novelId: existingId,
         bannerFile: file,
+        uploadConfig,
       });
       setValue("pageBackgroundUrl", (novel as unknown as { pageBackgroundUrl?: string | null }).pageBackgroundUrl ?? undefined);
       toast.success("Page background updated successfully!");
