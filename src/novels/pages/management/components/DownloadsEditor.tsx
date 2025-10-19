@@ -37,6 +37,7 @@ type UploadStats = {
   etaSeconds: number;
   concurrency: number;
   partSize: number;
+  mbps: number;
 }
 
 export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
@@ -131,7 +132,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
                 signal: controller.signal,
                 onStats: (stats) => {
                   const percent = Math.round((stats.uploadedBytes / stats.totalBytes) * 100);
-                  const etaSeconds = stats.mbps > 0 ? Math.ceil((stats.totalBytes - stats.uploadedBytes) / (stats.mbps * 1024 * 1024)) : 0;
+              const etaSeconds = stats.mbps > 0 ? Math.ceil((stats.totalBytes - stats.uploadedBytes) / (stats.mbps * 1024 * 1024)) : 0;
 
                   setPlatformProgress((prev) => ({
                     ...prev,
@@ -141,7 +142,8 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
                       percent,
                       etaSeconds,
                       concurrency: stats.concurrency,
-                      partSize: stats.partSize,
+                  partSize: stats.partSize,
+                  mbps: Math.max(stats.mbps, 0),
                     },
                   }));
                 },
@@ -187,9 +189,10 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
         />
         {isThisUploading && thisProgress && (
           <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
-            Uploading: {thisProgress.percent}%
-            {thisProgress.etaSeconds > 0 && ` • ETA: ${thisProgress.etaSeconds}s`}
-            {` • Concurrency: ${thisProgress.concurrency} • Part size: ${(thisProgress.partSize / (1024*1024)).toFixed(1)}MB`}
+            {`Uploading: ${thisProgress.percent}%`}
+            {` • ${(thisProgress.mbps || 0).toFixed(2)} MiB/s`}
+            {thisProgress.etaSeconds > 0 && ` • ~${thisProgress.etaSeconds}s remaining`}
+            {` • Concurrency: ${thisProgress.concurrency} • Part size: ${(thisProgress.partSize / (1024 * 1024)).toFixed(1)} MiB`}
           </Typography>
         )}
       </Stack>

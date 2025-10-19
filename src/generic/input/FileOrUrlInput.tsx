@@ -221,12 +221,6 @@ export function FileOrUrlInput<TKey extends string>({
                 variant="determinate"
                 value={Math.min(progressPercent, 100)}
               />
-              <Typography variant="caption" color="textSecondary">
-                {progressPercent}%
-                {typeof etaSeconds === "number" && etaSeconds > 0
-                  ? ` • ~${etaSeconds}s remaining`
-                  : ""}
-              </Typography>
             </Stack>
           )}
         </>
