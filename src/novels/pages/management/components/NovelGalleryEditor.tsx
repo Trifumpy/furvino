@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Typography, Box, LinearProgress } from "@mui/material";
+import { Stack, Typography, Box } from "@mui/material";
 import { ImageInput } from "@/generic/input";
 import { MAX_GALLERY_FILE_SIZE, MAX_GALLERY_ITEMS } from "@/contracts/novels";
 import {
@@ -16,7 +16,7 @@ import { SafeImage } from "@/generic/display";
 
 export function NovelGalleryEditor() {
   const { novel } = useNovel();
-  const { createGalleryItem, isCreating, progress: galleryProgress } = useCreateNovelGalleryItem();
+  const { createGalleryItem, isCreating } = useCreateNovelGalleryItem();
   const { deleteGalleryItem } = useDeleteNovelGalleryItem();
   const [uploadingSlot, setUploadingSlot] = useState<number | null>(null);
   const [, setRevision] = useState(0);
@@ -125,60 +125,55 @@ export function NovelGalleryEditor() {
           <Box key={`uploader-${nextSlot}`} sx={{ width: "100%" }}>
             <Stack gap={1}>
               <Typography variant="subtitle2">Slot {nextSlot}</Typography>
-              <Stack gap={1}>
-                <ImageInput
-                  label={`Upload for slot ${nextSlot}`}
-                  valueUrl={undefined}
-                  onUpload={async (file) => {
-                    if (!file.type.startsWith("image/")) {
-                      toast.error("Please upload a valid image file.");
-                      return;
-                    }
-                    if (uploadingSlot !== null) {
-                      toast.info(
-                        "Another gallery upload is in progress. Please wait."
-                      );
-                      return;
-                    }
-                    try {
-                      setUploadingSlot(nextSlot);
-                      const created = await createGalleryItem({
-                        novelId: novel.id,
-                        galleryItemFile: file,
-                        slot: nextSlot ?? undefined,
-                      });
-                      const url = created.imageUrl;
-                      const id = created.id;
-                      novel.galleryItems = [
-                        ...novel.galleryItems.filter((gi) => gi.id !== id).filter((gi) => {
-                          try {
-                            const g = new URL(gi.imageUrl).searchParams.get("g");
-                            return g !== `gallery${nextSlot}`;
-                          } catch {
-                            return true;
-                          }
-                        }),
-                        {
-                          id,
-                          imageUrl: url,
-                          createdAt: new Date().toISOString(),
-                          footer: null,
-                        },
-                      ];
-                      setRevision((r) => r + 1);
-                      toast.success("Image uploaded");
-                    } finally {
-                      setUploadingSlot(null);
-                    }
-                  }}
-                  maxSize={MAX_GALLERY_FILE_SIZE}
-                  loading={isCreating || uploadingSlot !== null}
-                  disabled={uploadingSlot !== null}
-                />
-                {(isCreating || uploadingSlot !== null) && galleryProgress && (
-                  <></>
-                )}
-              </Stack>
+              <ImageInput
+                label={`Upload for slot ${nextSlot}`}
+                valueUrl={undefined}
+                onUpload={async (file) => {
+                  if (!file.type.startsWith("image/")) {
+                    toast.error("Please upload a valid image file.");
+                    return;
+                  }
+                  if (uploadingSlot !== null) {
+                    toast.info(
+                      "Another gallery upload is in progress. Please wait."
+                    );
+                    return;
+                  }
+                  try {
+                    setUploadingSlot(nextSlot);
+                    const created = await createGalleryItem({
+                      novelId: novel.id,
+                      galleryItemFile: file,
+                      slot: nextSlot ?? undefined,
+                    });
+                    const url = created.imageUrl;
+                    const id = created.id;
+                    novel.galleryItems = [
+                      ...novel.galleryItems.filter((gi) => gi.id !== id).filter((gi) => {
+                        try {
+                          const g = new URL(gi.imageUrl).searchParams.get("g");
+                          return g !== `gallery${nextSlot}`;
+                        } catch {
+                          return true;
+                        }
+                      }),
+                      {
+                        id,
+                        imageUrl: url,
+                        createdAt: new Date().toISOString(),
+                        footer: null,
+                      },
+                    ];
+                    setRevision((r) => r + 1);
+                    toast.success("Image uploaded");
+                  } finally {
+                    setUploadingSlot(null);
+                  }
+                }}
+                maxSize={MAX_GALLERY_FILE_SIZE}
+                loading={isCreating || uploadingSlot !== null}
+                disabled={uploadingSlot !== null}
+              />
             </Stack>
           </Box>
         )}

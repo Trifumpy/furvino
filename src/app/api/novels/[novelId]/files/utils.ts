@@ -3,7 +3,10 @@ import { StackService } from "@/app/api/stack";
 import { Platform } from "@/contracts/novels";
 import path from "path";
 
-export function getUploadFolder(novelId: string, platform: Platform): string {
+export function getUploadFolder(
+  novelId: string,
+  platform: Platform,
+): string {
   return path.join("novels", novelId, "files", platform);
 }
 
@@ -17,12 +20,12 @@ export async function saveNovelFile(folderPath: string, file: File): Promise<str
 export async function waitForNodeId(stackPath: string) {
   const stack = StackService.get();
 
-  // Poll for the file to appear in STACK after the watcher syncs it
+  // Poll for the existing directory and file to appear in STACK after the watcher syncs it
   // Retry more frequently and for a longer period (1000ms for up to 5 minutes)
   const maxAttempts = 300; // 300 * 1000ms = ~300s (5 minutes)
   const intervalMs = 1000;
   let nodeId: number | null = null;
-  // Query by absolute path under /files
+  // Try node-id endpoint by absolute path first (under /files)
   // We use posix to ensure the path uses forward slashes
   const absoluteFilesPath = path.posix.join("files", stackPath.replace(/\\/g, "/"));
   for (let attempt = 0; attempt < maxAttempts; attempt++) {

@@ -14,10 +14,6 @@ export const POST = wrapRoute(async (req) => {
   const body = await req.json();
   const parsed = initSchema.parse(body);
   const result: InitUploadResponse = await initUpload(parsed);
-  
-  const partSizeMB = (result.partSize / (1024 * 1024)).toFixed(1);
-  console.log(`[Upload] Initialized upload ${result.uploadId}: ${result.filename} (${partSizeMB}MB parts, streaming to WebDAV)`);
-  
   return NextResponse.json(result, { status: 201 });
 });
 

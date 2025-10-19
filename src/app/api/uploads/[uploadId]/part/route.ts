@@ -17,10 +17,7 @@ export const PUT = wrapRoute(async (req, { params }) => {
     return NextResponse.json({ error: "Missing request body" }, { status: 400 });
   }
 
-  console.log(`[Upload] Streaming part ${partNumber} to WebDAV for upload ${uploadId}`);
   await writeUploadPart(uploadId, partNumber, req.body);
-  console.log(`[Upload] Part ${partNumber} streamed successfully`);
-  
   return NextResponse.json({ ok: true });
 });
 

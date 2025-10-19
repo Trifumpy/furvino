@@ -41,57 +41,39 @@ export function NovelDownloads({ novel, buttonBgColor, buttonTextColor }: Props)
   }, [platformOptions]);
 
   const SelectedIcon = PLATFORM_ICONS[selectedPlatform];
-  const selectedUrl = (downloads?.[selectedPlatform] as string | undefined) || undefined;
 
   return (
     <Stack direction="row" alignItems="center">
-      {selectedUrl ? (
-        <Button
-          variant="contained"
-          href={selectedUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2"
-          sx={{
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
-            height: BUTTON_HEIGHT,
-            textTransform: "none",
-            bgcolor: buttonBgColor,
-            color: buttonTextColor,
-            '&:hover': { bgcolor: buttonBgColor },
-          }}
-        >
-          <Stack direction="row" gap={1} alignItems="center">
-            <SelectedIcon size={24} />
+      <Button
+        variant="contained"
+        href={downloads?.[selectedPlatform] ?? "#"}
+        disabled={!downloads?.[selectedPlatform]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2"
+        sx={{
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+          height: BUTTON_HEIGHT,
+          textTransform: "none",
+          bgcolor: buttonBgColor,
+          color: buttonTextColor,
+          '&:hover': { bgcolor: buttonBgColor },
+        }}
+      >
+        <Stack direction="row" gap={1} alignItems="center">
+          <SelectedIcon size={24} />
+          {downloads?.[selectedPlatform] ? (
             <Typography variant="body1">
               Download for {PLATFORM_NAMES[selectedPlatform]}
             </Typography>
-          </Stack>
-        </Button>
-      ) : (
-        <Button
-          variant="contained"
-          disabled
-          className="flex items-center gap-2"
-          sx={{
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
-            height: BUTTON_HEIGHT,
-            textTransform: "none",
-            bgcolor: buttonBgColor,
-            color: buttonTextColor,
-            '&:hover': { bgcolor: buttonBgColor },
-          }}
-        >
-          <Stack direction="row" gap={1} alignItems="center">
-            <SelectedIcon size={24} />
+          ) : (
             <Typography variant="body1" color="text.secondary">
               Not available for {PLATFORM_NAMES[selectedPlatform]}
             </Typography>
-          </Stack>
-        </Button>
-      )}
+          )}
+        </Stack>
+      </Button>
       <Button
         variant="contained"
         aria-controls={hasAlternatives ? "platform-menu" : undefined}

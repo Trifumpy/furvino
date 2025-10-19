@@ -17,32 +17,19 @@ export type ParallelUploaderOptions = {
   signal?: AbortSignal;
   onProgress?: (progress: { uploadedBytes: number; totalBytes: number; uploadedParts: number; totalParts: number }) => void;
   headers?: Record<string, string>; // extra headers for auth, etc.
-  onStats?: (stats: { allowed: number; inFlight: number; uploadedBytes: number; totalBytes: number; mbps: number; concurrency: number; partSize: number }) => void;
+  onStats?: (stats: { allowed: number; inFlight: number; uploadedBytes: number; totalBytes: number; mbps: number }) => void;
 };
 
 const DEFAULT_UPLOAD_CONCURRENCY = (() => {
   const raw = process.env.NEXT_PUBLIC_UPLOAD_CONCURRENCY;
   const v = raw ? parseInt(raw, 10) : NaN;
-  const MAX_CONCURRENCY = 64;
-  if (Number.isFinite(v) && v > 0) {
-    return Math.min(v, MAX_CONCURRENCY); // cap at 64
-  }
-  return 8;
+  return Number.isFinite(v) && v > 0 ? v : 8;
 })();
 
 const DEFAULT_PART_SIZE_BYTES = (() => {
   const raw = process.env.NEXT_PUBLIC_UPLOAD_PART_SIZE_MB;
   const mb = raw ? parseInt(raw, 10) : NaN;
-  const MIN_PART_SIZE = 1; // 1 MiB
-  const MAX_PART_SIZE = 100; // 100 MiB
-  if (Number.isFinite(mb) && mb > 0) {
-    const capped = Math.max(MIN_PART_SIZE, Math.min(mb, MAX_PART_SIZE));
-    const bytes = capped * 1024 * 1024;
-    if (mb !== capped) {
-      console.warn(`[Upload] Part size ${mb}MB capped to valid range [${MIN_PART_SIZE}-${MAX_PART_SIZE}]MB`);
-    }
-    return bytes;
-  }
+  if (Number.isFinite(mb) && mb > 0) return mb * 1024 * 1024;
   return undefined; // fall back to server default (8 MiB)
 })();
 
@@ -98,7 +85,7 @@ export async function uploadFileInParallel(
     filename: string; // display filename
   },
   options: ParallelUploaderOptions = {}
-): Promise<{ stackPath: string; uploadId: string; shareUrl: string }> {
+): Promise<{ stackPath: string; uploadId: string }> {
   const {
     concurrency,
     partSize,
@@ -119,8 +106,6 @@ export async function uploadFileInParallel(
     body: initBody,
     signal,
   });
-
-  console.log(`[Upload] Starting parallel upload with concurrency: ${allowedConcurrency}`);
 
   const { uploadId, partSize: serverPartSize } = initRes;
   const actualPartSize = serverPartSize;
@@ -152,7 +137,7 @@ export async function uploadFileInParallel(
 
   const progressUpdate = () => {
     onProgress?.({ uploadedBytes, totalBytes, uploadedParts, totalParts });
-    onStats?.({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: computeMbps(), concurrency: allowedConcurrency, partSize: actualPartSize });
+    onStats?.({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: computeMbps() });
   };
   progressUpdate();
 
@@ -243,13 +228,12 @@ export async function uploadFileInParallel(
 
     if (onStats) {
       statsTimer = setInterval(() => {
-        onStats({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: emaMbps || computeMbps(), concurrency: allowedConcurrency, partSize: actualPartSize });
+        onStats({ allowed: allowedConcurrency, inFlight, uploadedBytes, totalBytes, mbps: emaMbps || computeMbps() });
       }, statsIntervalMs);
     }
   });
 
   // 4) Complete
-  console.log(`[Upload] All parts for ${uploadId} uploaded. Completing...`);
   const complete = await fetchJson(`/api/uploads/${uploadId}/complete`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
@@ -257,12 +241,7 @@ export async function uploadFileInParallel(
     signal,
   });
 
-  if (!complete.shareUrl) {
-    console.error("[Upload] Completion response did not include a shareUrl.", complete);
-    throw new Error("Failed to get share URL after upload.");
-  }
-
-  return { stackPath: complete.stackPath as string, uploadId, shareUrl: complete.shareUrl as string };
+  return { stackPath: complete.stackPath as string, uploadId };
 }
 
 

@@ -22,13 +22,13 @@ export const POST = wrapRoute<Params>(async (request, { params }) => {
   const novel = await ensureGetNovel(novelId);
   await ensureCanUpdateNovel(novel);
 
-  const body = await request.json().catch(() => null) as { stackPath?: string; shareUrl?: string } | null;
+  const body = await request.json().catch(() => null) as { stackPath?: string } | null;
   const stackPath = body?.stackPath;
   if (!stackPath) throw new BadRequestError("Missing stackPath");
 
   // Ensure file exists in STACK (poll until watcher syncs), then share it
   const nodeId = await waitForNodeId(stackPath);
-  const shareUrl = body?.shareUrl || await StackService.get().shareNode(nodeId);
+  const shareUrl = await StackService.get().shareNode(nodeId);
 
   // Patch DB
   const existingFileUrls: Prisma.JsonObject =

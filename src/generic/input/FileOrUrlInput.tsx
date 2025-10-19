@@ -85,8 +85,7 @@ export function FileOrUrlInput<TKey extends string>({
       const saved = window.sessionStorage.getItem(storageKey);
       if (saved === "upload" || saved === "link") return saved;
     }
-    // Default to upload mode (even if there's an HTTP URL)
-    return "upload";
+    return isHttpUrl ? "link" : "upload";
   });
 
   useEffect(() => {
@@ -94,6 +93,10 @@ export function FileOrUrlInput<TKey extends string>({
       window.sessionStorage.setItem(storageKey, mode);
     }
   }, [mode, storageKey]);
+
+  useEffect(() => {
+    if (isHttpUrl && mode !== "link") setMode("link");
+  }, [isHttpUrl, mode]);
 
   const isNullStringError =
     typeof error === "string" &&
@@ -221,6 +224,12 @@ export function FileOrUrlInput<TKey extends string>({
                 variant="determinate"
                 value={Math.min(progressPercent, 100)}
               />
+              <Typography variant="caption" color="textSecondary">
+                {progressPercent}%
+                {typeof etaSeconds === "number" && etaSeconds > 0
+                  ? ` • ~${etaSeconds}s remaining`
+                  : ""}
+              </Typography>
             </Stack>
           )}
         </>

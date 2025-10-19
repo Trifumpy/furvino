@@ -8,7 +8,7 @@ import {
   MAX_TITLE_LENGTH,
 } from "@/contracts/novels";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, IconButton, Stack, TextField, Typography, LinearProgress, Box } from "@mui/material";
+import { Button, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { ExternalSitesEditor } from "./ExternalSitesEditor";
 import { ImageInput } from "@/generic/input";
@@ -23,7 +23,6 @@ import { toast } from "react-toastify";
 import { useUpdateNovelThumbnail, useUpdateNovelBanner } from "@/novels/hooks";
 import { MAX_PAGE_BACKGROUND_FILE_SIZE } from "@/contracts/novels";
 import { TextLengthCounterAdornment } from "@/generic/display";
-// import { useNovelUpload } from "@/novels/providers";
 
 type Props = {
   existingId?: string;
@@ -68,14 +67,11 @@ export function NovelForm({
     }
   }, [fixedAuthorId, setValue]);
 
-  const { updateThumbnail, isUpdating: isUploadingThumbnail, stats: thumbnailStats } =
+  const { updateThumbnail, isUpdating: isUploadingThumbnail } =
     useUpdateNovelThumbnail();
 
-  const { updateBanner, isUpdating: isUploadingBanner, stats: bannerStats } =
+  const { updateBanner, isUpdating: isUploadingBanner } =
     useUpdateNovelBanner();
-
-  // Get upload config for direct STACK uploads (if available)
-  // const { config: uploadConfig } = useNovelUpload();
 
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -124,48 +120,34 @@ export function NovelForm({
       <Stack gap={1}>
         {!minimal && existingId && (
           <Stack direction={{ xs: "column", md: "row" }} gap={1}>
-            <Box sx={{ flex: 1 }}>
-              <Controller
-                name="thumbnailUrl"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <ImageInput
-                    label="Cover Image"
-                    valueUrl={field.value}
-                    onUpload={handleUpload}
-                    maxSize={MAX_THUMBNAIL_FILE_SIZE}
-                    loading={isUploadingThumbnail}
-                    error={fieldState?.error?.message}
-                  />
-                )}
-              />
-              {isUploadingThumbnail && (
-                <Typography variant="body2" color="text.secondary">
-                  Uploading... {thumbnailStats && `${Math.round((thumbnailStats.uploadedBytes / thumbnailStats.totalBytes) * 100)}% (Concurrency: ${thumbnailStats.concurrency})`}
-                </Typography>
+            <Controller
+              name="thumbnailUrl"
+              control={control}
+              render={({ field, fieldState }) => (
+                <ImageInput
+                  label="Cover Image"
+                  valueUrl={field.value}
+                  onUpload={handleUpload}
+                  maxSize={MAX_THUMBNAIL_FILE_SIZE}
+                  loading={isUploadingThumbnail}
+                  error={fieldState?.error?.message}
+                />
               )}
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Controller
-                name="pageBackgroundUrl"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <ImageInput
-                    label="Page background"
-                    valueUrl={field.value}
-                    onUpload={handleBannerUpload}
-                    maxSize={MAX_PAGE_BACKGROUND_FILE_SIZE}
-                    loading={isUploadingBanner}
-                    error={fieldState?.error?.message}
-                  />
-                )}
-              />
-              {isUploadingBanner && (
-                <Typography variant="body2" color="text.secondary">
-                  Uploading... {bannerStats && `${Math.round((bannerStats.uploadedBytes / bannerStats.totalBytes) * 100)}% (Concurrency: ${bannerStats.concurrency})`}
-                </Typography>
+            />
+            <Controller
+              name="pageBackgroundUrl"
+              control={control}
+              render={({ field, fieldState }) => (
+                <ImageInput
+                  label="Page background"
+                  valueUrl={field.value}
+                  onUpload={handleBannerUpload}
+                  maxSize={MAX_PAGE_BACKGROUND_FILE_SIZE}
+                  loading={isUploadingBanner}
+                  error={fieldState?.error?.message}
+                />
               )}
-            </Box>
+            />
           </Stack>
         )}
         {!minimal && existingId && (

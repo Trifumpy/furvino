@@ -10,7 +10,6 @@ import { pruneEmptyKeys } from "@/utils/lib/collections";
 import { Button, Stack, TextField, FormControlLabel, Switch, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { NovelUploadProvider } from "@/novels/providers";
 
 export function EditNovelPage() {
   const { novel } = useNovel();
@@ -46,18 +45,6 @@ export function EditNovelPage() {
 }
 
 function EditFormInternal({
-  novel,
-}: {
-  novel: CreateNovelBody & { id: string };
-}) {
-  return (
-    <NovelUploadProvider novelId={novel.id}>
-      <EditFormInternalContent novel={novel} />
-    </NovelUploadProvider>
-  );
-}
-
-function EditFormInternalContent({
   novel,
 }: {
   novel: CreateNovelBody & { id: string };
