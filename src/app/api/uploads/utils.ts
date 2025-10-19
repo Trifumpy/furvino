@@ -5,7 +5,6 @@ import { createWriteStream, existsSync, createReadStream } from "fs";
 import path from "path";
 import crypto from "crypto";
 import { pipeline } from "stream/promises";
-import { Readable } from "stream";
 import { StackService } from "../stack";
 
 export type InitUploadRequest = {
@@ -31,6 +30,9 @@ export type UploadMeta = {
   partSize: number;
   totalSize?: number;
   createdAt: number;
+  // Incremental assembly state for streaming
+  assembledParts: number; // number of parts already appended to final file
+  stackRelativePath: string; // targetFolder/sanitizedFilename
 };
 
 const DEFAULT_PART_SIZE = 8 * 1024 * 1024; // 8 MiB
@@ -62,6 +64,14 @@ export async function initUpload(req: InitUploadRequest): Promise<InitUploadResp
   const partsDir = getPartsDir(uploadId);
   await mkdir(partsDir, { recursive: true });
 
+  // Ensure destination folder exists and clear any stale final file
+  await ensureFolderExists(safeFolder);
+  const stackRelativePath = path.join(safeFolder, safeFilename);
+  const finalFullPath = path.join(STACK_ROOT, STACK_PREFIX, stackRelativePath);
+  await rm(finalFullPath, { force: true }).catch(() => {
+    // ignore
+  });
+
   const meta: UploadMeta = {
     id: uploadId,
     filename: req.filename,
@@ -70,6 +80,8 @@ export async function initUpload(req: InitUploadRequest): Promise<InitUploadResp
     partSize,
     totalSize: req.totalSize,
     createdAt: Date.now(),
+    assembledParts: 0,
+    stackRelativePath,
   };
 
   // Store metadata in the parts directory
@@ -106,6 +118,67 @@ export async function listReceivedParts(uploadId: string): Promise<number[]> {
   return partNumbers;
 }
 
+// In-memory per-upload flush state to serialize assembly operations
+const flushStateMap = new Map<string, { running: boolean; pending: boolean }>();
+
+function getFinalFullPath(meta: UploadMeta): string {
+  return path.join(STACK_ROOT, STACK_PREFIX, meta.stackRelativePath);
+}
+
+async function writeMeta(uploadId: string, meta: UploadMeta): Promise<void> {
+  const partsDir = getPartsDir(uploadId);
+  await writeFile(path.join(partsDir, "meta.json"), JSON.stringify(meta, null, 2));
+}
+
+async function flushSequentialParts(uploadId: string): Promise<void> {
+  const meta = await getUploadMeta(uploadId);
+  const finalFullPath = getFinalFullPath(meta);
+
+  let nextPart = (meta.assembledParts ?? 0) + 1;
+
+  // Append all contiguous parts starting from nextPart
+  while (existsSync(getPartPath(uploadId, nextPart))) {
+    const partPath = getPartPath(uploadId, nextPart);
+    const rs = createReadStream(partPath);
+    const ws = createWriteStream(finalFullPath, { flags: "a" });
+    await pipeline(rs, ws);
+    await rm(partPath, { force: true }).catch(() => {});
+
+    meta.assembledParts = nextPart;
+    await writeMeta(uploadId, meta);
+    nextPart += 1;
+  }
+}
+
+async function triggerFlush(uploadId: string): Promise<void> {
+  const state = flushStateMap.get(uploadId) || { running: false, pending: false };
+  flushStateMap.set(uploadId, state);
+  if (state.running) {
+    state.pending = true;
+    return;
+  }
+  state.running = true;
+  try {
+    do {
+      state.pending = false;
+      await flushSequentialParts(uploadId);
+    } while (state.pending);
+  } finally {
+    state.running = false;
+  }
+}
+
+async function waitForFlushIdle(uploadId: string): Promise<void> {
+  const timeoutMs = 5 * 60 * 1000; // 5 minutes
+  const start = Date.now();
+  while (true) {
+    const state = flushStateMap.get(uploadId) || { running: false, pending: false };
+    if (!state.running && !state.pending) return;
+    if (Date.now() - start > timeoutMs) throw new Error("Timed out waiting for upload assembly to finish");
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
 export async function writeUploadPart(uploadId: string, partNumber: number, body: ReadableStream): Promise<void> {
   if (!Number.isFinite(partNumber) || partNumber <= 0) {
     throw new Error("Invalid partNumber");
@@ -115,71 +188,37 @@ export async function writeUploadPart(uploadId: string, partNumber: number, body
   const nodeReadable = convertWebToNodeReadable(body);
   const ws = createWriteStream(partPath, { flags: "w" });
   await pipeline(nodeReadable, ws);
+  // Schedule a background flush to append newly arrived sequential parts
+  void triggerFlush(uploadId);
 }
 
 export async function assembleAndMoveToStack(uploadId: string, expectedTotalParts?: number): Promise<{ stackPath: string; shareUrl: string }> {
+  // Kick off/complete any remaining flush work and wait until idle
+  await triggerFlush(uploadId);
+  await waitForFlushIdle(uploadId);
+
   const meta = await getUploadMeta(uploadId);
   const partsDir = getPartsDir(uploadId);
 
-  const parts = await listReceivedParts(uploadId);
-  if (!parts.length) {
-    throw new Error("No parts uploaded");
-  }
-  if (expectedTotalParts && parts.length !== expectedTotalParts) {
-    throw new Error(`Incomplete upload: received ${parts.length} of ${expectedTotalParts} parts`);
+  // Validate completeness
+  if (expectedTotalParts && (meta.assembledParts ?? 0) !== expectedTotalParts) {
+    const received = await listReceivedParts(uploadId);
+    throw new Error(`Incomplete upload: assembled ${meta.assembledParts ?? 0} of ${expectedTotalParts} parts (received ${received.length})`);
   }
 
-  // Ensure target folder exists under STACK
-  await ensureFolderExists(meta.targetFolder);
-
-  const stackRelativePath = path.join(meta.targetFolder, meta.sanitizedFilename);
-  const finalFullPath = path.join(STACK_ROOT, STACK_PREFIX, stackRelativePath);
-
-  console.log(`[Upload] Assembling ${parts.length} parts for ${uploadId} → ${stackRelativePath}`);
-
-  const writeStream = createWriteStream(finalFullPath, { flags: "w" });
-  const concatStream = Readable.from((async function* concatParts() {
-    for (const partNumber of parts) {
-      const partPath = getPartPath(uploadId, partNumber);
-      console.log(`[Upload] Appending part ${partNumber} for ${uploadId}`);
-      const rs = createReadStream(partPath);
-      try {
-        for await (const chunk of rs) {
-          yield chunk as Buffer;
-        }
-      } finally {
-        rs.destroy();
-      }
-    }
-  })());
-
-  try {
-    await pipeline(concatStream, writeStream);
-    console.log(`[Upload] Assembly complete for ${uploadId}`);
-  } catch (err) {
-    console.error(`[Upload] Failed assembling upload ${uploadId}`, err);
-    await rm(finalFullPath, { force: true }).catch(() => {
-      // Ignore cleanup failure
-    });
-    throw err;
-  } finally {
-    await rm(partsDir, { recursive: true, force: true }).catch((cleanupErr) => {
-      console.warn(`[Upload] Failed to remove temporary parts for ${uploadId}:`, cleanupErr);
-    });
-  }
-
-  // Cleanup already handled in finally; ensure directory exists before continuing
+  // Cleanup temporary parts directory
+  await rm(partsDir, { recursive: true, force: true }).catch((cleanupErr) => {
+    console.warn(`[Upload] Failed to remove temporary parts for ${uploadId}:`, cleanupErr);
+  });
 
   const stack = StackService.get();
 
   // Poll for the file to appear in STACK after the watcher syncs it
-  // Retry more frequently and for a longer period (1000ms for up to 5 minutes)
-  const maxAttempts = 300; // 300 * 1000ms = ~300s (5 minutes)
+  const maxAttempts = 300; // ~5 minutes
   const intervalMs = 1000;
   let nodeId: number | null = null;
-  // Query by absolute path under /files
-  // We use posix to ensure the path uses forward slashes
-  const absoluteFilesPath = path.posix.join("files", STACK_PREFIX.replace(/\\/g, "/"), stackRelativePath.replace(/\\/g, "/"));
+  const stackRelativePath = meta.stackRelativePath.replace(/\\/g, "/");
+  const absoluteFilesPath = path.posix.join("files", STACK_PREFIX.replace(/\\/g, "/"), stackRelativePath);
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     nodeId = await stack.getNodeIdByPath(absoluteFilesPath);
     if (nodeId) break;
@@ -195,7 +234,7 @@ export async function assembleAndMoveToStack(uploadId: string, expectedTotalPart
   const shareUrl = await stack.shareNode(nodeId);
 
   return {
-    stackPath: path.posix.join(STACK_PREFIX, stackRelativePath.replace(/\\/g, "/")),
+    stackPath: path.posix.join(STACK_PREFIX, stackRelativePath),
     shareUrl,
   };
 }
