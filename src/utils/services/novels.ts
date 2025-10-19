@@ -27,6 +27,14 @@ import {
 import { HttpService } from "./core";
 import { novelTags } from "../cacheTags";
 
+export type UploadStats = {
+  concurrency?: number;
+  inFlight: number;
+  uploadedBytes: number;
+  totalBytes: number;
+  mbps: number;
+};
+
 export class NovelsService extends HttpService {
   constructor(baseUrl: string) {
     super(baseUrl, "/novels");
@@ -262,5 +270,100 @@ export class NovelsService extends HttpService {
       body,
       { cache: "no-store" }
     );
+  }
+
+  // Upload with stats callback for UI progress display
+  uploadThumbnailWithStats(
+    novelId: string,
+    thumbnailFile: File,
+    onStats?: (stats: UploadStats) => void
+  ) {
+    const url = `${this.baseUrl}/${this.prefix}/${novelId}/thumbnail`;
+    const formData = new FormData();
+    formData.append("thumbnail", thumbnailFile);
+
+    return new Promise<UpdateNovelThumbnailResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.responseType = "json";
+
+      // Report upload progress as stats
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable && onStats) {
+          const stats: UploadStats = {
+            concurrency: 1, // Single upload, no concurrency
+            inFlight: 1,
+            uploadedBytes: evt.loaded,
+            totalBytes: evt.total,
+            mbps: 0, // Could calculate, but simplified for now
+          };
+          onStats(stats);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response as UpdateNovelThumbnailResponse);
+        } else {
+          const text =
+            typeof xhr.response === "string"
+              ? xhr.response
+              : JSON.stringify(xhr.response);
+          reject(new Error(`HTTP ${xhr.status}: ${text}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.onabort = () => reject(new Error("Upload aborted"));
+
+      xhr.send(formData);
+    });
+  }
+
+  uploadBannerWithStats(
+    novelId: string,
+    bannerFile: File,
+    onStats?: (stats: UploadStats) => void
+  ) {
+    const url = `${this.baseUrl}/${this.prefix}/${novelId}/banner`;
+    const formData = new FormData();
+    formData.append("banner", bannerFile);
+
+    return new Promise<UpdateNovelPageBackgroundResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.responseType = "json";
+
+      // Report upload progress as stats
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable && onStats) {
+          const stats: UploadStats = {
+            concurrency: 1, // Single upload, no concurrency
+            inFlight: 1,
+            uploadedBytes: evt.loaded,
+            totalBytes: evt.total,
+            mbps: 0, // Could calculate, but simplified for now
+          };
+          onStats(stats);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response as UpdateNovelPageBackgroundResponse);
+        } else {
+          const text =
+            typeof xhr.response === "string"
+              ? xhr.response
+              : JSON.stringify(xhr.response);
+          reject(new Error(`HTTP ${xhr.status}: ${text}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.onabort = () => reject(new Error("Upload aborted"));
+
+      xhr.send(formData);
+    });
   }
 }

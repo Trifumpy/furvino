@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
 import { wrapRoute } from "@/app/api/utils";
 import { ensureCanUpdateNovelById } from "../../utils";
-import { createUploadShareForNovel } from "@/utils/services/STACKShareTokens";
-import { SETTINGS } from "@/app/api/settings";
-
-export type GetUploadTokenResponse = {
-  shareURLToken: string;
-  shareToken: string; // X-ShareToken for authorization
-  shareID: number;
-  parentNodeID: number;
-  expiresAt: number;
-  stackApiUrl: string;
-};
 
 export const POST = wrapRoute(
   async (request, { params }: { params: Promise<{ novelId: string }> }) => {
@@ -20,15 +9,11 @@ export const POST = wrapRoute(
     // Verify user has permission to edit this novel
     await ensureCanUpdateNovelById(novelId);
 
-    // Create the share token
-    const shareConfig = await createUploadShareForNovel(novelId);
-
-    const response: GetUploadTokenResponse = {
-      ...shareConfig,
-      stackApiUrl: SETTINGS.stack.apiUrl,
-    };
-
-    return NextResponse.json(response, { status: 200 });
+    // Direct Stack API uploads are disabled - using VPS WebDAV uploads instead
+    return NextResponse.json(
+      { error: "Direct Stack uploads are disabled. Using VPS WebDAV uploads instead." },
+      { status: 501 }
+    );
   }
 );
 

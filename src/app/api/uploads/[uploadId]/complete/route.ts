@@ -1,19 +1,23 @@
 import { wrapRoute } from "@/app/api/utils";
-import { NextResponse } from "next/server";
 import z from "zod";
+import { NextResponse } from "next/server";
 import { assembleAndMoveToStack } from "../../utils";
 
 const completeSchema = z.object({
-  totalParts: z.number().int().positive().optional(),
+  totalParts: z.number().int().positive(),
 });
 
-export const POST = wrapRoute(async (req, { params }) => {
-  const { uploadId } = await params as { uploadId: string };
-  const body = await req.json().catch(() => ({}));
-  const parsed = completeSchema.parse(body);
+type Params = { uploadId: string };
 
-  const stackPath = await assembleAndMoveToStack(uploadId, parsed.totalParts);
-  return NextResponse.json({ ok: true, stackPath });
+export const POST = wrapRoute<Params>(async (req, { params }) => {
+  const { uploadId } = await params;
+  const body = await req.json();
+  const { totalParts } = completeSchema.parse(body);
+
+  const { stackPath, shareUrl } = await assembleAndMoveToStack(uploadId, totalParts);
+  console.log(`[Upload] Completed ${uploadId}: ${stackPath}`);
+
+  return NextResponse.json({ ok: true, stackPath, shareUrl }, { status: 200 });
 });
 
 

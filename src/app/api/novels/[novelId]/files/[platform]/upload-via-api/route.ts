@@ -6,15 +6,15 @@ import { BadRequestError } from "@/app/api/errors";
 import prisma from "@/utils/db";
 import { novelTags } from "@/utils";
 import { Prisma } from "@/generated/prisma";
-import { authenticate, uploadFile as stackUploadFile, createDirectory, listChildren, getMe, createPublicShare } from "@/utils/services/STACK";
-import { SETTINGS } from "@/app/api/settings";
-import { sanitizeFilename } from "@/app/api/files";
+import { saveNovelFile, waitForNodeId } from "../../utils";
+import { StackService } from "@/app/api/stack";
+import { getUploadFolder } from "@/novels/utils";
 
 type Params = { novelId: string; platform: string };
 
 /**
- * POST endpoint for uploading download files via STACK REST API (not WebDAV)
- * File goes through VPS but uses STACK API for better performance than WebDAV
+ * PUT endpoint for uploading download files via WebDAV (file system)
+ * File goes through VPS via parallel uploads to mounted STACK location
  */
 export const PUT = wrapRoute<Params>(async (request, { params }) => {
   const { novelId, platform } = await params;
@@ -34,75 +34,32 @@ export const PUT = wrapRoute<Params>(async (request, { params }) => {
     throw new BadRequestError("No file provided");
   }
 
-  // Authenticate with STACK
-  const auth = await authenticate(
-    SETTINGS.stack.apiUrl,
-    SETTINGS.stack.username,
-    SETTINGS.stack.password
-  );
+  const relativePath = getUploadFolder(novelId, typedPlatform);
+  const stackPath = await saveNovelFile(relativePath, file);
 
-  // Navigate to furvino/novels/<novelId>/files/<platform>/ directory
-  const { filesNodeID } = await getMe(auth);
-  let currentParentID = filesNodeID;
+  const nodeId = await waitForNodeId(stackPath);
+  const shareUrl = await StackService.get().shareNode(nodeId);
 
-  const pathParts = [SETTINGS.stack.prefix, "novels", novelId, "files", platform];
-  for (const dirName of pathParts) {
-    const children = await listChildren(auth, currentParentID);
-    const existing = children.find((c) => c.name === dirName && c.dir);
+  // Update database - use raw query for atomic JSON merge
+  const existingFileUrls: Prisma.JsonObject =
+    typeof novel.downloadUrls === "object" && novel.downloadUrls !== null
+      ? (novel.downloadUrls as Prisma.JsonObject)
+      : {};
+  const nextFileUrls: Prisma.JsonObject = {
+    ...existingFileUrls,
+    [typedPlatform]: shareUrl,
+  };
 
-    if (existing) {
-      currentParentID = existing.id;
-    } else {
-      currentParentID = await createDirectory(auth, currentParentID, dirName);
-    }
-  }
+  const patched = await prisma.novel.update({
+    where: { id: novelId },
+    data: {
+      downloadUrls: nextFileUrls,
+    },
+  });
 
-  // Upload file using STACK REST API
-  const fileName = sanitizeFilename(file.name);
-  const arrayBuffer = await file.arrayBuffer();
-  const nodeId = await stackUploadFile(auth, currentParentID, fileName, arrayBuffer);
+  const result = await enrichToListedNovel(patched);
 
-  // Create share for the uploaded file
-  const { urlToken, shareId } = await createPublicShare(auth, nodeId);
-  // Ensure the share URL has protocol to avoid it being treated as relative path
-  const host = SETTINGS.stack.shareHost.startsWith('http')
-    ? SETTINGS.stack.shareHost
-    : `https://${SETTINGS.stack.shareHost}`;
-  const shareUrl = `${host}/s/${urlToken}`;
-  console.log(`[Upload] Share created for file ${fileName}: ${shareUrl} (shareId: ${shareId})`);
-
-  // Update database - use raw query for atomic JSON merge to avoid cache issues
-  console.log(`[Upload] Attempting to update database. Platform: ${typedPlatform}, URL: ${shareUrl}, NovelId: ${novelId}`);
-  
-  try {
-    const result = await prisma.$queryRaw<Array<{ id: string; downloadUrls: Prisma.JsonValue }>>`
-      UPDATE "Novel"
-      SET "downloadUrls" = COALESCE("downloadUrls", '{}'::jsonb) || jsonb_build_object(${typedPlatform}, ${shareUrl})
-      WHERE "id" = ${novelId}
-      RETURNING "id", "downloadUrls"
-    ` as Array<{ id: string; downloadUrls: Prisma.JsonValue }>;
-
-    console.log(`[Upload] Query result:`, result);
-    
-    if (!result || result.length === 0) {
-      console.error(`[Upload] No rows returned from update query`);
-      throw new Error("Failed to update novel download URLs - no rows returned");
-    }
-
-    // Update the novel object with the new downloadUrls
-    const patchedNovel = { ...novel, downloadUrls: result[0].downloadUrls };
-    
-    console.log(`[Upload] Database update complete.`);
-    console.log(`[Upload] Patched novel downloadUrls:`, patchedNovel.downloadUrls);
-
-    const enrichedNovel = await enrichToListedNovel(patchedNovel);
-    revalidateTags(novelTags.novel(novelId));
-    revalidateTags(novelTags.list());
-    console.log(`[Upload] Final result downloadUrls:`, enrichedNovel.downloadUrls);
-    console.log(`[Upload] Returning JSON response:`, JSON.stringify({ downloadUrls: enrichedNovel.downloadUrls }));
-    return NextResponse.json(enrichedNovel, { status: 200 });
-  } catch (error) {
-    console.error(`[Upload] Database update failed:`, error);
-    throw error;
-  }
+  revalidateTags(novelTags.novel(novelId));
+  revalidateTags(novelTags.list());
+  return NextResponse.json(result, { status: 200 });
 });

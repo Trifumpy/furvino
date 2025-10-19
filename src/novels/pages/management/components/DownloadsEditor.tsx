@@ -14,6 +14,8 @@ import { useDeleteNovelFile } from "@/novels/hooks";
 import { ValueFieldProps } from "@/generic/input/KeyMapField";
 import { toast } from "react-toastify";
 import { useEffect, useState, useMemo, useRef } from "react";
+import { uploadFileInParallel } from "@/utils/client/parallelUploader";
+import { getUploadFolder } from "@/novels/utils";
 
 export const keys: KeyMapKey<Platform>[] = PLATFORMS.map((platform) => ({
   label: PLATFORM_NAMES[platform],
@@ -27,6 +29,15 @@ type Props = {
   errors?: Record<Platform, string>;
   novelId?: string;
 };
+
+type UploadStats = {
+  loaded: number;
+  total: number;
+  percent: number;
+  etaSeconds: number;
+  concurrency: number;
+  partSize: number;
+}
 
 export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
   // Ensure all platforms are always visible
@@ -44,8 +55,8 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
   );
   const { deleteFile } = useDeleteNovelFile();
   const [uploadingPlatforms, setUploadingPlatforms] = useState<Set<Platform>>(new Set());
-  const [platformProgress, setPlatformProgress] = useState<Record<Platform, { loaded: number; total: number; percent: number; etaSeconds: number }>>({} as Record<Platform, { loaded: number; total: number; percent: number; etaSeconds: number }>);
-  const activeUploadsRef = useRef<Map<Platform, XMLHttpRequest>>(new Map());
+  const [platformProgress, setPlatformProgress] = useState<Record<Platform, UploadStats>>({} as Record<Platform, UploadStats>);
+  const activeUploadsRef = useRef<Map<Platform, AbortController>>(new Map());
 
   const anyUploading = uploadingPlatforms.size > 0;
 
@@ -63,73 +74,12 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
   // Clean up all active uploads on unmount
   useEffect(() => {
     return () => {
-      activeUploadsRef.current.forEach((xhr) => {
-        xhr.abort();
+      activeUploadsRef.current.forEach((controller) => {
+        controller.abort();
       });
       activeUploadsRef.current.clear();
     };
   }, []);
-
-  const uploadForPlatform = async (platform: Platform, file: File, onProgressUpdate: (p: { loaded: number; total: number; percent: number; etaSeconds: number }) => void): Promise<ListedNovel> => {
-    if (!novelId) {
-      throw new Error("Novel ID is required");
-    }
-
-    return new Promise<ListedNovel>((resolve, reject) => {
-      // Cancel any existing upload for this platform
-      const existingXhr = activeUploadsRef.current.get(platform);
-      if (existingXhr) {
-        existingXhr.abort();
-        activeUploadsRef.current.delete(platform);
-      }
-
-      const xhr = new XMLHttpRequest();
-      activeUploadsRef.current.set(platform, xhr);
-      
-      const formData = new FormData();
-      formData.append("file", file);
-      const startTime = Date.now();
-
-      // Track upload progress
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          const elapsedMs = Date.now() - startTime;
-          const bytesPerMs = e.loaded > 0 && elapsedMs > 0 ? e.loaded / elapsedMs : 0;
-          const remainingBytes = Math.max(e.total - e.loaded, 0);
-          const etaSeconds = bytesPerMs > 0 ? Math.ceil(remainingBytes / bytesPerMs / 1000) : 0;
-          onProgressUpdate({ loaded: e.loaded, total: e.total, percent, etaSeconds });
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        activeUploadsRef.current.delete(platform);
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const result = JSON.parse(xhr.responseText) as ListedNovel;
-            resolve(result);
-          } catch (err) {
-            reject(new Error(`Failed to parse response: ${err}`));
-          }
-        } else {
-          reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`));
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        activeUploadsRef.current.delete(platform);
-        reject(new Error("Network error during upload"));
-      });
-
-      xhr.addEventListener("abort", () => {
-        activeUploadsRef.current.delete(platform);
-        reject(new Error("Upload aborted"));
-      });
-
-      xhr.open("PUT", `/api/novels/${novelId}/files/${platform}/upload-via-api`);
-      xhr.send(formData);
-    });
-  };
 
   const ValueField = ({
     itemKey,
@@ -166,19 +116,62 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
               return;
             }
             
+            const controller = new AbortController();
+            activeUploadsRef.current.set(itemKey, controller);
+
             try {
               setUploadingPlatforms((prev) => new Set(prev).add(itemKey));
               
-              const novel = await uploadForPlatform(itemKey, file, (p) => {
-                setPlatformProgress((prev) => ({ ...prev, [itemKey]: p }));
+              const targetFolder = getUploadFolder(novelId, itemKey);
+              const { stackPath, shareUrl } = await uploadFileInParallel({
+                file,
+                targetFolder,
+                filename: file.name,
+              }, {
+                signal: controller.signal,
+                onStats: (stats) => {
+                  const percent = Math.round((stats.uploadedBytes / stats.totalBytes) * 100);
+                  const etaSeconds = stats.mbps > 0 ? Math.ceil((stats.totalBytes - stats.uploadedBytes) / (stats.mbps * 1024 * 1024)) : 0;
+
+                  setPlatformProgress((prev) => ({
+                    ...prev,
+                    [itemKey]: {
+                      loaded: stats.uploadedBytes,
+                      total: stats.totalBytes,
+                      percent,
+                      etaSeconds,
+                      concurrency: stats.concurrency,
+                      partSize: stats.partSize,
+                    },
+                  }));
+                },
               });
               
-              const url = novel.downloadUrls?.[itemKey] ?? "";
-              onChange(url);
+              try {
+                const finalizeRes = await fetch(`/api/novels/${novelId}/files/${itemKey}/finalize`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ stackPath, shareUrl }),
+                  signal: controller.signal,
+                });
+
+                if (!finalizeRes.ok) {
+                  const errorText = await finalizeRes.text().catch(() => "");
+                  throw new Error(errorText || `Failed to finalize upload for ${itemKey}`);
+                }
+              } catch (finalizeErr) {
+                toast.error((finalizeErr as Error).message || "Failed to finalize upload");
+                throw finalizeErr;
+              }
+
+              onChange(shareUrl);
               toast.success(`${PLATFORM_NAMES[itemKey]} upload successful`);
             } catch (err) {
-              toast.error((err as Error).message || "Upload failed");
+              if ((err as Error).name !== 'AbortError') {
+                toast.error((err as Error).message || "Upload failed");
+              }
             } finally {
+              activeUploadsRef.current.delete(itemKey);
               setUploadingPlatforms((prev) => {
                 const next = new Set(prev);
                 next.delete(itemKey);
@@ -196,6 +189,7 @@ export function DownloadsEditor({ value, onChange, errors, novelId }: Props) {
           <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
             Uploading: {thisProgress.percent}%
             {thisProgress.etaSeconds > 0 && ` • ETA: ${thisProgress.etaSeconds}s`}
+            {` • Concurrency: ${thisProgress.concurrency} • Part size: ${(thisProgress.partSize / (1024*1024)).toFixed(1)}MB`}
           </Typography>
         )}
       </Stack>

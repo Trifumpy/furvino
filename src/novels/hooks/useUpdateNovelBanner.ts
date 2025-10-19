@@ -1,6 +1,7 @@
 import { useRegistry } from "@/utils/client";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import type { UploadStats } from "@/utils/services/novels";
 
 export type UpdateNovelBannerArgs = {
   novelId: string;
@@ -9,13 +10,15 @@ export type UpdateNovelBannerArgs = {
 
 export function useUpdateNovelBanner() {
   const { novels } = useRegistry();
-  const [progress, setProgress] = useState<null>(null);
+  const [stats, setStats] = useState<UploadStats | null>(null);
 
   const mutation = useMutation({
     mutationKey: ["updateNovelBanner"],
     mutationFn: async ({ novelId, bannerFile }: UpdateNovelBannerArgs) => {
-      setProgress(null);
-      return novels.uploadBanner(novelId, bannerFile);
+      setStats(null);
+      return novels.uploadBannerWithStats(novelId, bannerFile, (stats) => {
+        setStats(stats);
+      });
     },
   });
 
@@ -23,6 +26,6 @@ export function useUpdateNovelBanner() {
     updateBanner: mutation.mutateAsync, 
     isUpdating: mutation.isPending, 
     error: mutation.error,
-    progress,
+    stats,
   };
 }

@@ -68,10 +68,10 @@ export function NovelForm({
     }
   }, [fixedAuthorId, setValue]);
 
-  const { updateThumbnail, isUpdating: isUploadingThumbnail, progress: thumbnailProgress } =
+  const { updateThumbnail, isUpdating: isUploadingThumbnail, stats: thumbnailStats } =
     useUpdateNovelThumbnail();
 
-  const { updateBanner, isUpdating: isUploadingBanner, progress: bannerProgress } =
+  const { updateBanner, isUpdating: isUploadingBanner, stats: bannerStats } =
     useUpdateNovelBanner();
 
   // Get upload config for direct STACK uploads (if available)
@@ -139,8 +139,10 @@ export function NovelForm({
                   />
                 )}
               />
-              {isUploadingThumbnail && thumbnailProgress && (
-                <></>
+              {isUploadingThumbnail && (
+                <Typography variant="body2" color="text.secondary">
+                  Uploading... {thumbnailStats && `${Math.round((thumbnailStats.uploadedBytes / thumbnailStats.totalBytes) * 100)}% (Concurrency: ${thumbnailStats.concurrency})`}
+                </Typography>
               )}
             </Box>
             <Box sx={{ flex: 1 }}>
@@ -158,8 +160,10 @@ export function NovelForm({
                   />
                 )}
               />
-              {isUploadingBanner && bannerProgress && (
-                <></>
+              {isUploadingBanner && (
+                <Typography variant="body2" color="text.secondary">
+                  Uploading... {bannerStats && `${Math.round((bannerStats.uploadedBytes / bannerStats.totalBytes) * 100)}% (Concurrency: ${bannerStats.concurrency})`}
+                </Typography>
               )}
             </Box>
           </Stack>
